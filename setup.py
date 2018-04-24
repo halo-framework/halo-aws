@@ -6,7 +6,7 @@ from distutils.core import setup
 
 setup(
     name='commonapi',
-    version='1.0.1',
+    version='1.0.2',
     packages=['', 'commonapi'],
     url='',
     license='',
