@@ -12,4 +12,3 @@ commonapi\ses.py
 commonapi\tests.py
 commonapi\urls.py
 commonapi\views.py
-commonapi\views1.py
