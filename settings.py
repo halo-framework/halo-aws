@@ -44,7 +44,7 @@ SECRET_KEY = env('SECRET_KEY')
 APPEND_SLASH = True
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool('DEBUG', default=False)
+DEBUG = env.bool('DEBUG', default=True)
 
 SERVER = env('SERVER_NAME')
 ALLOWED_HOSTS = ['*','127.0.0.1',SERVER]
@@ -265,7 +265,7 @@ LOGGING = {
             'handlers': ['console'],
             'level': "DEBUG",
         },
-        'loaderservice.api.views': {
+        'common.commonapi.views': {
             'level': 'DEBUG',
             'handlers': ['console']
         },

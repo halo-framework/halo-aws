@@ -210,7 +210,32 @@ class BaseLink(APIView):
         logger.debug('split_locale_from_request:  ' + str(locale))
         return locale
 
+    #es,ar;q=0.9,he-IL;q=0.8,he;q=0.7,en-US;q=0.6,en;q=0.5,es-ES;q=0.4
     def get_user_locale(self, request):
+        locale = self.split_locale_from_request(request)
+        if (not locale) or (locale == ''):
+            if request.META.has_key('HTTP_ACCEPT_LANGUAGE'):
+                self.user_languages = request.META.get('HTTP_ACCEPT_LANGUAGE', self.user_locale+",")
+                logger.debug('user_languages:  ' + str(self.user_languages))
+                arr = self.user_languages.split(",")
+                for l in arr:
+                   if "-" in l:
+                        if ";" not in l:
+                            self.user_locale = l
+                        else:
+                            self.user_locale = l.split(";")[0]
+                        break
+                   else:
+                       continue
+        else:
+            self.user_locale = locale
+        logger.debug('process LOCALE_CODE:  ' + str(self.user_locale))
+        if settings.GET_LANGUAGE == True:
+            #translation.activate(self.user_locale)
+            self.user_lang = self.user_locale.split("-")[0]#translation.get_language().split("-")[0]
+        logger.debug('process LANGUAGE_CODE:  ' + str(self.user_lang))
+
+    def get_user_locale1(self, request):
         locale = self.split_locale_from_request(request)
         if (not locale) or (locale == ''):
             if request.META.has_key('HTTP_ACCEPT_LANGUAGE'):
@@ -255,8 +280,8 @@ class BaseLink(APIView):
         self.user_langs = request.META.get('HTTP_ACCEPT_LANGUAGE', ['en-US', ])
         logger.debug('process user_langs:  '+str(self.user_langs))
         #can not block root sites except black list
-        if self.is_root_site(self.get_client_ip(request)):
-            return HttpResponse()
+        #if self.is_root_site(self.get_client_ip(request)):
+        #    return HttpResponse()
 
         return HttpResponse()
 
@@ -317,3 +342,6 @@ class BaseLink(APIView):
         if not uid or uid == '':
             uid = 'none'
         return uid
+
+class TestLink(BaseLink):
+    permission_classes = (permissions.AllowAny,)
