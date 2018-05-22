@@ -321,7 +321,7 @@ class BaseLink(APIView):
         logger.debug("its done ")
         return HttpResponse('this is process delete on '+self.get_view_name())
 
-    def get_template(self, request,html):
+    def get_the_template(self, request,html):
         return loader.get_template(html)
 
     def get_template(self, request):
