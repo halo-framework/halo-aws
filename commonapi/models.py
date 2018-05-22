@@ -14,10 +14,6 @@ from django.contrib.auth.models import User
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-from pynamodb.models import Model
-from pynamodb.indexes import GlobalSecondaryIndex, AllProjection
-from pynamodb.attributes import UnicodeAttribute,NumberAttribute,BooleanAttribute
-
 ver = settings.DB_VER
 uri = settings.DB_URL
 tbl = False
