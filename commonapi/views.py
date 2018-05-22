@@ -7,6 +7,7 @@ from django.conf import settings
 import logging
 import uuid
 import locale
+from enum import Enum
 from abc import ABCMeta, abstractmethod
 
 from urllib import quote_plus
@@ -43,7 +44,13 @@ headers = {
 }
 
 logger = logging.getLogger(__name__)
-#logger.setLevel(logging.DEBUG)
+
+
+class HTTPChoice(Enum):   # A subclass of Enum
+    get = "get"
+    post = "post"
+    put = "put"
+    delete = "delete"
 
 def strx(str1):
     if str1:
@@ -111,7 +118,7 @@ class BaseLink(APIView):
     user_locale = settings.LOCALE_CODE
     user_lang = settings.LANGUAGE_CODE
 
-    def do_process(self, request,typer,name,vars):
+    def do_process(self, request,typer,vars):
 
         now = datetime.datetime.now()
 
@@ -119,9 +126,9 @@ class BaseLink(APIView):
         logger.info('process LANGUAGE:  ' + str(self.user_lang)+" LOCALE: "+str(self.user_locale))
 
         try:
-            ret = self.process(request,vars)
+            ret = self.process(request,typer,vars)
             total = datetime.datetime.now() - now
-            logger.info("timing for "+typer +' '+name+' '+ str(total))
+            logger.info("timing for "+str(typer) + str(total))
             return ret
         except IOError as e:
             logger.debug('An IOerror occured :' + str(e.message))
@@ -157,7 +164,7 @@ class BaseLink(APIView):
 
         html = '<html>error in request</html>'
         total = datetime.datetime.now() - now
-        logger.info("timing for " + typer + ' ' + name + ' ' + str(total))
+        logger.info("timing for " +str(typer) + ' ' + str(total))
         return HttpResponseRedirect("/"+str(status.HTTP_400_BAD_REQUEST))
 
     def process_else(self):
@@ -167,7 +174,7 @@ class BaseLink(APIView):
         logger.debug("process_finally")
 
     def put_in_q(self,urlx, type, uuid ,height=None, width=None):
-        logger.debug("put in q: "+urlx)
+        logger.debug("put in q: "+str(urlx))
         #in the q
         hash = self.get_hash(urlx)
         score = self.score_item(urlx)
@@ -258,32 +265,64 @@ class BaseLink(APIView):
         logger.debug('process LANGUAGE_CODE:  ' + str(self.user_lang))
 
     def get(self, request, format=None):
-        if Util.check_if_robot():
-            html = '<html>are you a robot?</html>'
-            return HttpResponse(html)
-        logger.debug('process GET:  ')
+        logger.debug('process')
         vars = {}
-        return self.do_process(request,"GET",'BaseLink',vars);
+        return self.do_process(request,HTTPChoice.get,vars);
 
     def post(self, request, format=None):
-        if Util.check_if_robot():
-            html = '<html>are you a robot?</html>'
-            return HttpResponse(html)
-        logger.debug('process POST:  ')
+        logger.debug('process')
         vars = {}
-        return self.do_process(request,"POST",'BaseLink', vars);
+        return self.do_process(request,HTTPChoice.post, vars);
 
-    def process(self,request,vars):
+    def put(self, request, format=None):
+        logger.debug('process')
+        vars = {}
+        return self.do_process(request,HTTPChoice.put, vars);
+
+    def delete(self, request, format=None):
+        logger.debug('process')
+        vars = {}
+        return self.do_process(request,HTTPChoice.delete, vars);
+
+    def process(self,request,typer,vars):
         """
         Return a list of all users.
         """
         self.user_langs = request.META.get('HTTP_ACCEPT_LANGUAGE', ['en-US', ])
         logger.debug('process user_langs:  '+str(self.user_langs))
-        #can not block root sites except black list
-        #if self.is_root_site(self.get_client_ip(request)):
-        #    return HttpResponse()
 
-        return HttpResponse()
+        if typer == HTTPChoice.get:
+            return self.process_get(request,vars)
+
+        if typer == HTTPChoice.post:
+            return self.process_post(request,vars)
+
+        if typer == HTTPChoice.put:
+            return self.process_put(request,vars)
+
+        if typer == HTTPChoice.delete:
+            return self.process_delete(request,vars)
+
+        return HttpResponse('this is a '+str(typer)+' on '+self.get_view_name())
+
+    def process_get(self,request,vars):
+        logger.debug("its done ")
+        return HttpResponse('this is process get on '+self.get_view_name())
+
+    def process_post(self,request,vars):
+        logger.debug("its done ")
+        return HttpResponse('this is process post on '+self.get_view_name())
+
+    def process_put(self,request,vars):
+        logger.debug("its done ")
+        return HttpResponse('this is process put on '+self.get_view_name())
+
+    def process_delete(self,request,vars):
+        logger.debug("its done ")
+        return HttpResponse('this is process delete on '+self.get_view_name())
+
+    def get_template(self, request,html):
+        return loader.get_template(html)
 
     def get_template(self, request):
         if Util.mobile(request):
@@ -343,5 +382,16 @@ class BaseLink(APIView):
             uid = 'none'
         return uid
 
-class TestLink(BaseLink):
+class TestMixin():
+
+    def process_get(self,request,vars):
+        print "its done"
+        return HttpResponse('this is mixin process get on '+self.get_view_name())
+
+    def process_put(self,request,vars):
+        print "its done"
+        return HttpResponse('this is mixin process post on '+self.get_view_name())
+
+class TestLink(TestMixin,BaseLink):
     permission_classes = (permissions.AllowAny,)
+
