@@ -144,7 +144,7 @@ INSTALLED_APPS = (
     'rest_framework.authtoken',
 
     ## custom
-    'common.commonapi',
+    'halolib.api',
 
     # testing etc:
     'django_jenkins',
@@ -212,7 +212,7 @@ TEMPLATES = [
 
 STATIC_URL = '/static1/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, "common/api/static")
+STATIC_ROOT = os.path.join(BASE_DIR, "halolib/api/static")
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
@@ -265,15 +265,14 @@ LOGGING = {
             'handlers': ['console'],
             'level': "DEBUG",
         },
-        'common.commonapi.views': {
+        'halolib.api.views': {
             'level': 'DEBUG',
             'handlers': ['console']
         },
-        'loaderservice.api.models': {
+        'halolib.api.models': {
             'level': 'DEBUG',
             'handlers': ['console']
         },
     },
 }
 
-PLATFORM_LIST = ["ebay","amazon","walmart"]
