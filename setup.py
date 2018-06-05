@@ -5,9 +5,9 @@ from distutils.core import setup
 # \dev\python27\python setup.py build
 
 setup(
-    name='commonapi',
-    version='1.0.6',
-    packages=['', 'commonapi'],
+    name='halolib',
+    version='1.0.7',
+    packages=['', 'halolibpi'],
     url='',
     license='',
     author='yoramk',
