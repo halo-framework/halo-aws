@@ -12,6 +12,6 @@ setup(
     license='',
     author='yoramk',
     author_email='',
-    description='',
+    description='this is the halo framework library',
     zip_safe=False
 )
