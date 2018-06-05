@@ -9,7 +9,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     # Example:
-    url(r'^', include('halolib.halolibapi.urls')),
+    url(r'^', include('halolib.api.urls')),
     #url(r'^', proxy),
     #url(r'^(?P<url>.*)$', proxy),#, ProxyLink.as_view(), name='proxy'),
 
