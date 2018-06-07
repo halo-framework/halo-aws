@@ -7,6 +7,16 @@ from django.conf import settings
 import logging
 import uuid
 import locale
+import jwt
+import json
+import requests
+import hashlib
+import urlparse
+import boto3
+import base64
+import re
+import urllib
+
 from enum import Enum
 from abc import ABCMeta, abstractmethod
 
@@ -14,24 +24,15 @@ from urllib import quote_plus
 from django.http import HttpResponse,HttpResponseRedirect
 from django.template import Context, loader
 from django.contrib import messages
-
-import jwt
-import json
-import requests
-import hashlib
-import urlparse
-
+from django.template.exceptions import TemplateDoesNotExist
 from django.utils import translation
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import authentication, permissions
 from rest_framework import status
-import boto3
-import base64
-import re
-import urllib
 
-
+from .mixin import BaseMixin
 
 headers = {
     'User-Agent': 'Mozilla/5.0',
@@ -103,10 +104,10 @@ class BaseLink(APIView):
     # permission_classes = (permissions.IsAdminUser,permissions.IsAuthenticatedOrReadOnly)
     permission_classes = (permissions.AllowAny,)
 
-    the_html = 'm_upc.html'
-    the_tag = 'MOBILE'
-    other_html = 't_upc.html'
-    other_tag = 'TOOLTIP'
+    the_html = ''
+    the_tag = ''
+    other_html = ''
+    other_tag = ''
 
     user_languages = []
     user_locale = settings.LOCALE_CODE
@@ -236,27 +237,6 @@ class BaseLink(APIView):
             self.user_lang = self.user_locale.split("-")[0]#translation.get_language().split("-")[0]
         logger.debug('process LANGUAGE_CODE:  ' + str(self.user_lang))
 
-    def get_user_locale1(self, request):
-        locale = self.split_locale_from_request(request)
-        if (not locale) or (locale == ''):
-            if request.META.has_key('HTTP_ACCEPT_LANGUAGE'):
-                self.user_languages = request.META.get('HTTP_ACCEPT_LANGUAGE', self.user_locale+",")
-                logger.debug('user_languages:  ' + str(self.user_languages))
-                arr = self.user_languages.split(",")
-                if len(arr) > 0:
-                    l = arr[0]
-                    if "-" in l:
-                        if ";" not in l:
-                            self.user_locale = l
-                        else:
-                            self.user_locale = l.split(";")[0]
-        else:
-            self.user_locale = locale
-        logger.debug('process LOCALE_CODE:  ' + str(self.user_locale))
-        if settings.GET_LANGUAGE == True:
-            #translation.activate(self.user_locale)
-            self.user_lang = self.user_locale.split("-")[0]#translation.get_language().split("-")[0]
-        logger.debug('process LANGUAGE_CODE:  ' + str(self.user_lang))
 
     def get(self, request, format=None):
         logger.debug('process')
@@ -327,14 +307,6 @@ class BaseLink(APIView):
             the_mobile_web = self.other_tag
         return t, the_mobile_web
 
-    def get_client_ip1(self,request):
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[-1].strip()
-        else:
-            ip = request.META.get('REMOTE_ADDR')
-        return ip
-
     def get_client_ip(self,request):
         logger.debug("get_client_ip: " + str(request.META))
         ip = request.META.get('REMOTE_ADDR')
@@ -362,30 +334,10 @@ class BaseLink(APIView):
         logger.debug("get_jwt_str: ")
         return '&jwt='+self.get_jwt(request)
 
-    def check_curr(self, request):#get currency
-        curr = request.GET.get('curr','USD')
-        logger.debug("check_curr: " + str(curr))
-        if not curr or curr == '':
-            curr = 'USD'
-        return curr
 
-    def get_user(self, request):#get currency
-        uid = request.GET.get('uid','none')
-        logger.debug("get_user: " + str(uid))
-        if not uid or uid == '':
-            uid = 'none'
-        return uid
 
-class TestMixin():
+##################################### test #########################
 
-    def process_get(self,request,vars):
-        print "its done"
-        return HttpResponse('this is mixin process get on '+self.get_view_name())
-
-    def process_put(self,request,vars):
-        print "its done"
-        return HttpResponse('this is mixin process post on '+self.get_view_name())
-
-class TestLink(TestMixin,BaseLink):
+class TestLink(BaseMixin,BaseLink):
     permission_classes = (permissions.AllowAny,)
 
