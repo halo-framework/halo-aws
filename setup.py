@@ -6,11 +6,11 @@ from distutils.core import setup
 
 setup(
     name='halolib',
-    version='1.0.1',
+    version='0.11.1',
     packages=['', 'halolib'],
     url='',
     license='',
-    author='yoramk',
+    author='yoramk2',
     author_email='',
     description='this is the halo framework library',
     zip_safe=False

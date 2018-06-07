@@ -124,7 +124,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = 'common.urls'
+ROOT_URLCONF = 'halolib.urls'
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -144,7 +144,7 @@ INSTALLED_APPS = (
     'rest_framework.authtoken',
 
     ## custom
-    'halolib.api',
+    'halolib',
 
     # testing etc:
     'django_jenkins',

@@ -5,7 +5,10 @@ setup.py
 urls.py
 wsgi.py
 halolib\__init__.py
-halolib\cache.py
+halolib\apis.py
+halolib\events.py
+halolib\exceptions.py
+halolib\mixin.py
 halolib\models.py
 halolib\ses.py
 halolib\tests.py
