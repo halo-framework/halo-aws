@@ -32,7 +32,7 @@ from rest_framework.response import Response
 from rest_framework import authentication, permissions
 from rest_framework import status
 
-
+from .exceptions import HaloError
 
 
 headers = {
@@ -41,6 +41,8 @@ headers = {
 
 logger = logging.getLogger(__name__)
 
+class ApiError(HaloError):
+	pass
 
 class BaseApi(object):
 	url = None
@@ -62,22 +64,22 @@ class BaseApi(object):
 			return ret
 		except requests.ConnectionError, e:
 			logger.debug("error: " + str(e.message))
-			ret = Error()
+			ret = ApiError(e.message)
 			ret.status_code = -1
 			return ret
 		except requests.HTTPError,e:
 			logger.debug("error: " + str(e.message))
-			ret = Error()
+			ret = ApiError(e.message)
 			ret.status_code = -2
 			return ret
 		except requests.Timeout,e:
 			logger.debug("error: " + str(e.message))
-			ret = Error()
+			ret = ApiError(e.message)
 			ret.status_code = -3
 			return ret
 		except requests.RequestException,e:
 			logger.debug("error: " + str(e.message))
-			ret = Error()
+			ret = ApiError(e.message)
 			ret.status_code = -4
 			return ret
 
@@ -97,6 +99,5 @@ class BaseApi(object):
 
 ##################################### test #########################
 
-class TestMixin(BaseMixin):
-	pass
+
 
