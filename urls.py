@@ -10,10 +10,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     # Example:
     url(r'^', include('halolib.halolib.urls')),
-    #url(r'^', proxy),
     #url(r'^(?P<url>.*)$', proxy),#, ProxyLink.as_view(), name='proxy'),
-
-    #url(r'^common/', include('common.commonapi.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     #url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
