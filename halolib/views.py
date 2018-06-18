@@ -123,7 +123,7 @@ class BaseLink(APIView):
         try:
             ret = self.process(request,typer,vars)
             total = datetime.datetime.now() - now
-            logger.info("timing for "+str(typer) + str(total))
+            logger.info("timing for "+str(typer)+"in milliseconds : " + str(int(total.total_seconds() * 1000)))
             return ret
         except IOError as e:
             logger.debug('An IOerror occured :' + str(e.message))
@@ -157,9 +157,8 @@ class BaseLink(APIView):
         finally:
             self.process_finally()
 
-        html = '<html>error in request</html>'
         total = datetime.datetime.now() - now
-        logger.info("timing for " +str(typer) + ' ' + str(total))
+        logger.info("timing for " + str(typer) + "in milliseconds : " + str(int(total.total_seconds() * 1000)))
         return HttpResponseRedirect("/"+str(status.HTTP_400_BAD_REQUEST))
 
     def process_else(self):
