@@ -123,7 +123,7 @@ class BaseLink(APIView):
         try:
             ret = self.process(request,typer,vars)
             total = datetime.datetime.now() - now
-            logger.info("timing for "+str(typer)+"in milliseconds : " + str(int(total.total_seconds() * 1000)))
+            logger.info("timing for "+str(typer)+" in milliseconds : " + str(int(total.total_seconds() * 1000)))
             return ret
         except IOError as e:
             logger.debug('An IOerror occured :' + str(e.message))
