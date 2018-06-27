@@ -55,10 +55,12 @@ class BaseEvent(object):
 		logger.debug("send_event to service "+targetService+" ret: " + str(ret))
 
 class BaseHandler(object):
+	__metaclass__ = ABCMeta
 
 	def get_event(self, event, context):
 		logger.debug('get_event : ' + str(event))
 		self.process_event(event, context)
 
+	@abstractmethod
 	def process_event(self, event, context):
 		pass
