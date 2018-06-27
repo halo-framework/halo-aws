@@ -1,33 +1,17 @@
 # Create your mixin here.
+
 # python
-import datetime
 import json
 import logging
-import urllib
-import uuid
-import requests
-from cStringIO import StringIO
-# aws
-import boto3
-from botocore.exceptions import ClientError
-# common
-from halolib.views import HTTPChoice
-from halolib.apis import BaseApi
-# django
-from django.conf import settings
-from django.contrib import messages
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response
-from django.template import RequestContext
-# DRF
-from rest_framework import permissions
-from rest_framework import status
-from rest_framework.response import Response
-
-from enum import Enum
 from abc import ABCMeta, abstractmethod
 
-from .exceptions import HaloError,HaloException
+# aws
+import boto3
+# common
+# django
+from django.conf import settings
+
+# DRF
 
 headers = {
     'User-Agent': settings.headers,

@@ -1,42 +1,25 @@
 # Create your views here.
+
 # python
 import datetime
-import json
 import logging
-import urllib
-import uuid
-import requests
 import re
 import traceback
-import locale
+from abc import ABCMeta
+
 import jwt
-import hashlib
-from cStringIO import StringIO
-# aws
-import boto3
-from botocore.exceptions import ClientError
-# common
-from halolib.views import HTTPChoice
-from halolib.apis import BaseApi
 # django
 from django.conf import settings
-from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response
-from django.template import RequestContext
-from django.template import Context, loader
-# DRF
-from rest_framework.views import APIView
+from django.template import loader
+from enum import Enum
 from rest_framework import permissions
 from rest_framework import status
-from rest_framework.response import Response
+# DRF
+from rest_framework.views import APIView
 
-
-from enum import Enum
-from abc import ABCMeta, abstractmethod
-
-from .exceptions import HaloError,HaloException
-
+# aws
+# common
 from .mixin import BaseMixin
 
 headers = {
@@ -157,43 +140,15 @@ class BaseLink(APIView):
             #logger.debug('An error occured in '+str(fname)+' lineno: '+str(exc_tb.tb_lineno)+' exc_type '+str(exc_type)+' '+e.message)
             logger.info('An Exception occurred in ' + str(traceback.format_exc()))
 
-        else:
-            self.process_else()
-
         finally:
             self.process_finally()
 
         total = datetime.datetime.now() - now
-        logger.info("timing for " + str(typer) + "in milliseconds : " + str(int(total.total_seconds() * 1000)))
+        logger.info("timing for " + str(typer) + " in milliseconds : " + str(int(total.total_seconds() * 1000)))
         return HttpResponseRedirect("/"+str(status.HTTP_400_BAD_REQUEST))
-
-    def process_else(self):
-        logger.debug("process_else")
 
     def process_finally(self):
         logger.debug("process_finally")
-
-    def put_in_q(self,urlx, type, uuid ,height=None, width=None):
-        logger.debug("put in q: "+str(urlx))
-        #in the q
-        hash = self.get_hash(urlx)
-        score = self.score_item(urlx)
-        self.add_url_db(hash, urlx, score, height,width, type)
-
-    def get_hash(self,urlx):
-        return hashlib.sha256(urlx.encode()).hexdigest()
-
-    def all_locale(self,loc=None):
-        alllocale = locale.locale_alias
-        if loc:
-            for k in alllocale.keys():
-                print 'locale[%s] %s' % (k, alllocale[k])
-                if alllocale[k] == loc:
-                    return True
-        if settings.DEBUG:
-            for k in alllocale.keys():
-                print 'locale[%s] %s' % (k, alllocale[k])
-        return False
 
     def split_locale_from_request(self, request):
         locale = ''
@@ -246,22 +201,22 @@ class BaseLink(APIView):
     def get(self, request, format=None):
         logger.debug('process')
         vars = {}
-        return self.do_process(request,HTTPChoice.get,vars);
+        return self.do_process(request, HTTPChoice.get, vars)
 
     def post(self, request, format=None):
         logger.debug('process')
         vars = {}
-        return self.do_process(request,HTTPChoice.post, vars);
+        return self.do_process(request, HTTPChoice.post, vars)
 
     def put(self, request, format=None):
         logger.debug('process')
         vars = {}
-        return self.do_process(request,HTTPChoice.put, vars);
+        return self.do_process(request, HTTPChoice.put, vars)
 
     def delete(self, request, format=None):
         logger.debug('process')
         vars = {}
-        return self.do_process(request,HTTPChoice.delete, vars);
+        return self.do_process(request, HTTPChoice.delete, vars)
 
     def process(self,request,typer,vars):
         """

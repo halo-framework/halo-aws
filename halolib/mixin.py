@@ -1,33 +1,18 @@
 # Create your mixin here.
+
 # python
-import datetime
-import json
 import logging
-import urllib
-import uuid
-import requests
-from cStringIO import StringIO
+from abc import ABCMeta, abstractmethod
+
 # aws
-import boto3
-from botocore.exceptions import ClientError
 # common
-from halolib.views import HTTPChoice
-from halolib.apis import BaseApi
 # django
 from django.conf import settings
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.http import HttpResponse
+from django.template.exceptions import TemplateDoesNotExist
+
 # DRF
-from rest_framework import permissions
-from rest_framework import status
-from rest_framework.response import Response
-
-from enum import Enum
-from abc import ABCMeta, abstractmethod
-
-from .exceptions import HaloError,HaloException
 
 
 headers = {
@@ -39,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 class BaseMixin(object):
+	__metaclass__ = ABCMeta
 
 	name = 'Base'
 
@@ -52,10 +38,14 @@ class BaseMixin(object):
 
 	def get_root_url(self):
 		if settings.SERVER_LOCAL == True or settings.STAGE_URL == False:
-			root = ''
+			root = '/'
 		else:
 			root = "/" + settings.ENV_NAME + "/"
 		return root
+
+	@abstractmethod
+	def get_the_template(self, request, name):
+		pass
 
 	def process_get(self, request, vars):
 		try:

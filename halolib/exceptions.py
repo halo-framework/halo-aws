@@ -1,6 +1,5 @@
 # Create your mixin here.
 
-
 class HaloException(Exception):
     """
     The exception used when a template does not exist. Accepts the following

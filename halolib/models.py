@@ -1,15 +1,9 @@
-from django.db import models
 
 #java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -port 8600
 
-import uuid
 import logging
-from django.conf import settings
-import datetime
 
-from django.db import models
-from django.template.defaultfilters import slugify
-from django.contrib.auth.models import User
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
