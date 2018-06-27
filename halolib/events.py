@@ -19,7 +19,8 @@ headers = {
 
 logger = logging.getLogger(__name__)
 
-class BaseEvent(object):
+
+class AbsBaseEvent(object):
 	__metaclass__ = ABCMeta
 
 	target_service = None
@@ -35,10 +36,37 @@ class BaseEvent(object):
 
 		logger.debug("send_event to service "+self.target_service+" ret: " + str(ret))
 
-class BaseHandler(object):
+		return ret
+
+
+class AbsMainHandler(object):
 	__metaclass__ = ABCMeta
 
+	keys = []
+	vals = {}
+	classes = {}
+
 	def get_event(self, event, context):
+		logger.debug('get_event : ' + str(event))
+		self.process_event(event, context)
+
+	@abstractmethod
+	def process_event(self, event, context):
+		for key in self.keys:
+			if key in event:
+				val = self.vals[key]
+				if val == event[key]:
+					class_name = self.classes["key"]
+					module = __import__('mixin_handler')
+					class_ = getattr(module, class_name)
+					instance = class_()
+					instance.do_event(self, event, context)
+
+
+class AbsBaseHandler(object):
+	__metaclass__ = ABCMeta
+
+	def do_event(self, event, context):
 		logger.debug('get_event : ' + str(event))
 		self.process_event(event, context)
 

@@ -27,7 +27,8 @@ class ApiException(HaloException):
 class ApiError(HaloError):
 	pass
 
-class BaseApi(object):
+
+class AbsBaseApi(object):
 	__metaclass__ = ABCMeta
 
 	url = None

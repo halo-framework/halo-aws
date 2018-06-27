@@ -20,7 +20,7 @@ from rest_framework.views import APIView
 
 # aws
 # common
-from .mixin import BaseMixin
+from .mixin import AbsBaseMixin
 
 headers = {
     'User-Agent': settings.headers,
@@ -79,7 +79,7 @@ class Util:
         return False
 
 
-class BaseLink(APIView):
+class AbsBaseLink(APIView):
     __metaclass__ = ABCMeta
 
     """
@@ -298,6 +298,6 @@ class BaseLink(APIView):
 
 ##################################### test ##########################
 
-class TestLink(BaseMixin,BaseLink):
+class TestLink(AbsBaseMixin, AbsBaseLink):
     permission_classes = (permissions.AllowAny,)
 

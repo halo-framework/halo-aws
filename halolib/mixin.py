@@ -23,7 +23,7 @@ headers = {
 logger = logging.getLogger(__name__)
 
 
-class BaseMixin(object):
+class AbsBaseMixin(object):
 	__metaclass__ = ABCMeta
 
 	name = 'Base'
@@ -45,7 +45,7 @@ class BaseMixin(object):
 
 	@abstractmethod
 	def get_the_template(self, request, name):
-		pass
+		return None
 
 	def process_get(self, request, vars):
 		try:
@@ -54,7 +54,10 @@ class BaseMixin(object):
 			c = {'the_title_string': 'welcome', 'the_site_string': settings.SITE_NAME, 'the_env_static_string': root,
 				 'the_content': 'this is a get on view '+self.name, 'version': settings.VERSION,
 				 'messages': messages.get_messages(request)}
-			html = t.render(c)
+			if t:
+				html = t.render(c)
+			else:
+				html = 'this is a get on view ' + self.name
 		except TemplateDoesNotExist:
 			html = 'this is a get on view ' + self.name
 		return HttpResponse(html)
@@ -72,6 +75,6 @@ class BaseMixin(object):
 
 ##################################### test #########################
 
-class TestMixin(BaseMixin):
+class TestMixin(AbsBaseMixin):
 	pass
 
