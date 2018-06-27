@@ -12,7 +12,6 @@ from django.template.defaultfilters import slugify
 from django.contrib.auth.models import User
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 ver = settings.DB_VER
 uri = settings.DB_URL

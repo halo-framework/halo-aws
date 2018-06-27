@@ -1,58 +1,55 @@
 # Create your mixin here.
-import os
-import sys
-import traceback
+# python
 import datetime
-from django.conf import settings
-import logging
-import uuid
-import locale
-import jwt
 import json
-import requests
-import hashlib
-import urlparse
-import boto3
-import base64
-import re
+import logging
 import urllib
+import uuid
+import requests
+from cStringIO import StringIO
+# aws
+import boto3
+from botocore.exceptions import ClientError
+# common
+from halolib.views import HTTPChoice
+from halolib.apis import BaseApi
+# django
+from django.conf import settings
+from django.contrib import messages
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import render_to_response
+from django.template import RequestContext
+# DRF
+from rest_framework import permissions
+from rest_framework import status
+from rest_framework.response import Response
 
 from enum import Enum
 from abc import ABCMeta, abstractmethod
 
-from urllib import quote_plus
-from django.http import HttpResponse,HttpResponseRedirect
-from django.template import Context, loader
-from django.contrib import messages
-from django.template.exceptions import TemplateDoesNotExist
-from django.utils import translation
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import authentication, permissions
-from rest_framework import status
-
-
-
+from .exceptions import HaloError,HaloException
 
 headers = {
-    'User-Agent': 'Mozilla/5.0',
+    'User-Agent': settings.headers,
 }
 
 logger = logging.getLogger(__name__)
 
 class BaseEvent(object):
+	__metaclass__ = ABCMeta
 
-	def send_event(self,targetService,messageDict):
+	target_service = None
+
+	def send_event(self,messageDict):
 		client = boto3.client('lambda', region_name=settings.AWS_REGION)
 		ret = client.invoke(
-			FunctionName=targetService + +str('-') + settings.ENV_NAME,
+			FunctionName=self.target_service+str('-') + settings.ENV_NAME,
 			InvocationType='Event',
 			LogType='None',
 			Payload=bytes(json.dumps(messageDict))
 		)
 
-		logger.debug("send_event to service "+targetService+" ret: " + str(ret))
+		logger.debug("send_event to service "+self.target_service+" ret: " + str(ret))
 
 class BaseHandler(object):
 	__metaclass__ = ABCMeta

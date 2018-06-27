@@ -1,42 +1,48 @@
 # Create your views here.
-import os
-import sys
-import traceback
+# python
 import datetime
-from django.conf import settings
+import json
 import logging
+import urllib
 import uuid
+import requests
+import re
+import traceback
 import locale
 import jwt
-import json
-import requests
 import hashlib
-import urlparse
+from cStringIO import StringIO
+# aws
 import boto3
-import base64
-import re
-import urllib
+from botocore.exceptions import ClientError
+# common
+from halolib.views import HTTPChoice
+from halolib.apis import BaseApi
+# django
+from django.conf import settings
+from django.contrib import messages
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import render_to_response
+from django.template import RequestContext
+from django.template import Context, loader
+# DRF
+from rest_framework.views import APIView
+from rest_framework import permissions
+from rest_framework import status
+from rest_framework.response import Response
+
 
 from enum import Enum
 from abc import ABCMeta, abstractmethod
 
-from urllib import quote_plus
-from django.http import HttpResponse,HttpResponseRedirect
-from django.template import Context, loader
-from django.contrib import messages
-from django.template.exceptions import TemplateDoesNotExist
-from django.utils import translation
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import authentication, permissions
-from rest_framework import status
+from .exceptions import HaloError,HaloException
 
 from .mixin import BaseMixin
 
 headers = {
-    'User-Agent': 'Mozilla/5.0',
+    'User-Agent': settings.headers,
 }
+
 
 logger = logging.getLogger(__name__)
 
