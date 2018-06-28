@@ -2,6 +2,7 @@
 
 
 import os
+
 import environ
 from django.utils.translation import ugettext_lazy as _
 
@@ -276,3 +277,6 @@ LOGGING = {
     },
 }
 
+USER_HEADERS = 'Mozilla/5.0'
+
+print('The settings file has been loaded.')

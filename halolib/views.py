@@ -22,11 +22,6 @@ from rest_framework.views import APIView
 # common
 from .mixin import AbsBaseMixin
 
-headers = {
-    'User-Agent': settings.headers,
-}
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -301,3 +296,5 @@ class AbsBaseLink(APIView):
 class TestLink(AbsBaseMixin, AbsBaseLink):
     permission_classes = (permissions.AllowAny,)
 
+    def get_the_template(self, request, html):
+        return loader.get_template(html)

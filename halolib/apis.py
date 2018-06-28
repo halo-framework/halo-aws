@@ -16,7 +16,7 @@ from .exceptions import HaloError, HaloException
 
 
 headers = {
-    'User-Agent': settings.headers,
+	'User-Agent': settings.USER_HEADERS,
 }
 
 logger = logging.getLogger(__name__)

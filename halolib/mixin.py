@@ -15,11 +15,6 @@ from django.template.exceptions import TemplateDoesNotExist
 # DRF
 
 
-headers = {
-    'User-Agent': settings.headers,
-}
-
-
 logger = logging.getLogger(__name__)
 
 

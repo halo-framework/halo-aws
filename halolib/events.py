@@ -13,9 +13,6 @@ from django.conf import settings
 
 # DRF
 
-headers = {
-    'User-Agent': settings.headers,
-}
 
 logger = logging.getLogger(__name__)
 
