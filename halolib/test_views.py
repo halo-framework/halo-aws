@@ -1,4 +1,3 @@
-from django.test import Client
 from faker import Faker
 from nose.tools import eq_
 from rest_framework import status
@@ -8,6 +7,8 @@ fake = Faker()
 
 import django
 
+# from django.conf import settings
+# settings.configure(default_settings=settings, DEBUG=True)
 django.setup()
 
 
@@ -18,8 +19,6 @@ class TestUserDetailTestCase(APITestCase):
 
     def setUp(self):
         self.url = 'http://127.0.0.1:8000'
-        # initialize the APIClient app
-        self.client = Client()
 
     def test_get_request_returns_a_given_user(self):
         response = self.client.get(self.url)
