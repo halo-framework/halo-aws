@@ -23,6 +23,7 @@ class TestUserDetailTestCase(APITestCase):
     def test_get_request_returns_a_given_user(self):
         response = self.client.get(self.url)
         eq_(response.status_code, status.HTTP_200_OK)
+        eq_(response.content, 'this is a get on view Test')
 
     def test_post_request_returns_a_given_string(self):
         response = self.client.post(self.url)
