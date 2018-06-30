@@ -12,28 +12,37 @@ import boto3
 from django.conf import settings
 
 # DRF
-
+from halolib.exceptions import HaloException
 
 logger = logging.getLogger(__name__)
 
 
+class NoMessageException(HaloException):
+    pass
+
 class AbsBaseEvent(object):
-	__metaclass__ = ABCMeta
+    __metaclass__ = ABCMeta
 
-	target_service = None
+    target_service = None
+    key_name = None
+    key_val = None
 
-	def send_event(self,messageDict):
-		client = boto3.client('lambda', region_name=settings.AWS_REGION)
-		ret = client.invoke(
-			FunctionName=self.target_service+str('-') + settings.ENV_NAME,
-			InvocationType='Event',
-			LogType='None',
-			Payload=bytes(json.dumps(messageDict))
-		)
+    def send_event(self, messageDict):
+        if messageDict:
+            messageDict[self.key_name] = self.key_val
+        else:
+            raise NoMessageException()
+        client = boto3.client('lambda', region_name=settings.AWS_REGION)
+        ret = client.invoke(
+            FunctionName=self.target_service + str('-') + settings.ENV_NAME,
+            InvocationType='Event',
+            LogType='None',
+            Payload=bytes(json.dumps(messageDict))
+        )
 
-		logger.debug("send_event to service "+self.target_service+" ret: " + str(ret))
+        logger.debug("send_event to service " + self.target_service + " ret: " + str(ret))
 
-		return ret
+        return ret
 
 
 class AbsMainHandler(object):
@@ -61,12 +70,15 @@ class AbsMainHandler(object):
 
 
 class AbsBaseHandler(object):
-	__metaclass__ = ABCMeta
+    __metaclass__ = ABCMeta
 
-	def do_event(self, event, context):
-		logger.debug('get_event : ' + str(event))
-		self.process_event(event, context)
+    key_name = None
+    key_val = None
 
-	@abstractmethod
-	def process_event(self, event, context):
-		pass
+    def do_event(self, event, context):
+        logger.debug('get_event : ' + str(event))
+        self.process_event(event, context)
+
+    @abstractmethod
+    def process_event(self, event, context):
+        pass
