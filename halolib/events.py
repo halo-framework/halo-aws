@@ -53,7 +53,7 @@ class AbsMainHandler(object):
 			if key in event:
 				val = self.vals[key]
 				if val == event[key]:
-					class_name = self.classes["key"]
+					class_name = self.classes[key]
 					module = __import__('mixin_handler')
 					class_ = getattr(module, class_name)
 					instance = class_()
