@@ -20,3 +20,7 @@ class HaloError(Exception):
     """
     def __init__(self, msg, tried=None, backend=None, chain=None):
         super(HaloError, self).__init__(msg)
+
+
+class AuthException(HaloException):
+    pass

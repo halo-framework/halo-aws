@@ -2,7 +2,7 @@
 
 # python
 import logging
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 
 # aws
 # common
@@ -13,8 +13,9 @@ from django.http import HttpResponse
 from django.template import loader
 from django.template.exceptions import TemplateDoesNotExist
 
-# DRF
+from views import HTTPChoice
 
+# DRF
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +68,51 @@ class AbsBaseMixin(object):
         return HttpResponse('this is a delete on view ' + self.name)
 
 
+class AbsAuthMixin(AbsBaseMixin):
+    __metaclass__ = ABCMeta
+
+    name = 'Auth'
+
+    def __init__(self):
+        self.name = self.get_name()
+
+    def process_in_auth(self, typer, request, vars):
+        # who can use this resource with this method - api product,app,user,role,scope
+        return True
+        # raise AuthException(typer,resource,cause)
+
+    def process_out_auth(self, request, vars, json, ret_status):
+        # who can use this model with this method - object,field
+        return True
+        # raise AuthException(typer,resource,cause)
+
+    def process_get(self, request, vars):
+        self.process_in_auth(HTTPChoice.get, request, vars)
+        json, ret_status = self.process_api(request, vars)
+        self.process_out_auth(request, vars, json, ret_status)
+        return HttpResponse('this is an auth get on view ' + self.name, status=ret_status)
+
+    def process_post(self, request, vars):
+        self.process_in_auth(HTTPChoice.post, request, vars)
+        json, ret_status = self.process_api(request, vars)
+        self.process_out_auth(request, vars, json, ret_status)
+        return HttpResponse('this is an auth get on view ' + self.name, status=ret_status)
+
+    def process_put(self, request, vars):
+        self.process_in_auth(HTTPChoice.put, request, vars)
+        json, ret_status = self.process_api(request, vars)
+        self.process_out_auth(request, vars, json, ret_status)
+        return HttpResponse('this is an auth get on view ' + self.name, status=ret_status)
+
+    def process_delete(self, request, vars):
+        self.process_in_auth(HTTPChoice.delete, request, vars)
+        json, ret_status = self.process_api(request, vars)
+        self.process_out_auth(request, vars, json, ret_status)
+        return HttpResponse('this is an auth get on view ' + self.name, status=ret_status)
+
+    @abstractmethod
+    def process_api(self, request, vars):
+        pass
 
 ##################################### test #########################
 
