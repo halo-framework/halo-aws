@@ -32,6 +32,8 @@ DEV = "dev"
 TEST = "test"
 PROD = "prod"
 
+FUNC_NAME = env.str('FUNC_NAME')
+
 SERVER_LOCAL = True
 DB_URL = env('DYNAMODB_LOCAL_URL')
 if 'SERVERTYPE' in os.environ and os.environ['SERVERTYPE'] == 'AWS Lambda':
@@ -266,11 +268,15 @@ LOGGING = {
             'handlers': ['console'],
             'level': "DEBUG",
         },
-        'halolib.api.views': {
+        'halolib.halolib.views': {
             'level': 'DEBUG',
             'handlers': ['console']
         },
-        'halolib.api.models': {
+        'halolib.halolib.models': {
+            'level': 'DEBUG',
+            'handlers': ['console']
+        },
+        'halolib.halolib.mixin': {
             'level': 'DEBUG',
             'handlers': ['console']
         },

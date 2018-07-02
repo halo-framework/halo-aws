@@ -12,24 +12,18 @@ import jwt
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
-from enum import Enum
 from rest_framework import permissions
 from rest_framework import status
 # DRF
 from rest_framework.views import APIView
 
+from .const import HTTPChoice
 # aws
 # common
-from .mixin import AbsBaseMixin
+from .mixin import AbsAuthMixin
 
 logger = logging.getLogger(__name__)
 
-
-class HTTPChoice(Enum):   # A subclass of Enum
-    get = "get"
-    post = "post"
-    put = "put"
-    delete = "delete"
 
 def strx(str1):
     if str1:
@@ -246,6 +240,10 @@ class AbsBaseLink(APIView):
         logger.debug("its done ")
         return HttpResponse('this is process put on '+self.get_view_name())
 
+    def process_patch(self, request, vars):
+        logger.debug("its done ")
+        return HttpResponse('this is process patch on ' + self.get_view_name())
+
     def process_delete(self,request,vars):
         logger.debug("its done ")
         return HttpResponse('this is process delete on '+self.get_view_name())
@@ -293,5 +291,8 @@ class AbsBaseLink(APIView):
 
 ##################################### test ##########################
 
-class TestLink(AbsBaseMixin, AbsBaseLink):
+class TestLink(AbsAuthMixin, AbsBaseLink):
     permission_classes = (permissions.AllowAny,)
+
+    def process_api(self, ctx, request, vars):
+        return {}, 200

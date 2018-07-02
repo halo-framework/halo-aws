@@ -22,5 +22,9 @@ class HaloError(Exception):
         super(HaloError, self).__init__(msg)
 
 
+class ApiException(HaloException):
+    pass
+
+
 class AuthException(HaloException):
     pass
