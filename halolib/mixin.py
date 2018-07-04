@@ -2,7 +2,6 @@
 
 # python
 import logging
-import uuid
 from abc import ABCMeta, abstractmethod
 
 # aws
@@ -16,6 +15,7 @@ from django.template.exceptions import TemplateDoesNotExist
 
 from .const import HTTPChoice
 from .exceptions import AuthException
+from .util import Util
 
 # DRF
 
@@ -76,10 +76,10 @@ class AbsBaseMixin(object):
         return HttpResponse('this is a delete on view ' + self.name)
 
 
-class AbsAuthMixin(AbsBaseMixin):
+class AbsApiMixin(AbsBaseMixin):
     __metaclass__ = ABCMeta
 
-    name = 'Auth'
+    name = 'Api'
     class_name = None
 
     def __init__(self):
@@ -94,9 +94,7 @@ class AbsAuthMixin(AbsBaseMixin):
         # who can use this resource with this method - api product,app,user,role,scope
         ret, cause = self.check_auth(typer, request, vars)
         if ret:
-            uuid_str = uuid.uuid4().__str__()
-            ctx = {"User-Agent": settings.FUNC_NAME + ':' + self.class_name + ':' + typer.value,
-                   "Correlate-ID": uuid_str}
+            ctx = Util.get_context(typer, self.class_name)
             logger.debug(str(ctx))
             return ctx
         raise AuthException(typer, request, cause)
@@ -142,6 +140,6 @@ class AbsAuthMixin(AbsBaseMixin):
 
 ##################################### test #########################
 
-class TestMixin(AbsAuthMixin):
+class TestMixin(AbsApiMixin):
     def process_api(self, ctx, request, vars):
         return {}, 200

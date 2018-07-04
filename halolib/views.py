@@ -1,9 +1,9 @@
 # Create your views here.
 
-# python
 import datetime
 import logging
-import re
+# python
+import os
 import traceback
 from abc import ABCMeta
 
@@ -17,55 +17,14 @@ from rest_framework import status
 # DRF
 from rest_framework.views import APIView
 
+from util import Util
 from .const import HTTPChoice
 # aws
 # common
-from .mixin import AbsAuthMixin
+from .mixin import AbsApiMixin
 
 logger = logging.getLogger(__name__)
 
-
-def strx(str1):
-    if str1:
-        try:
-            return str1.encode('utf-8').strip()
-        except Exception,e:
-            return str(str1)
-        except AttributeError,e:
-            return str(str1)
-    return ''
-
-class Util:
-
-    @staticmethod
-    def mobile(request):
-        """Return True if the request comes from a mobile device."""
-
-        MOBILE_AGENT_RE=re.compile(r".*(iphone|mobile|androidtouch)",re.IGNORECASE)
-
-        if MOBILE_AGENT_RE.match(request.META['HTTP_USER_AGENT']):
-            return True
-        else:
-            return False
-
-    @staticmethod
-    def get_chrome_browser(request):
-
-        CHROME_AGENT_RE = re.compile(r".*(Chrome)", re.IGNORECASE)
-        NON_CHROME_AGENT_RE = re.compile(r".*(Aviator | ChromePlus | coc_ | Dragon | Edge | Flock | Iron | Kinza | Maxthon | MxNitro | Nichrome | OPR | Perk | Rockmelt | Seznam | Sleipnir | Spark | UBrowser | Vivaldi | WebExplorer | YaBrowser)", re.IGNORECASE)
-
-
-        if CHROME_AGENT_RE.match(request.META['HTTP_USER_AGENT']):
-            if NON_CHROME_AGENT_RE.match(request.META['HTTP_USER_AGENT']):
-                return False
-            else:
-                return True
-        else:
-            return False
-
-    @staticmethod
-    def check_if_robot():
-        return False
 
 
 class AbsBaseLink(APIView):
@@ -86,6 +45,9 @@ class AbsBaseLink(APIView):
     the_tag = ''
     other_html = ''
     other_tag = ''
+    # correlate_id = None
+    logprefix = None
+
 
     user_languages = []
     user_locale = settings.LOCALE_CODE
@@ -94,6 +56,12 @@ class AbsBaseLink(APIView):
     def do_process(self, request,typer,vars):
 
         now = datetime.datetime.now()
+
+        self.logprefix = "APIG: " + Util.get_api_request_id() + " -  ";
+
+        logger.debug(self.logprefix + "environ: " + str(os.environ))
+        logger.debug(self.logprefix + "lambda_context: " + str(Util.get_lambda_context()))
+
 
         self.get_user_locale(request)
         logger.info('process LANGUAGE:  ' + str(self.user_lang)+" LOCALE: "+str(self.user_locale))
@@ -291,7 +259,7 @@ class AbsBaseLink(APIView):
 
 ##################################### test ##########################
 
-class TestLink(AbsAuthMixin, AbsBaseLink):
+class TestLink(AbsApiMixin, AbsBaseLink):
     permission_classes = (permissions.AllowAny,)
 
     def process_api(self, ctx, request, vars):
