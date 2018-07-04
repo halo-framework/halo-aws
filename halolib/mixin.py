@@ -94,8 +94,7 @@ class AbsApiMixin(AbsBaseMixin):
         # who can use this resource with this method - api product,app,user,role,scope
         ret, cause = self.check_auth(typer, request, vars)
         if ret:
-            ctx = Util.get_context(typer, self.class_name)
-            logger.debug(str(ctx))
+            ctx = Util.get_req_context(request, typer, self.class_name)
             return ctx
         raise AuthException(typer, request, cause)
 
@@ -142,4 +141,5 @@ class AbsApiMixin(AbsBaseMixin):
 
 class TestMixin(AbsApiMixin):
     def process_api(self, ctx, request, vars):
+        headers = ctx
         return {}, 200

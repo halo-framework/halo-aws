@@ -3,7 +3,6 @@
 import datetime
 import logging
 # python
-import os
 import traceback
 from abc import ABCMeta
 
@@ -57,11 +56,14 @@ class AbsBaseLink(APIView):
 
         now = datetime.datetime.now()
 
-        self.logprefix = "APIG: " + Util.get_api_request_id() + " -  ";
+        self.logprefix = "Correlate-ID: " + Util.get_aws_request_id(request) + " -  ";
+        req_context = Util.get_req_context(request, typer, self.__class__.__name__)
 
-        logger.debug(self.logprefix + "environ: " + str(os.environ))
-        logger.debug(self.logprefix + "lambda_context: " + str(Util.get_lambda_context()))
+        # logger.debug(self.logprefix + "environ: " + str(os.environ))
+        # logger.debug(self.logprefix + "headers: " + str(request.META))
 
+        if Util.isDebugEnabled(request, req_context):
+            logger.info(self.logprefix + str(req_context))
 
         self.get_user_locale(request)
         logger.info('process LANGUAGE:  ' + str(self.user_lang)+" LOCALE: "+str(self.user_locale))
@@ -69,7 +71,8 @@ class AbsBaseLink(APIView):
         try:
             ret = self.process(request,typer,vars)
             total = datetime.datetime.now() - now
-            logger.info("timing for "+str(typer)+" in milliseconds : " + str(int(total.total_seconds() * 1000)))
+            logger.info(self.logprefix + "timing for " + str(typer) + " in milliseconds : " + str(
+                int(total.total_seconds() * 1000)))
             return ret
         except IOError as e:
             logger.debug('An IOerror occured :' + str(e.message))
