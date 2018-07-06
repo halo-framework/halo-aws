@@ -94,7 +94,7 @@ class AbsApiMixin(AbsBaseMixin):
         # who can use this resource with this method - api product,app,user,role,scope
         ret, cause = self.check_auth(typer, request, vars)
         if ret:
-            ctx = Util.get_req_context(request, typer, self.class_name)
+            ctx = Util.get_req_context(request)
             return ctx
         raise AuthException(typer, request, cause)
 

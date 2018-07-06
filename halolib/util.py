@@ -118,7 +118,7 @@ class Util:
             return settings.FUNC_NAME
 
     @staticmethod
-    def get_req_context(request, typer, class_name):
+    def get_req_context(request, api_key=None):
         if "x-correlation-id" in request.META:
             x_correlation_id = request.META["x-correlation-id"]
         else:
@@ -127,9 +127,12 @@ class Util:
             dlog = request.META["Debug-Log-Enabled"]
         else:
             dlog = 'false'
-        return {"User-Agent": Util.get_func_name() + ':' + class_name + ':' + typer.value,
+        ret = {"User-Agent": Util.get_func_name() + ':' + request.path + ':' + request.method,
                 "aws_request_id": Util.get_aws_request_id(request), "x-correlation-id": x_correlation_id,
                 "Debug-Log-Enabled": dlog}
+        if api_key:
+            ret["x-api-key"] = api_key
+        return ret
 
     @staticmethod
     def get_headers(request):

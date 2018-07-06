@@ -52,69 +52,71 @@ class AbsBaseLink(APIView):
     user_locale = settings.LOCALE_CODE
     user_lang = settings.LANGUAGE_CODE
 
-    def do_process(self, request,typer,vars):
+    def do_process(self, request, typer, vars, format=None):
 
         now = datetime.datetime.now()
 
         self.logprefix = "Correlate-ID: " + Util.get_aws_request_id(request) + " -  ";
-        req_context = Util.get_req_context(request, typer, self.__class__.__name__)
+        req_context = Util.get_req_context(request)
 
         # logger.debug(self.logprefix + "environ: " + str(os.environ))
         # logger.debug(self.logprefix + "headers: " + str(request.META))
 
         if Util.isDebugEnabled(request, req_context):
             logger.info(self.logprefix + str(req_context))
+            logger.setLevel(logging.DEBUG)
 
         self.get_user_locale(request)
-        logger.info('process LANGUAGE:  ' + str(self.user_lang)+" LOCALE: "+str(self.user_locale))
+        logger.info(self.logprefix + 'process LANGUAGE:  ' + str(self.user_lang) + " LOCALE: " + str(self.user_locale))
 
         try:
             ret = self.process(request,typer,vars)
             total = datetime.datetime.now() - now
-            logger.info(self.logprefix + "timing for " + str(typer) + " in milliseconds : " + str(
+            logger.info(self.logprefix + "timing for " + str(typer.value) + " in milliseconds : " + str(
                 int(total.total_seconds() * 1000)))
             return ret
         except IOError as e:
-            logger.debug('An IOerror occured :' + str(e.message))
-            logger.info('An IOError occurred in ' + str(traceback.format_exc()))
+            logger.debug(self.logprefix + 'An IOerror occured :' + str(e.message))
+            logger.info(self.logprefix + 'An IOError occurred in ' + str(traceback.format_exc()))
 
         except ValueError as e:
-            logger.debug('Non-numeric data found : '+ str(e.message))
-            logger.info('An ValueError occurred in ' + str(traceback.format_exc()))
+            logger.debug(self.logprefix + 'Non-numeric data found : ' + str(e.message))
+            logger.info(self.logprefix + 'An ValueError occurred in ' + str(traceback.format_exc()))
 
         except ImportError as e:
-            logger.debug("NO module found")
-            logger.info('An ImportError occurred in ' + str(traceback.format_exc()))
+            logger.debug(self.logprefix + "NO module found")
+            logger.info(self.logprefix + 'An ImportError occurred in ' + str(traceback.format_exc()))
 
         except EOFError as e:
-            logger.debug('Why did you do an EOF on me?')
-            logger.info('An EOFError occurred in ' + str(traceback.format_exc()))
+            logger.debug(self.logprefix + 'Why did you do an EOF on me?')
+            logger.info(self.logprefix + 'An EOFError occurred in ' + str(traceback.format_exc()))
 
         except KeyboardInterrupt as e:
-            logger.debug('You cancelled the operation.')
-            logger.info('An KeyboardInterrupt occurred in ' + str(traceback.format_exc()))
+            logger.debug(self.logprefix + 'You cancelled the operation.')
+            logger.info(self.logprefix + 'An KeyboardInterrupt occurred in ' + str(traceback.format_exc()))
 
         except Exception as e:
             #exc_type, exc_obj, exc_tb = sys.exc_info()
             #fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             #logger.debug('An error occured in '+str(fname)+' lineno: '+str(exc_tb.tb_lineno)+' exc_type '+str(exc_type)+' '+e.message)
-            logger.info('An Exception occurred in ' + str(traceback.format_exc()))
+            logger.info(self.logprefix + 'An Exception occurred in ' + str(traceback.format_exc()))
 
         finally:
             self.process_finally()
 
         total = datetime.datetime.now() - now
-        logger.info("timing for " + str(typer) + " in milliseconds : " + str(int(total.total_seconds() * 1000)))
+        logger.info(self.logprefix + "timing for " + str(typer) + " in milliseconds : " + str(
+            int(total.total_seconds() * 1000)))
         return HttpResponseRedirect("/"+str(status.HTTP_400_BAD_REQUEST))
 
     def process_finally(self):
-        logger.debug("process_finally")
+        logger.debug(self.logprefix + "process_finally")
 
     def split_locale_from_request(self, request):
         locale = ''
         if request.META.get("QUERY_STRING", ""):
             path = request.META['QUERY_STRING']
-            logger.debug('QUERY_STRING:  ' + str(path))
+            logger.debug(self.logprefix + 'QUERY_STRING:  ' + str(path))
             key = "_="
             if key in path:
                 if "&" in path:
@@ -129,7 +131,7 @@ class AbsBaseLink(APIView):
                     vals = path.split("=")
                     if len(vals) > 1:
                         locale = vals[1]
-        logger.debug('split_locale_from_request:  ' + str(locale))
+        logger.debug(self.logprefix + 'split_locale_from_request:  ' + str(locale))
         return locale
 
     #es,ar;q=0.9,he-IL;q=0.8,he;q=0.7,en-US;q=0.6,en;q=0.5,es-ES;q=0.4
@@ -138,7 +140,7 @@ class AbsBaseLink(APIView):
         if (not locale) or (locale == ''):
             if request.META.has_key('HTTP_ACCEPT_LANGUAGE'):
                 self.user_languages = request.META.get('HTTP_ACCEPT_LANGUAGE', self.user_locale+",")
-                logger.debug('user_languages:  ' + str(self.user_languages))
+                logger.debug(self.logprefix + 'user_languages:  ' + str(self.user_languages))
                 arr = self.user_languages.split(",")
                 for l in arr:
                    if "-" in l:
@@ -151,39 +153,39 @@ class AbsBaseLink(APIView):
                        continue
         else:
             self.user_locale = locale
-        logger.debug('process LOCALE_CODE:  ' + str(self.user_locale))
+        logger.debug(self.logprefix + 'process LOCALE_CODE:  ' + str(self.user_locale))
         if settings.GET_LANGUAGE == True:
             #translation.activate(self.user_locale)
             self.user_lang = self.user_locale.split("-")[0]#translation.get_language().split("-")[0]
-        logger.debug('process LANGUAGE_CODE:  ' + str(self.user_lang))
+        logger.debug(self.logprefix + 'process LANGUAGE_CODE:  ' + str(self.user_lang))
 
 
     def get(self, request, format=None):
-        logger.debug('process')
         vars = {}
-        return self.do_process(request, HTTPChoice.get, vars)
+        return self.do_process(request, HTTPChoice.get, vars, format)
 
     def post(self, request, format=None):
-        logger.debug('process')
         vars = {}
-        return self.do_process(request, HTTPChoice.post, vars)
+        return self.do_process(request, HTTPChoice.post, vars, format)
 
     def put(self, request, format=None):
-        logger.debug('process')
         vars = {}
-        return self.do_process(request, HTTPChoice.put, vars)
+        return self.do_process(request, HTTPChoice.put, vars, format)
+
+    def patch(self, request, format=None):
+        vars = {}
+        return self.do_process(request, HTTPChoice.patch, vars, format)
 
     def delete(self, request, format=None):
-        logger.debug('process')
         vars = {}
-        return self.do_process(request, HTTPChoice.delete, vars)
+        return self.do_process(request, HTTPChoice.delete, vars, format)
 
     def process(self,request,typer,vars):
         """
         Return a list of all users.
         """
         self.user_langs = request.META.get('HTTP_ACCEPT_LANGUAGE', ['en-US', ])
-        logger.debug('process user_langs:  '+str(self.user_langs))
+        logger.debug(self.logprefix + 'process user_langs:  ' + str(self.user_langs))
 
         if typer == HTTPChoice.get:
             return self.process_get(request,vars)
@@ -194,29 +196,32 @@ class AbsBaseLink(APIView):
         if typer == HTTPChoice.put:
             return self.process_put(request,vars)
 
+        if typer == HTTPChoice.patch:
+            return self.process_patch(request, vars)
+
         if typer == HTTPChoice.delete:
             return self.process_delete(request,vars)
 
         return HttpResponse('this is a '+str(typer)+' on '+self.get_view_name())
 
     def process_get(self,request,vars):
-        logger.debug("its done ")
+        logger.debug(self.logprefix + "its done ")
         return HttpResponse('this is process get on '+self.get_view_name())
 
     def process_post(self,request,vars):
-        logger.debug("its done ")
+        logger.debug(self.logprefix + "its done ")
         return HttpResponse('this is process post on '+self.get_view_name())
 
     def process_put(self,request,vars):
-        logger.debug("its done ")
+        logger.debug(self.logprefix + "its done ")
         return HttpResponse('this is process put on '+self.get_view_name())
 
     def process_patch(self, request, vars):
-        logger.debug("its done ")
+        logger.debug(self.logprefix + "its done ")
         return HttpResponse('this is process patch on ' + self.get_view_name())
 
     def process_delete(self,request,vars):
-        logger.debug("its done ")
+        logger.debug(self.logprefix + "its done ")
         return HttpResponse('this is process delete on '+self.get_view_name())
 
     def get_the_template(self, request,html):
@@ -232,30 +237,30 @@ class AbsBaseLink(APIView):
         return t, the_mobile_web
 
     def get_client_ip(self,request):
-        logger.debug("get_client_ip: " + str(request.META))
+        logger.debug(self.logprefix + "get_client_ip: " + str(request.META))
         ip = request.META.get('REMOTE_ADDR')
         return ip
 
     def get_jwt(self, request):
-        logger.debug("get_jwt: " )
+        logger.debug(self.logprefix + "get_jwt: ")
         ip = self.get_client_ip(request)
-        logger.debug("get_jwt ip: " + str(ip))
+        logger.debug(self.logprefix + "get_jwt ip: " + str(ip))
         encoded_token = jwt.encode({'ip': ip}, settings.SECRET_JWT_KEY, algorithm ='HS256')
-        logger.debug("get_jwt: " + str(encoded_token))
+        logger.debug(self.logprefix + "get_jwt: " + str(encoded_token))
         return encoded_token
 
     def check_jwt(self, request):#return true if token matches
         ip = self.get_client_ip(request)
         encoded_token = request.GET.get('jwt',None)
-        logger.debug("check_jwt: " + str(encoded_token))
+        logger.debug(self.logprefix + "check_jwt: " + str(encoded_token))
         if not encoded_token:
             return False
         decoded_token = jwt.decode(encoded_token, settings.SECRET_JWT_KEY, algorithm ='HS256')
-        logger.debug("check_jwt decoded_token: " + str(decoded_token)+ ' ip '+str(ip))
+        logger.debug(self.logprefix + "check_jwt decoded_token: " + str(decoded_token) + ' ip ' + str(ip))
         return ip == decoded_token['ip']
 
     def get_jwt_str(self, request):
-        logger.debug("get_jwt_str: ")
+        logger.debug(self.logprefix + "get_jwt_str: ")
         return '&jwt='+self.get_jwt(request)
 
 
