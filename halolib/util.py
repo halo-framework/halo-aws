@@ -126,8 +126,8 @@ class Util:
         return x_correlation_id
 
     @staticmethod
-    def get_req_context(request, api_key=None):
-        x_correlation_id = Util.get_correlation_id(request)
+    def get_req_context(request, correlate_id, api_key=None):
+        x_correlation_id = correlate_id
         if "Debug-Log-Enabled" in request.META:
             dlog = request.META["Debug-Log-Enabled"]
         else:

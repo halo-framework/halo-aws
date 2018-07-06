@@ -81,6 +81,7 @@ class AbsApiMixin(AbsBaseMixin):
 
     name = 'Api'
     class_name = None
+    correlate_id = None
 
     def __init__(self):
         self.name = self.get_name()
@@ -94,7 +95,8 @@ class AbsApiMixin(AbsBaseMixin):
         # who can use this resource with this method - api product,app,user,role,scope
         ret, cause = self.check_auth(typer, request, vars)
         if ret:
-            ctx = Util.get_req_context(request)
+            ctx = Util.get_req_context(request, self.correlate_id)
+            logger.debug("ctx:" + str(ctx))
             return ctx
         raise AuthException(typer, request, cause)
 

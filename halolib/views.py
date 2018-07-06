@@ -44,7 +44,7 @@ class AbsBaseLink(APIView):
     the_tag = ''
     other_html = ''
     other_tag = ''
-    # correlate_id = None
+    correlate_id = None
     logprefix = None
 
 
@@ -56,8 +56,9 @@ class AbsBaseLink(APIView):
 
         now = datetime.datetime.now()
 
-        self.logprefix = "Correlate-ID: " + Util.get_correlation_id(request) + " -  ";
-        req_context = Util.get_req_context(request)
+        self.correlate_id = Util.get_correlation_id(request)
+        self.logprefix = "Correlate-ID: " + self.correlate_id + " -  ";
+        req_context = Util.get_req_context(request, self.correlate_id)
 
         # logger.debug(self.logprefix + "environ: " + str(os.environ))
         # logger.debug(self.logprefix + "headers: " + str(request.META))
