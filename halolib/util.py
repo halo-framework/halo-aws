@@ -118,11 +118,16 @@ class Util:
             return settings.FUNC_NAME
 
     @staticmethod
-    def get_req_context(request, api_key=None):
+    def get_correlation_id(request):
         if "x-correlation-id" in request.META:
             x_correlation_id = request.META["x-correlation-id"]
         else:
             x_correlation_id = Util.get_aws_request_id(request)
+        return x_correlation_id
+
+    @staticmethod
+    def get_req_context(request, api_key=None):
+        x_correlation_id = Util.get_correlation_id(request)
         if "Debug-Log-Enabled" in request.META:
             dlog = request.META["Debug-Log-Enabled"]
         else:

@@ -56,7 +56,7 @@ class AbsBaseLink(APIView):
 
         now = datetime.datetime.now()
 
-        self.logprefix = "Correlate-ID: " + Util.get_aws_request_id(request) + " -  ";
+        self.logprefix = "Correlate-ID: " + Util.get_correlation_id(request) + " -  ";
         req_context = Util.get_req_context(request)
 
         # logger.debug(self.logprefix + "environ: " + str(os.environ))
