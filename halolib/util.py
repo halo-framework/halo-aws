@@ -119,22 +119,30 @@ class Util:
 
     @staticmethod
     def get_correlation_id(request):
-        if "x-correlation-id" in request.META:
-            x_correlation_id = request.META["x-correlation-id"]
+        if "HTTP_X_CORRELATION_ID" in request.META:
+            x_correlation_id = request.META["HTTP_X_CORRELATION_ID"]
         else:
             x_correlation_id = Util.get_aws_request_id(request)
         return x_correlation_id
 
     @staticmethod
-    def get_req_context(request, correlate_id, api_key=None):
-        x_correlation_id = correlate_id
-        if "Debug-Log-Enabled" in request.META:
-            dlog = request.META["Debug-Log-Enabled"]
+    def get_user_agent(request):
+        if "HTTP_USER_AGENT" in request.META:
+            user_agent = request.META["HTTP_USER_AGENT"]
+        else:
+            user_agent = Util.get_func_name() + ':' + request.path + ':' + request.method
+        return user_agent
+
+    @staticmethod
+    def get_req_context(request, api_key=None):
+        x_correlation_id = Util.get_correlation_id(request)
+        user_agent = Util.get_user_agent(request)
+        if "HTTP_DEBUG_LOG_ENABLED" in request.META:
+            dlog = request.META["HTTP_DEBUG_LOG_ENABLED"]
         else:
             dlog = 'false'
-        ret = {"User-Agent": Util.get_func_name() + ':' + request.path + ':' + request.method,
-                "aws_request_id": Util.get_aws_request_id(request), "x-correlation-id": x_correlation_id,
-                "Debug-Log-Enabled": dlog}
+        ret = {"User-Agent": user_agent, "aws_request_id": Util.get_aws_request_id(request),
+               "x-correlation-id": x_correlation_id, "Debug-Log-Enabled": dlog}
         if api_key:
             ret["x-api-key"] = api_key
         return ret
@@ -157,7 +165,8 @@ class Util:
         if settings.DEBUG == True:
             return True
         if req_context["Debug-Log-Enabled"] == 'true':
-            seconds = int(datetime.datetime.now().total_seconds())
+            epoch = datetime.datetime.utcfromtimestamp(0)
+            seconds = int((datetime.datetime.now() - epoch).total_seconds())
             if seconds % 20:
                 return True
         return False

@@ -30,6 +30,7 @@ class AbsBaseEvent(object):
     def send_event(self, messageDict):
         if messageDict:
             messageDict[self.key_name] = self.key_val
+            messageDict[self.target_service + 'service_task_id'] = 'y'
         else:
             raise NoMessageException()
         client = boto3.client('lambda', region_name=settings.AWS_REGION)
@@ -76,7 +77,16 @@ class AbsBaseHandler(object):
     key_val = None
 
     def do_event(self, event, context):
-        logger.debug('get_event : ' + str(event))
+        correlate_id = ''
+        user_agent = ''
+        if "x-correlation-id" in event:
+            correlate_id = event["x-correlation-id"]
+        if "User-Agent" in event:
+            user_agent = event["User-Agent"]
+        if "Debug-Log-Enabled" in event:
+            debug_flag = event["Debug-Log-Enabled"]
+        logprefix = "Correlate-ID: " + correlate_id + " User-Agent: " + user_agent + " -  ";
+        logger.debug(logprefix + 'get_event : ' + str(event))
         self.process_event(event, context)
 
     @abstractmethod

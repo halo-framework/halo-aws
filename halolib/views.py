@@ -56,16 +56,21 @@ class AbsBaseLink(APIView):
 
         now = datetime.datetime.now()
 
+        # logger.setLevel(logging.INFO)
+
+        logger.debug("headers: " + str(request.META))
+
         self.correlate_id = Util.get_correlation_id(request)
         self.logprefix = "Correlate-ID: " + self.correlate_id + " -  ";
         req_context = Util.get_req_context(request, self.correlate_id)
 
-        # logger.debug(self.logprefix + "environ: " + str(os.environ))
-        # logger.debug(self.logprefix + "headers: " + str(request.META))
+        ##logger.debug(self.logprefix + "environ: " + str(os.environ))
+
 
         if Util.isDebugEnabled(request, req_context):
             logger.info(self.logprefix + str(req_context))
             logger.setLevel(logging.DEBUG)
+            logger.debug("in debug mode")
 
         self.get_user_locale(request)
         logger.info(self.logprefix + 'process LANGUAGE:  ' + str(self.user_lang) + " LOCALE: " + str(self.user_locale))
@@ -112,6 +117,9 @@ class AbsBaseLink(APIView):
 
     def process_finally(self):
         logger.debug(self.logprefix + "process_finally")
+        if logger.getEffectiveLevel() == logging.DEBUG:
+            logger.setLevel(logging.INFO)
+            logger.info("back to INFO")
 
     def split_locale_from_request(self, request):
         locale = ''
