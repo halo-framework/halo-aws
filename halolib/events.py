@@ -1,5 +1,6 @@
 # Create your mixin here.
 
+import importlib
 # python
 import json
 import logging
@@ -47,27 +48,27 @@ class AbsBaseEvent(object):
 
 
 class AbsMainHandler(object):
-	__metaclass__ = ABCMeta
+    __metaclass__ = ABCMeta
 
-	keys = []
-	vals = {}
-	classes = {}
+    keys = []
+    vals = {}
+    classes = {}
 
-	def get_event(self, event, context):
-		logger.debug('get_event : ' + str(event))
-		self.process_event(event, context)
+    def get_event(self, event, context):
+        logger.debug('get_event : ' + str(event))
+        self.process_event(event, context)
 
-	@abstractmethod
-	def process_event(self, event, context):
-		for key in self.keys:
-			if key in event:
-				val = self.vals[key]
-				if val == event[key]:
-					class_name = self.classes[key]
-					module = __import__('mixin_handler')
-					class_ = getattr(module, class_name)
-					instance = class_()
-					instance.do_event(self, event, context)
+    def process_event(self, event, context):
+        for key in self.keys:
+            if key in event:
+                val = self.vals[key]
+                if val == event[key]:
+                    class_name = self.classes[key]
+                    module = importlib.import_module(settings.MIXIN_HANDLER)
+                    logger.debug('module : ' + str(module))
+                    class_ = getattr(module, class_name)
+                    instance = class_()
+                    instance.do_event(event, context)
 
 
 class AbsBaseHandler(object):

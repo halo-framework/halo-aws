@@ -285,4 +285,6 @@ LOGGING = {
 
 USER_HEADERS = 'Mozilla/5.0'
 
+MIXIN_HANDLER = 'loader1service.api.mixin.mixin_handler'
+
 print('The settings file has been loaded.')

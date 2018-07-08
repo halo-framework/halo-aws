@@ -87,20 +87,25 @@ class AbsApiMixin(AbsBaseMixin):
         self.name = self.get_name()
         self.class_name = self.__class__.__name__
 
-    def check_auth(self, typer, request, vars):
+    def check_authen(self, typer, request, vars):
+        # @TODO check authentication and do masking
+        return True, None
+
+    def check_author(self, request, vars, json, ret_status):
         # @TODO check authentication and do masking
         return True, None
 
     def process_in_auth(self, typer, request, vars):
         # who can use this resource with this method - api product,app,user,role,scope
-        ret, cause = self.check_auth(typer, request, vars)
+        ret, cause = self.check_authen(typer, request, vars)
         if ret:
-            ctx = Util.get_req_context(request, self.correlate_id)
+            ctx = Util.get_req_context(request)
             logger.debug("ctx:" + str(ctx))
             return ctx
         raise AuthException(typer, request, cause)
 
     def process_out_auth(self, request, vars, json, ret_status):
+        ret, cause = self.check_author(request, vars, json, ret_status)
         # who can use this model with this method - object,field
         return True
         # raise AuthException(typer,resource,cause)
