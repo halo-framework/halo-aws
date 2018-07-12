@@ -31,10 +31,16 @@ class ApiError(HaloError):
 class AbsBaseApi(object):
     __metaclass__ = ABCMeta
 
+    name = None
     url = None
 
-    # def __init__(self,url):
-    #	self.url = url
+    def __init__(self):
+        self.url = self.get_url_str()
+
+    def get_url_str(self):
+        api_config = settings.API_CONFIG
+        logger.debug("api_config: " + str(api_config))
+        return api_config[self.name]
 
     def set_api_url(self, key, val):
         strx = self.url

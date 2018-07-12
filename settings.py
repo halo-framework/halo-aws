@@ -27,10 +27,12 @@ print('The .env file has been loaded. env: '+env.str('ENV_NAME'))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
-ENV_NAME = env.str('ENV_NAME')
+
+LOC = "loc"
 DEV = "dev"
-TEST = "test"
-PROD = "prod"
+TST = "tst"
+PRD = "prd"
+ENV_NAME = LOC  # env.str('ENV_NAME')
 
 FUNC_NAME = env.str('FUNC_NAME')
 
@@ -286,5 +288,16 @@ LOGGING = {
 USER_HEADERS = 'Mozilla/5.0'
 
 MIXIN_HANDLER = 'loader1service.api.mixin.mixin_handler'
+
+import json
+
+API_CONFIG = None
+API_SETTINGS = ENV_NAME + '_api_settings.json'
+
+file_dir = os.path.dirname(__file__)
+file_path = os.path.join(file_dir, API_SETTINGS)
+with open(file_path, 'r') as fi:
+    API_CONFIG = json.load(fi)
+    print("api_config:" + str(API_CONFIG))
 
 print('The settings file has been loaded.')
