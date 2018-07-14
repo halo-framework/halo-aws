@@ -2,7 +2,7 @@
 
 # python
 import logging
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 
 # aws
 # common
@@ -140,13 +140,10 @@ class AbsApiMixin(AbsBaseMixin):
         self.process_out_auth(request, vars, json, ret_status)
         return HttpResponse('this is an auth delete on view ' + self.name, status=ret_status)
 
-    @abstractmethod
     def process_api(self, ctx, request, vars):
-        pass
+        return {}, 200
 
 ##################################### test #########################
 
 class TestMixin(AbsApiMixin):
-    def process_api(self, ctx, request, vars):
-        headers = ctx
-        return {}, 200
+    pass

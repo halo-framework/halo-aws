@@ -93,4 +93,4 @@ class AbsBaseApi(object):
 
 
 class ApiTest(AbsBaseApi):
-    url = 'http://www.google.com'
+    name = 'Google'
