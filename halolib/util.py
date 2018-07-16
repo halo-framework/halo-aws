@@ -170,3 +170,7 @@ class Util:
             if seconds % 20:
                 return True
         return False
+
+    @staticmethod
+    def get_auth_context(request, key=None):
+        return {}

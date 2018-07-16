@@ -49,9 +49,30 @@ class AbsBaseApi(object):
         self.url = strx
         return self.url
 
+    def set_api_query(self, request):
+        strx = self.url
+        query = request.META['QUERY_STRING']
+        if "?" in self.url:
+            strx = strx + "&" + query
+        else:
+            strx = strx + "?" + query
+        logger.debug("url add query: " + strx)
+        self.url = strx
+        return self.url
+
+    def set_api_params(self, params):
+        strx = self.url
+        if "?" in self.url:
+            strx = strx + "&" + params
+        else:
+            strx = strx + "?" + params
+        logger.debug("url add query: " + strx)
+        self.url = strx
+        return self.url
+
     def process(self, method, url, data=None, headers=None):
         try:
-            ret = requests.request(str(method), url, data=data, headers=headers)
+            ret = requests.request(method, url, data=data, headers=headers)
             logger.debug("ret: " + str(ret))
             return ret
         except requests.ConnectionError, e:
@@ -83,6 +104,9 @@ class AbsBaseApi(object):
 
     def put(self, data, headers=headers):
         return self.process('PUT', self.url, data=data, headers=headers)
+
+    def patch(self, data, headers=headers):
+        return self.process('PATCH', self.url, data=data, headers=headers)
 
     def delete(self, headers=headers):
         return self.process('DELETE', self.url, headers=headers)

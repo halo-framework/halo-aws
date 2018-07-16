@@ -1,0 +1,14 @@
+{
+  "About": "http://127.0.0.1:7000/about/",
+  "Task": "http://127.0.0.1:7000/task/$upcid/",
+  "Curr": "http://127.0.0.1:7000/curr/",
+  "Top": "http://127.0.0.1:7000/top/",
+  "Rupc": "http://127.0.0.1:7000/upc/$upcid/",
+  "Upc": "http://127.0.0.1:7000/upc/$upcid/",
+  "Contact": "http://127.0.0.1:7000/contact/",
+  "Fail": "http://127.0.0.1:7000/fail/",
+  "Rtask": "http://127.0.0.1:7000/task/$upcid/",
+  "Page": "http://127.0.0.1:7000/page/$upcid/",
+  "Sim": "http://127.0.0.1:7000/sim/",
+  "Google": "http://www.google.com"
+}
