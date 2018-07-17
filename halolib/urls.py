@@ -1,7 +1,7 @@
 #
 from django.conf.urls import *
 
-from views import *
+from .views import *
 
 urlpatterns = [
     #url(r'^upc/(?P<upc>\w+)/$', UpcLink.as_view(), name='upc'),

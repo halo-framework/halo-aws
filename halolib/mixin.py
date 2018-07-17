@@ -104,47 +104,54 @@ class AbsApiMixin(AbsBaseMixin):
 			return ctx
 		raise AuthException(typer, request, cause)
 
-		def process_out_auth(self, request, vars, json, ret_status):
-			ret, cause = self.check_author(request, vars, json, ret_status)
-			# who can use this model with this method - object,field
-			return True
+	def process_out_auth(self, request, vars, json, ret_status):
+		ret, cause = self.check_author(request, vars, json, ret_status)
+		# who can use this model with this method - object,field
+		return True
 
-			# raise AuthException(typer,resource,cause)
+	# raise AuthException(typer,resource,cause)
 
-			def process_get(self, request, vars):
-				ctx = self.process_in_auth(HTTPChoice.get, request, vars)
-				json, ret_status = self.process_api(ctx, HTTPChoice.get, request, vars)
-				self.process_out_auth(request, vars, json, ret_status)
-				return HttpResponse('this is an auth get on view ' + self.name, status=ret_status)
+	def process_get(self, request, vars):
+		ctx = self.process_in_auth(HTTPChoice.get, request, vars)
+		json, ret_status = self.process_api(ctx, HTTPChoice.get, request, vars)
+		self.process_out_auth(request, vars, json, ret_status)
+		return HttpResponse('this is an auth get on view ' + self.name, status=ret_status)
 
-			def process_post(self, request, vars):
-				ctx = self.process_in_auth(HTTPChoice.post, request, vars)
-				json, ret_status = self.process_api(ctx, HTTPChoice.post, request, vars)
-				self.process_out_auth(request, vars, json, ret_status)
-				return HttpResponse('this is an auth post on view ' + self.name, status=ret_status)
+	def process_post(self, request, vars):
+		ctx = self.process_in_auth(HTTPChoice.post, request, vars)
+		json, ret_status = self.process_api(ctx, HTTPChoice.post, request, vars)
+		self.process_out_auth(request, vars, json, ret_status)
+		return HttpResponse('this is an auth post on view ' + self.name, status=ret_status)
 
-			def process_put(self, request, vars):
-				ctx = self.process_in_auth(HTTPChoice.put, request, vars)
-				json, ret_status = self.process_api(ctx, HTTPChoice.put, request, vars)
-				self.process_out_auth(request, vars, json, ret_status)
-				return HttpResponse('this is an auth put on view ' + self.name, status=ret_status)
+	def process_put(self, request, vars):
+		ctx = self.process_in_auth(HTTPChoice.put, request, vars)
+		json, ret_status = self.process_api(ctx, HTTPChoice.put, request, vars)
+		self.process_out_auth(request, vars, json, ret_status)
+		return HttpResponse('this is an auth put on view ' + self.name, status=ret_status)
 
-			def process_patch(self, request, vars):
-				ctx = self.process_in_auth(HTTPChoice.patch, request, vars)
-				json, ret_status = self.process_api(ctx, HTTPChoice.patch, request, vars)
-				self.process_out_auth(request, vars, json, ret_status)
-				return HttpResponse('this is an auth patch on view ' + self.name, status=ret_status)
+	def process_patch(self, request, vars):
+		ctx = self.process_in_auth(HTTPChoice.patch, request, vars)
+		json, ret_status = self.process_api(ctx, HTTPChoice.patch, request, vars)
+		self.process_out_auth(request, vars, json, ret_status)
+		return HttpResponse('this is an auth patch on view ' + self.name, status=ret_status)
 
-			def process_delete(self, request, vars):
-				ctx = self.process_in_auth(HTTPChoice.delete, request, vars)
-				json, ret_status = self.process_api(ctx, HTTPChoice.delete, request, vars)
-				self.process_out_auth(request, vars, json, ret_status)
-				return HttpResponse('this is an auth delete on view ' + self.name, status=ret_status)
+	def process_delete(self, request, vars):
+		ctx = self.process_in_auth(HTTPChoice.delete, request, vars)
+		json, ret_status = self.process_api(ctx, HTTPChoice.delete, request, vars)
+		self.process_out_auth(request, vars, json, ret_status)
+		return HttpResponse('this is an auth delete on view ' + self.name, status=ret_status)
 
-			def process_api(self, ctx, typer, request, vars):
-				return {}, 200
+	def process_api(self, ctx, typer, request, vars):
+		return {}, 200
 
 ##################################### test #########################
 
+from .apis import ApiTest
 class TestMixin(AbsApiMixin):
-	pass
+	def process_api(self, ctx, typer, request, vars):
+		api = ApiTest()
+		# api.set_api_url("upcid", upc)
+		api.set_api_query(request)
+		ret = api.fwd_process(typer, request, vars)
+		print str(ret.content)
+		return {}, 200

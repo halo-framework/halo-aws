@@ -37,7 +37,7 @@ class TestUserDetailTestCase(APITestCase):
         # eq_(response.data, 'new_first_name')
 
     def test_get_request_returns_a_given_string(self):
-        from apis import ApiTest
+        from halolib.apis import ApiTest
         api = ApiTest()
         response = api.get()
         print "google response", str(response.content)

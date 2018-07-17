@@ -18,9 +18,9 @@ from rest_framework.views import APIView
 
 from util import Util
 from .const import HTTPChoice
+
 # aws
 # common
-from .mixin import AbsApiMixin
 
 logger = logging.getLogger(__name__)
 
@@ -278,6 +278,8 @@ class AbsBaseLink(APIView):
 
 ##################################### test ##########################
 
-class TestLink(AbsApiMixin, AbsBaseLink):
-    permission_classes = (permissions.AllowAny,)
+from .mixin import TestMixin
 
+
+class TestLink(TestMixin, AbsBaseLink):
+	permission_classes = (permissions.AllowAny,)
