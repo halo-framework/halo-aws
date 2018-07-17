@@ -77,73 +77,74 @@ class AbsBaseMixin(object):
 
 
 class AbsApiMixin(AbsBaseMixin):
-    __metaclass__ = ABCMeta
+	__metaclass__ = ABCMeta
 
-    name = 'Api'
-    class_name = None
-    correlate_id = None
+	name = 'Api'
+	class_name = None
+	correlate_id = None
 
-    def __init__(self):
-        self.name = self.get_name()
-        self.class_name = self.__class__.__name__
+	def __init__(self):
+		self.name = self.get_name()
+		self.class_name = self.__class__.__name__
 
-    def check_authen(self, typer, request, vars):
-        # @TODO check authentication and do masking
-        return True, None
+	def check_authen(self, typer, request, vars):
+		# @TODO check authentication and do masking
+		return True, None
 
-    def check_author(self, request, vars, json, ret_status):
-        # @TODO check authentication and do masking
-        return True, None
+	def check_author(self, request, vars, json, ret_status):
+		# @TODO check authentication and do masking
+		return True, None
 
-    def process_in_auth(self, typer, request, vars):
-        # who can use this resource with this method - api product,app,user,role,scope
-        ret, cause = self.check_authen(typer, request, vars)
-        if ret:
-            ctx = Util.get_auth_context(request)
-            logger.debug("ctx:" + str(ctx))
-            return ctx
-        raise AuthException(typer, request, cause)
+	def process_in_auth(self, typer, request, vars):
+		# who can use this resource with this method - api product,app,user,role,scope
+		ret, cause = self.check_authen(typer, request, vars)
+		if ret:
+			ctx = Util.get_auth_context(request)
+			logger.debug("ctx:" + str(ctx))
+			return ctx
+		raise AuthException(typer, request, cause)
 
-    def process_out_auth(self, request, vars, json, ret_status):
-        ret, cause = self.check_author(request, vars, json, ret_status)
-        # who can use this model with this method - object,field
-        return True
-        # raise AuthException(typer,resource,cause)
+		def process_out_auth(self, request, vars, json, ret_status):
+			ret, cause = self.check_author(request, vars, json, ret_status)
+			# who can use this model with this method - object,field
+			return True
 
-    def process_get(self, request, vars):
-        ctx = self.process_in_auth(HTTPChoice.get, request, vars)
-        json, ret_status = self.process_api(ctx, request, vars)
-        self.process_out_auth(request, vars, json, ret_status)
-        return HttpResponse('this is an auth get on view ' + self.name, status=ret_status)
+			# raise AuthException(typer,resource,cause)
 
-    def process_post(self, request, vars):
-        ctx = self.process_in_auth(HTTPChoice.post, request, vars)
-        json, ret_status = self.process_api(ctx, request, vars)
-        self.process_out_auth(request, vars, json, ret_status)
-        return HttpResponse('this is an auth post on view ' + self.name, status=ret_status)
+			def process_get(self, request, vars):
+				ctx = self.process_in_auth(HTTPChoice.get, request, vars)
+				json, ret_status = self.process_api(ctx, HTTPChoice.get, request, vars)
+				self.process_out_auth(request, vars, json, ret_status)
+				return HttpResponse('this is an auth get on view ' + self.name, status=ret_status)
 
-    def process_put(self, request, vars):
-        ctx = self.process_in_auth(HTTPChoice.put, request, vars)
-        json, ret_status = self.process_api(ctx, request, vars)
-        self.process_out_auth(request, vars, json, ret_status)
-        return HttpResponse('this is an auth put on view ' + self.name, status=ret_status)
+			def process_post(self, request, vars):
+				ctx = self.process_in_auth(HTTPChoice.post, request, vars)
+				json, ret_status = self.process_api(ctx, HTTPChoice.post, request, vars)
+				self.process_out_auth(request, vars, json, ret_status)
+				return HttpResponse('this is an auth post on view ' + self.name, status=ret_status)
 
-    def process_patch(self, request, vars):
-        ctx = self.process_in_auth(HTTPChoice.patch, request, vars)
-        json, ret_status = self.process_api(ctx, request, vars)
-        self.process_out_auth(request, vars, json, ret_status)
-        return HttpResponse('this is an auth patch on view ' + self.name, status=ret_status)
+			def process_put(self, request, vars):
+				ctx = self.process_in_auth(HTTPChoice.put, request, vars)
+				json, ret_status = self.process_api(ctx, HTTPChoice.put, request, vars)
+				self.process_out_auth(request, vars, json, ret_status)
+				return HttpResponse('this is an auth put on view ' + self.name, status=ret_status)
 
-    def process_delete(self, request, vars):
-        ctx = self.process_in_auth(HTTPChoice.delete, request, vars)
-        json, ret_status = self.process_api(ctx, request, vars)
-        self.process_out_auth(request, vars, json, ret_status)
-        return HttpResponse('this is an auth delete on view ' + self.name, status=ret_status)
+			def process_patch(self, request, vars):
+				ctx = self.process_in_auth(HTTPChoice.patch, request, vars)
+				json, ret_status = self.process_api(ctx, HTTPChoice.patch, request, vars)
+				self.process_out_auth(request, vars, json, ret_status)
+				return HttpResponse('this is an auth patch on view ' + self.name, status=ret_status)
 
-    def process_api(self, ctx, request, vars):
-        return {}, 200
+			def process_delete(self, request, vars):
+				ctx = self.process_in_auth(HTTPChoice.delete, request, vars)
+				json, ret_status = self.process_api(ctx, HTTPChoice.delete, request, vars)
+				self.process_out_auth(request, vars, json, ret_status)
+				return HttpResponse('this is an auth delete on view ' + self.name, status=ret_status)
+
+			def process_api(self, ctx, typer, request, vars):
+				return {}, 200
 
 ##################################### test #########################
 
 class TestMixin(AbsApiMixin):
-    pass
+	pass

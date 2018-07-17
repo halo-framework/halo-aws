@@ -281,5 +281,3 @@ class AbsBaseLink(APIView):
 class TestLink(AbsApiMixin, AbsBaseLink):
     permission_classes = (permissions.AllowAny,)
 
-    def process_api(self, ctx, request, vars):
-        return {}, 200

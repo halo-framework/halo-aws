@@ -11,6 +11,7 @@ import requests
 from django.conf import settings
 
 from halolib.exceptions import HaloError, HaloException
+from halolib.util import Util
 
 # DRF
 
@@ -110,6 +111,15 @@ class AbsBaseApi(object):
 
     def delete(self, headers=headers):
         return self.process('DELETE', self.url, headers=headers)
+
+		def fwd_process(self, typer, request, vars):
+			headers = Util.get_req_context(request)
+			verb = typer.value
+			if verb == 'GET' or 'DELETE':
+				data = None
+			else:
+				data = request.DATA
+			return self.process(verb, self.url, data=data, headers=headers)
 
 
 
