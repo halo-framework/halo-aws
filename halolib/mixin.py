@@ -147,11 +147,15 @@ class AbsApiMixin(AbsBaseMixin):
 ##################################### test #########################
 
 from .apis import ApiTest
+from .exceptions import HaloException
 class TestMixin(AbsApiMixin):
 	def process_api(self, ctx, typer, request, vars):
 		api = ApiTest()
 		# api.set_api_url("upcid", upc)
 		api.set_api_query(request)
-		ret = api.fwd_process(typer, request, vars)
-		print str(ret.content)
+		try:
+			ret = api.fwd_process(typer, request, vars)
+			print str(ret.content)
+		except HaloException, e:
+			print str(e.message)
 		return {}, 200

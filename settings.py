@@ -256,29 +256,33 @@ LOGGING = {
         },
     },
     'loggers': {
-        'django.request': {
+        'django.request':         {
             'handlers': ['console'],
             'level': 'ERROR',
             'propagate': True,
         },
-        'django': {
+        'django':                 {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
         },
-        'root': {
+        'root':                   {
             'handlers': ['console'],
             'level': "DEBUG",
         },
-        'halolib.halolib.views': {
+        'halolib.halolib.views':  {
             'level': 'DEBUG',
+            'handlers': ['console']
+        },
+        'halolib.views':          {
+            'level':    'DEBUG',
             'handlers': ['console']
         },
         'halolib.halolib.models': {
             'level': 'DEBUG',
             'handlers': ['console']
         },
-        'halolib.halolib.mixin': {
+        'halolib.halolib.mixin':  {
             'level': 'DEBUG',
             'handlers': ['console']
         },
@@ -288,6 +292,14 @@ LOGGING = {
 USER_HEADERS = 'Mozilla/5.0'
 
 MIXIN_HANDLER = 'loader1service.api.mixin.mixin_handler'
+
+SERVICE_TIMEOUT_IN_MS = 3000
+
+HTTP_MAX_RETRY = 3
+
+THRIFT_MAX_RETRY = 3
+
+#######################################################################################3
 
 import json
 
@@ -299,5 +311,11 @@ file_path = os.path.join(file_dir, API_SETTINGS)
 with open(file_path, 'r') as fi:
     API_CONFIG = json.load(fi)
     print("api_config:" + str(API_CONFIG))
+
+file_dir = os.path.dirname(__file__)
+file_path = os.path.join(file_dir, 'loc_settings.json')
+with open(file_path, 'r') as fi:
+    LOC_TABLE = json.load(fi)
+    print("loc_settings:" + str(LOC_TABLE))
 
 print('The settings file has been loaded.')

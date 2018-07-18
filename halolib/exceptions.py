@@ -28,3 +28,11 @@ class ApiException(HaloException):
 
 class AuthException(HaloException):
     pass
+
+
+class MaxTryHttpException(HaloException):
+    pass
+
+
+class MaxTryThriftException(HaloException):
+    pass

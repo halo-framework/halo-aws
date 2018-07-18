@@ -14,11 +14,16 @@ from django.conf import settings
 
 # DRF
 from halolib.exceptions import HaloException
+from halolib.util import Util
 
 logger = logging.getLogger(__name__)
 
 
 class NoMessageException(HaloException):
+    pass
+
+
+class NoTargetUrlException(HaloException):
     pass
 
 class AbsBaseEvent(object):
@@ -28,19 +33,40 @@ class AbsBaseEvent(object):
     key_name = None
     key_val = None
 
-    def send_event(self, messageDict):
+    def get_loc_url(self):
+        if self.target_service in settings.LOC_TABLE:
+            return settings.LOC_TABLE[self.target_service]
+        raise NoTargetUrlException()
+
+    def send_event(self, messageDict, request=None, ctx=None):
         if messageDict:
             messageDict[self.key_name] = self.key_val
             messageDict[self.target_service + 'service_task_id'] = 'y'
+            if request:
+                ctx = Util.get_req_context(request)
+            if ctx:
+                messageDict.update(ctx)
         else:
             raise NoMessageException()
-        client = boto3.client('lambda', region_name=settings.AWS_REGION)
-        ret = client.invoke(
-            FunctionName=self.target_service + str('-') + settings.ENV_NAME,
-            InvocationType='Event',
-            LogType='None',
-            Payload=bytes(json.dumps(messageDict))
-        )
+        if settings.SERVER_LOCAL == True:
+            from multiprocessing.dummy import Pool
+            import requests
+            url = self.get_loc_url()
+            pool = Pool(1)
+            futures = []
+            for x in range(10):
+                futures.append(pool.apply_async(requests.post, [url], {'data': messageDict}))
+            for future in futures:
+                logger.debug("future:" + str(future.get()))
+            return "sent event"
+        else:
+            client = boto3.client('lambda', region_name=settings.AWS_REGION)
+            ret = client.invoke(
+                    FunctionName=self.target_service + str('-') + settings.ENV_NAME,
+                    InvocationType='Event',
+                    LogType='None',
+                    Payload=bytes(json.dumps(messageDict))
+            )
 
         logger.debug("send_event to service " + self.target_service + " ret: " + str(ret))
 

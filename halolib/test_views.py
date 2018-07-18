@@ -42,3 +42,16 @@ class TestUserDetailTestCase(APITestCase):
         response = api.get()
         print "google response", str(response.content)
         eq_(response.status_code, status.HTTP_200_OK)
+
+    def test_send_event(self):
+        from events import AbsBaseEvent
+        class Event1Event(AbsBaseEvent):
+            target_service = 'func1'
+            key_name = 'def'
+            key_val = '456'
+
+        event = Event1Event()
+        dict = {"name": "david"}
+        response = event.send_event(dict)
+        print "event response", str(response)
+        eq_(response, 'sent event')
