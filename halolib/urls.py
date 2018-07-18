@@ -9,4 +9,3 @@ urlpatterns = [
     url(r'^$', TestLink.as_view(), name='task'),
 ]
 
-
