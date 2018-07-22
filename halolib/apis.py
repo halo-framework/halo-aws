@@ -82,7 +82,7 @@ class AbsBaseApi(object):
 
 	def process(self, method, url, data=None, headers=None):
 		try:
-			ret = self.exec_client(method, url, data=None, headers=None)
+			ret = self.exec_client(method, url, data=data, headers=headers)
 			logger.debug("ret: " + str(ret))
 			return ret
 		except requests.ConnectionError, e:
@@ -130,6 +130,32 @@ class AbsBaseApi(object):
 			data = request.data
 		return self.process(verb, self.url, data=data, headers=headers)
 
+
+##################################### test #########################
+import boto3
+import json
+
+"""
+response = client.invoke(
+    FunctionName='string',
+    InvocationType='Event'|'RequestResponse'|'DryRun',
+    LogType='None'|'Tail',
+    ClientContext='string',
+    Payload=b'bytes',
+    Qualifier='string'
+)
+"""
+
+
+def call_lambda(func_name, event):
+	client = boto3.client('lambda', region_name=settings.AWS_REGION)
+	ret = client.invoke(
+			FunctionName=func_name,
+			InvocationType='RequestResponse',
+			LogType='None',
+			Payload=bytes(json.dumps(event))
+	)
+	return ret
 
 
 ##################################### test #########################

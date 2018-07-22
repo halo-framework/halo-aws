@@ -54,7 +54,7 @@ class AbsBaseEvent(object):
             url = self.get_loc_url()
             pool = Pool(1)
             futures = []
-            for x in range(10):
+            for x in range(1):
                 futures.append(pool.apply_async(requests.post, [url], {'data': messageDict}))
             for future in futures:
                 logger.debug("future:" + str(future.get()))
