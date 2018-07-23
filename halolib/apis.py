@@ -131,7 +131,7 @@ class AbsBaseApi(object):
 		return self.process(verb, self.url, data=data, headers=headers)
 
 
-##################################### test #########################
+##################################### lambda #########################
 import boto3
 import json
 
@@ -147,15 +147,16 @@ response = client.invoke(
 """
 
 
-def call_lambda(func_name, event):
-	client = boto3.client('lambda', region_name=settings.AWS_REGION)
-	ret = client.invoke(
-			FunctionName=func_name,
-			InvocationType='RequestResponse',
-			LogType='None',
-			Payload=bytes(json.dumps(event))
-	)
-	return ret
+class ApiLambda(object):
+	def call_lambda(self, func_name, event):
+		client = boto3.client('lambda', region_name=settings.AWS_REGION)
+		ret = client.invoke(
+				FunctionName=func_name,
+				InvocationType='RequestResponse',
+				LogType='None',
+				Payload=bytes(json.dumps(event))
+		)
+		return ret
 
 
 ##################################### test #########################

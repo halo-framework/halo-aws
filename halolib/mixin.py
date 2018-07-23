@@ -159,3 +159,21 @@ class TestMixin(AbsApiMixin):
 		except HaloException, e:
 			print str(e.message)
 		return {}, 200
+
+
+"""
+class JSMixin(AbsApiMixin):
+	def process_api(self, ctx, typer, request, vars):
+		api = ApiLambda()
+		try:
+			event = get_event(request)
+			func_name = "nodejs"
+			swagger = get_code(api_key_id)
+			code = get_code(swagger,method_id)
+			event.append(code)
+			ret = api.call_lambda(func_name, event)
+			print str(ret.content)
+		except HaloException, e:
+			print str(e.message)
+		return {}, 200
+"""
