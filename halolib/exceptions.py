@@ -11,7 +11,7 @@ class HaloException(Exception):
         super(HaloException, self).__init__(msg)
 
 
-class HaloError(Exception):
+class HaloError(HaloException):
     """
     The exception used when a template does not exist. Accepts the following
     optional arguments:
