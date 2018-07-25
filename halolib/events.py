@@ -62,7 +62,7 @@ class AbsBaseEvent(object):
         else:
             client = boto3.client('lambda', region_name=settings.AWS_REGION)
             ret = client.invoke(
-                    FunctionName=self.target_service + str('-') + settings.ENV_NAME,
+                    FunctionName=self.target_service + str('-') + settings.ENV_NAME.replace("_", "-"),
                     InvocationType='Event',
                     LogType='None',
                     Payload=bytes(json.dumps(messageDict))
