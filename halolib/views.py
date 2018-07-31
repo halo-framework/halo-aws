@@ -1,12 +1,11 @@
 # Create your views here.
 
 import datetime
+import jwt
 import logging
 # python
 import traceback
 from abc import ABCMeta
-
-import jwt
 # django
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
@@ -64,7 +63,8 @@ class AbsBaseLink(APIView):
 
         self.req_context = Util.get_req_context(request)
         self.correlate_id = self.req_context["x-correlation-id"]
-        self.logprefix = "Correlate-ID: " + self.correlate_id + " -  ";
+        self.user_agent = self.req_context["x-user-agent"]
+        self.logprefix = "User-Agent: " + self.user_agent + " - Correlate-ID: " + self.correlate_id + " - ";
 
 
         ##logger.debug(self.logprefix + "environ: " + str(os.environ))

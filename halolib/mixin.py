@@ -3,7 +3,6 @@
 # python
 import logging
 from abc import ABCMeta
-
 # aws
 # common
 # django
@@ -115,7 +114,7 @@ class AbsApiMixin(AbsBaseMixin):
 		ctx = self.process_in_auth(HTTPChoice.get, request, vars)
 		json, ret_status = self.process_api(ctx, HTTPChoice.get, request, vars)
 		self.process_out_auth(request, vars, json, ret_status)
-		return HttpResponse('this is an auth get on view ' + self.name, status=ret_status)
+		return HttpResponse('this is an auth get on view ' + self.name + str(self.req_context), status=ret_status)
 
 	def process_post(self, request, vars):
 		ctx = self.process_in_auth(HTTPChoice.post, request, vars)

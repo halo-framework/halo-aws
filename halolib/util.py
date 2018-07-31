@@ -127,8 +127,8 @@ class Util:
 
     @staticmethod
     def get_user_agent(request):
-        if "HTTP_USER_AGENT" in request.META:
-            user_agent = request.META["HTTP_USER_AGENT"]
+        if "HTTP_X_USER_AGENT" in request.META:
+            user_agent = request.META["HTTP_X_USER_AGENT"]
         else:
             user_agent = Util.get_func_name() + ':' + request.path + ':' + request.method
         return user_agent
@@ -136,13 +136,13 @@ class Util:
     @staticmethod
     def get_req_context(request, api_key=None):
         x_correlation_id = Util.get_correlation_id(request)
-        user_agent = Util.get_user_agent(request)
+        x_user_agent = Util.get_user_agent(request)
         if "HTTP_DEBUG_LOG_ENABLED" in request.META:
             dlog = request.META["HTTP_DEBUG_LOG_ENABLED"]
         else:
             dlog = 'false'
-        ret = {"User-Agent": user_agent, "aws_request_id": Util.get_aws_request_id(request),
-               "x-correlation-id": x_correlation_id, "Debug-Log-Enabled": dlog}
+        ret = {"x-user-agent": x_user_agent, "aws_request_id": Util.get_aws_request_id(request),
+               "x-correlation-id": x_correlation_id, "debug-log-enabled": dlog}
         if api_key:
             ret["x-api-key"] = api_key
         return ret
