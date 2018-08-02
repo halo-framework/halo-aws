@@ -3,6 +3,7 @@
 # python
 import logging
 from abc import ABCMeta
+
 # aws
 # common
 # django
@@ -11,6 +12,8 @@ from django.contrib import messages
 from django.http import HttpResponse
 from django.template import loader
 from django.template.exceptions import TemplateDoesNotExist
+from rest_framework import status
+from rest_framework.response import Response
 
 from .const import HTTPChoice
 from .exceptions import AuthException
@@ -90,9 +93,9 @@ class AbsApiMixin(AbsBaseMixin):
 		# @TODO check authentication and do masking
 		return True, None
 
-	def check_author(self, request, vars, json, ret_status):
-		# @TODO check authentication and do masking
-		return True, None
+	def check_author(self, request, vars, json):
+		# @TODO check authorization and do masking
+		return True, json, None
 
 	def process_in_auth(self, typer, request, vars):
 		# who can use this resource with this method - api product,app,user,role,scope
@@ -101,44 +104,71 @@ class AbsApiMixin(AbsBaseMixin):
 			ctx = Util.get_auth_context(request)
 			logger.debug("ctx:" + str(ctx))
 			return ctx
-		raise AuthException(typer, request, cause)
+		raise AuthException(request, cause)
 
-	def process_out_auth(self, request, vars, json, ret_status):
-		ret, cause = self.check_author(request, vars, json, ret_status)
+	def process_out_auth(self, request, vars, json):
+		ret, jsonx, cause = self.check_author(request, vars, json)
 		# who can use this model with this method - object,field
-		return True
+		if ret:
+			logger.debug("jsonx:" + str(jsonx))
+			return jsonx
+		raise AuthException(request, cause)
 
 	# raise AuthException(typer,resource,cause)
 
 	def process_get(self, request, vars):
-		ctx = self.process_in_auth(HTTPChoice.get, request, vars)
+		try:
+			ctx = self.process_in_auth(HTTPChoice.get, request, vars)
+		except AuthException, e:
+			return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
 		json, ret_status = self.process_api(ctx, HTTPChoice.get, request, vars)
-		self.process_out_auth(request, vars, json, ret_status)
-		return HttpResponse('this is an auth get on view ' + self.name + str(self.req_context), status=ret_status)
+		if ret_status == status.HTTP_200_OK:
+			jsonx = self.process_out_auth(request, vars, json)
+			return Response(jsonx, status=ret_status)
+		return HttpResponse(status=ret_status)
 
 	def process_post(self, request, vars):
-		ctx = self.process_in_auth(HTTPChoice.post, request, vars)
+		try:
+			ctx = self.process_in_auth(HTTPChoice.post, request, vars)
+		except AuthException, e:
+			return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
 		json, ret_status = self.process_api(ctx, HTTPChoice.post, request, vars)
-		self.process_out_auth(request, vars, json, ret_status)
-		return HttpResponse('this is an auth post on view ' + self.name, status=ret_status)
+		if ret_status == status.HTTP_201_CREATED:
+			jsonx = self.process_out_auth(request, vars, json)
+			return Response(jsonx, status=ret_status)
+		return HttpResponse(status=ret_status)
 
 	def process_put(self, request, vars):
-		ctx = self.process_in_auth(HTTPChoice.put, request, vars)
+		try:
+			ctx = self.process_in_auth(HTTPChoice.put, request, vars)
+		except AuthException, e:
+			return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
 		json, ret_status = self.process_api(ctx, HTTPChoice.put, request, vars)
-		self.process_out_auth(request, vars, json, ret_status)
-		return HttpResponse('this is an auth put on view ' + self.name, status=ret_status)
+		if ret_status == status.HTTP_202_ACCEPTED:
+			jsonx = self.process_out_auth(request, vars, json)
+			return Response(jsonx, status=ret_status)
+		return HttpResponse(status=ret_status)
 
 	def process_patch(self, request, vars):
-		ctx = self.process_in_auth(HTTPChoice.patch, request, vars)
+		try:
+			ctx = self.process_in_auth(HTTPChoice.patch, request, vars)
+		except AuthException, e:
+			return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
 		json, ret_status = self.process_api(ctx, HTTPChoice.patch, request, vars)
-		self.process_out_auth(request, vars, json, ret_status)
-		return HttpResponse('this is an auth patch on view ' + self.name, status=ret_status)
+		if ret_status == status.HTTP_202_ACCEPTED:
+			jsonx = self.process_out_auth(request, vars, json)
+			return Response(jsonx, status=ret_status)
+		return HttpResponse(status=ret_status)
 
 	def process_delete(self, request, vars):
-		ctx = self.process_in_auth(HTTPChoice.delete, request, vars)
+		try:
+			ctx = self.process_in_auth(HTTPChoice.delete, request, vars)
+		except AuthException, e:
+			return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
 		json, ret_status = self.process_api(ctx, HTTPChoice.delete, request, vars)
-		self.process_out_auth(request, vars, json, ret_status)
-		return HttpResponse('this is an auth delete on view ' + self.name, status=ret_status)
+		if ret_status == status.HTTP_200_OK:
+			return Response(status=ret_status)
+		return HttpResponse(status=ret_status)
 
 	def process_api(self, ctx, typer, request, vars):
 		return {}, 200
@@ -157,7 +187,7 @@ class TestMixin(AbsApiMixin):
 			print str(ret.content)
 		except HaloException, e:
 			print str(e.message)
-		return {}, 200
+		return {"test": "good"}, 200
 
 
 """
