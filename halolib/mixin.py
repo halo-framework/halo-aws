@@ -41,7 +41,7 @@ class AbsBaseMixin(object):
         return new_name
 
     def get_root_url(self):
-        if settings.SERVER_LOCAL == True or settings.STAGE_URL == False:
+        if settings.STAGE_URL == False:
             root = '/'
         else:
             root = "/" + settings.ENV_NAME + "/"
