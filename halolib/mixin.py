@@ -79,130 +79,131 @@ class AbsBaseMixin(object):
 
 
 class AbsApiMixin(AbsBaseMixin):
-	__metaclass__ = ABCMeta
+    __metaclass__ = ABCMeta
 
-	name = 'Api'
-	class_name = None
-	correlate_id = None
+    name = 'Api'
+    class_name = None
+    correlate_id = None
+    req_context = None
 
-	def __init__(self):
-		self.name = self.get_name()
-		self.class_name = self.__class__.__name__
+    def __init__(self):
+        self.name = self.get_name()
+        self.class_name = self.__class__.__name__
 
-	def check_authen(self, typer, request, vars):
-		# @TODO check authentication and do masking
-		return True, None
+    def check_authen(self, typer, request, vars):
+        # @TODO check authentication and do masking
+        return True, None
 
-	def check_author(self, request, vars, json):
-		# @TODO check authorization and do masking
-		return True, json, None
+    def check_author(self, request, vars, json):
+        # @TODO check authorization and do masking
+        return True, json, None
 
-	def process_in_auth(self, typer, request, vars):
-		# who can use this resource with this method - api product,app,user,role,scope
-		ret, cause = self.check_authen(typer, request, vars)
-		if ret:
-			ctx = Util.get_auth_context(request)
-			logger.debug("ctx:" + str(ctx))
-			return ctx
-		raise AuthException(request, cause)
+    def process_in_auth(self, typer, request, vars):
+        # who can use this resource with this method - api product,app,user,role,scope
+        ret, cause = self.check_authen(typer, request, vars)
+        if ret:
+            ctx = Util.get_auth_context(request)
+            logger.debug("ctx:" + str(ctx))
+            return ctx
+        raise AuthException(request, cause)
 
-	def process_out_auth(self, request, vars, json):
-		ret, jsonx, cause = self.check_author(request, vars, json)
-		# who can use this model with this method - object,field
-		if ret:
-			logger.debug("jsonx:" + str(jsonx))
-			return jsonx
-		raise AuthException(request, cause)
+    def process_out_auth(self, request, vars, json):
+        ret, jsonx, cause = self.check_author(request, vars, json)
+        # who can use this model with this method - object,field
+        if ret:
+            logger.debug("jsonx:" + str(jsonx))
+            return jsonx
+        raise AuthException(request, cause)
 
-	# raise AuthException(typer,resource,cause)
+    # raise AuthException(typer,resource,cause)
 
-	def process_get(self, request, vars):
-		try:
-			ctx = self.process_in_auth(HTTPChoice.get, request, vars)
-		except AuthException, e:
-			return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
-		json, ret_status = self.process_api(ctx, HTTPChoice.get, request, vars)
-		if ret_status == status.HTTP_200_OK:
-			jsonx = self.process_out_auth(request, vars, json)
-			return Response(jsonx, status=ret_status)
-		return HttpResponse(status=ret_status)
+    def process_get(self, request, vars):
+        try:
+            ctx = self.process_in_auth(HTTPChoice.get, request, vars)
+        except AuthException, e:
+            return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
+        json, ret_status = self.process_api(ctx, HTTPChoice.get, request, vars)
+        if ret_status == status.HTTP_200_OK:
+            jsonx = self.process_out_auth(request, vars, json)
+            return Response(jsonx, status=ret_status)
+        return HttpResponse(status=ret_status)
 
-	def process_post(self, request, vars):
-		try:
-			ctx = self.process_in_auth(HTTPChoice.post, request, vars)
-		except AuthException, e:
-			return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
-		json, ret_status = self.process_api(ctx, HTTPChoice.post, request, vars)
-		if ret_status == status.HTTP_201_CREATED:
-			jsonx = self.process_out_auth(request, vars, json)
-			return Response(jsonx, status=ret_status)
-		return HttpResponse(status=ret_status)
+    def process_post(self, request, vars):
+        try:
+            ctx = self.process_in_auth(HTTPChoice.post, request, vars)
+        except AuthException, e:
+            return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
+        json, ret_status = self.process_api(ctx, HTTPChoice.post, request, vars)
+        if ret_status == status.HTTP_201_CREATED:
+            jsonx = self.process_out_auth(request, vars, json)
+            return Response(jsonx, status=ret_status)
+        return HttpResponse(status=ret_status)
 
-	def process_put(self, request, vars):
-		try:
-			ctx = self.process_in_auth(HTTPChoice.put, request, vars)
-		except AuthException, e:
-			return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
-		json, ret_status = self.process_api(ctx, HTTPChoice.put, request, vars)
-		if ret_status == status.HTTP_202_ACCEPTED:
-			jsonx = self.process_out_auth(request, vars, json)
-			return Response(jsonx, status=ret_status)
-		return HttpResponse(status=ret_status)
+    def process_put(self, request, vars):
+        try:
+            ctx = self.process_in_auth(HTTPChoice.put, request, vars)
+        except AuthException, e:
+            return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
+        json, ret_status = self.process_api(ctx, HTTPChoice.put, request, vars)
+        if ret_status == status.HTTP_202_ACCEPTED:
+            jsonx = self.process_out_auth(request, vars, json)
+            return Response(jsonx, status=ret_status)
+        return HttpResponse(status=ret_status)
 
-	def process_patch(self, request, vars):
-		try:
-			ctx = self.process_in_auth(HTTPChoice.patch, request, vars)
-		except AuthException, e:
-			return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
-		json, ret_status = self.process_api(ctx, HTTPChoice.patch, request, vars)
-		if ret_status == status.HTTP_202_ACCEPTED:
-			jsonx = self.process_out_auth(request, vars, json)
-			return Response(jsonx, status=ret_status)
-		return HttpResponse(status=ret_status)
+    def process_patch(self, request, vars):
+        try:
+            ctx = self.process_in_auth(HTTPChoice.patch, request, vars)
+        except AuthException, e:
+            return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
+        json, ret_status = self.process_api(ctx, HTTPChoice.patch, request, vars)
+        if ret_status == status.HTTP_202_ACCEPTED:
+            jsonx = self.process_out_auth(request, vars, json)
+            return Response(jsonx, status=ret_status)
+        return HttpResponse(status=ret_status)
 
-	def process_delete(self, request, vars):
-		try:
-			ctx = self.process_in_auth(HTTPChoice.delete, request, vars)
-		except AuthException, e:
-			return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
-		json, ret_status = self.process_api(ctx, HTTPChoice.delete, request, vars)
-		if ret_status == status.HTTP_200_OK:
-			return Response(status=ret_status)
-		return HttpResponse(status=ret_status)
+    def process_delete(self, request, vars):
+        try:
+            ctx = self.process_in_auth(HTTPChoice.delete, request, vars)
+        except AuthException, e:
+            return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
+        json, ret_status = self.process_api(ctx, HTTPChoice.delete, request, vars)
+        if ret_status == status.HTTP_200_OK:
+            return Response(status=ret_status)
+        return HttpResponse(status=ret_status)
 
-	def process_api(self, ctx, typer, request, vars):
-		return {}, 200
+    def process_api(self, ctx, typer, request, vars):
+        return {}, 200
 
 ##################################### test #########################
 
 from .apis import ApiTest
 from .exceptions import HaloException
 class TestMixin(AbsApiMixin):
-	def process_api(self, ctx, typer, request, vars):
-		api = ApiTest()
-		# api.set_api_url("upcid", upc)
-		api.set_api_query(request)
-		try:
-			ret = api.fwd_process(typer, request, vars)
-			print str(ret.content)
-		except HaloException, e:
-			print str(e.message)
-		return {"test": "good"}, 200
+    def process_api(self, ctx, typer, request, vars):
+        api = ApiTest()
+        # api.set_api_url("upcid", upc)
+        api.set_api_query(request)
+        try:
+            ret = api.fwd_process(typer, request, vars, self.req_context)
+            print str(ret.content)
+        except HaloException, e:
+            print str(e.message)
+        return {"test": "good"}, 200
 
 
 """
 class JSMixin(AbsApiMixin):
-	def process_api(self, ctx, typer, request, vars):
-		api = ApiLambda()
-		try:
-			event = get_event(request)
-			func_name = "nodejs"
-			swagger = get_code(api_key_id)
-			code = get_code(swagger,method_id)
-			event.append(code)
-			ret = api.call_lambda(func_name, event)
-			print str(ret.content)
-		except HaloException, e:
-			print str(e.message)
-		return {}, 200
+    def process_api(self, ctx, typer, request, vars):
+        api = ApiLambda()
+        try:
+            event = get_event(request)
+            func_name = "nodejs"
+            swagger = get_code(api_key_id)
+            code = get_code(swagger,method_id)
+            event.append(code)
+            ret = api.call_lambda(func_name, event)
+            print str(ret.content)
+        except HaloException, e:
+            print str(e.message)
+        return {}, 200
 """

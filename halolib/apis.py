@@ -2,15 +2,15 @@
 
 # python
 import logging
-import requests
 from abc import ABCMeta
+
+import requests
 # aws
 # common
 # django
 from django.conf import settings
 
 from .exceptions import HaloError, HaloException, MaxTryHttpException
-from .util import Util
 
 # DRF
 
@@ -121,8 +121,7 @@ class AbsBaseApi(object):
     def delete(self, headers=headers):
         return self.process('DELETE', self.url, headers=headers)
 
-    def fwd_process(self, typer, request, vars):
-        headers = Util.get_req_context(request)
+    def fwd_process(self, typer, request, vars, headers):
         verb = typer.value
         if verb == 'GET' or 'DELETE':
             data = None
