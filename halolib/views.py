@@ -1,11 +1,12 @@
 # Create your views here.
 
 import datetime
-import jwt
 import logging
 # python
 import traceback
 from abc import ABCMeta
+
+import jwt
 # django
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
@@ -80,7 +81,7 @@ class AbsBaseLink(APIView):
         try:
             ret = self.process(request,typer,vars)
             total = datetime.datetime.now() - now
-            logger.info(self.logprefix + "timing for " + str(typer.value) + " in milliseconds : " + str(
+            logger.info(self.logprefix + "timing for LAMBDA " + str(typer.value) + " in milliseconds : " + str(
                 int(total.total_seconds() * 1000)))
             return ret
         except IOError as e:

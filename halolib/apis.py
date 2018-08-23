@@ -1,6 +1,7 @@
 # Create your mixin here.
 
 # python
+import datetime
 import logging
 from abc import ABCMeta
 
@@ -82,7 +83,11 @@ class AbsBaseApi(object):
     def process(self, method, url, data=None, headers=None):
         try:
             logger.debug("method: " + str(method) + " url: " + str(url))
+            now = datetime.datetime.now()
             ret = self.exec_client(method, url, data=data, headers=headers)
+            total = datetime.datetime.now() - now
+            logger.info(self.logprefix + "timing for API " + str(method) + " in milliseconds : " + str(
+                int(total.total_seconds() * 1000)) + " url: " + str(url))
             logger.debug("ret: " + str(ret))
             return ret
         except requests.ConnectionError, e:
