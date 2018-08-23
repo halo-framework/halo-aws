@@ -130,7 +130,7 @@ class Util:
         if "HTTP_X_USER_AGENT" in request.META:
             user_agent = request.META["HTTP_X_USER_AGENT"]
         else:
-            user_agent = Util.get_func_name() + ':' + request.path + ':' + request.method
+            user_agent = Util.get_func_name() + ':' + request.path + ':' + request.method + ':' + settings.INSTANCE_ID
         return user_agent
 
     @staticmethod

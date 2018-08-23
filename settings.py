@@ -318,4 +318,8 @@ with open(file_path, 'r') as fi:
     LOC_TABLE = json.load(fi)
     print("loc_settings:" + str(LOC_TABLE))
 
+import uuid
+
+INSTANCE_ID = uuid.uuid4().__str__()[0:4]
+
 print('The settings file has been loaded.')
