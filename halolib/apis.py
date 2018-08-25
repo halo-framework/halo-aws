@@ -34,8 +34,10 @@ class AbsBaseApi(object):
 
     name = None
     url = None
+    logprefix = None
 
-    def __init__(self):
+    def __init__(self, logprefix):
+        self.logprefix = logprefix
         self.url = self.get_url_str()
 
     def get_url_str(self):
