@@ -104,16 +104,8 @@ class AbsBaseHandler(object):
     key_val = None
 
     def do_event(self, event, context):
-        correlate_id = ''
-        user_agent = ''
-        if "x-correlation-id" in event:
-            correlate_id = event["x-correlation-id"]
-        if "User-Agent" in event:
-            user_agent = event["User-Agent"]
-        if "Debug-Log-Enabled" in event:
-            debug_flag = event["Debug-Log-Enabled"]
-        logprefix = "Correlate-ID: " + correlate_id + " User-Agent: " + user_agent + " -  ";
-        logger.debug(logprefix + 'get_event : ' + str(event))
+        logprefix = Util.get_correlation_from_event(event)
+        logger.debug(logprefix + ' get_event : ' + str(event))
         self.process_event(event, context)
 
     @abstractmethod

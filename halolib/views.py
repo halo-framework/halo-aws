@@ -65,8 +65,7 @@ class AbsBaseLink(APIView):
         self.req_context = Util.get_req_context(request)
         self.correlate_id = self.req_context["x-correlation-id"]
         self.user_agent = self.req_context["x-user-agent"]
-        self.logprefix = "User-Agent: " + self.user_agent + " - Correlate-ID: " + self.correlate_id + " - ";
-
+        self.logprefix = "User-Agent: " + self.user_agent + " - Correlate-ID: " + self.correlate_id + " - "
 
         ##logger.debug(self.logprefix + "environ: " + str(os.environ))
 

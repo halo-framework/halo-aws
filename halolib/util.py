@@ -174,3 +174,16 @@ class Util:
     @staticmethod
     def get_auth_context(request, key=None):
         return {}
+
+    @staticmethod
+    def get_correlation_from_event(event):
+        correlate_id = ''
+        user_agent = ''
+        if "x-correlation-id" in event:
+            correlate_id = event["x-correlation-id"]
+        if "User-Agent" in event:
+            user_agent = event["User-Agent"]
+        if "Debug-Log-Enabled" in event:
+            debug_flag = event["Debug-Log-Enabled"]
+        logprefix = "User-Agent: " + user_agent + " - Correlate-ID: " + correlate_id + " - "
+        return logprefix
