@@ -314,6 +314,8 @@ SERVICE_NO_RETURN = True
 if SERVICE_NO_RETURN:
     SERVICE_TIMEOUT_IN_MS = 0.001
 
+HOOK_TIMEOUT_IN_MS = 3
+
 #######################################################################################3
 
 import json

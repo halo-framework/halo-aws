@@ -45,7 +45,7 @@ def exec_client(method, url, data=None, headers=None):
             if settings.SERVICE_NO_RETURN:
                 raise NoReturnHttpException("one way http")
         except Exception as e:
-            msg = e.message
+            msg = str(e)
             logger.debug("Exception in method=" + method + " " + str(e.message))
             if i > 0:
                 time.sleep(settings.HTTP_RETRY_SLEEP)

@@ -252,19 +252,19 @@ class Util:
 
 	@staticmethod
 	def send_hook(method, url, data=None, headers=None):
-		msg = "Max Try"
+		msg = "can not send hook"
 		for i in range(0, settings.HTTP_MAX_RETRY):
 			try:
 				logger.debug("try " + str(i))
-				ret = requests.request(method, url, data=data, headers=headers, timeout=settings.SERVICE_TIMEOUT_IN_MS)
+				ret = requests.request(method, url, data=data, headers=headers, timeout=settings.HOOK_TIMEOUT_IN_MS)
 				if ret.status_code == 500 or ret.status_code == 502 or ret.status_code == 504:
 					if i > 0:
 						time.sleep(settings.HTTP_RETRY_SLEEP)
 					continue
 				return ret
 			except Exception as e:
-				msg = e.message
-				logger.debug("Exception in method=" + method + " " + str(e.message))
+				emsg = str(e)
+				logger.debug("Exception in method=" + method + " " + emsg)
 				if i > 0:
 					time.sleep(settings.HTTP_RETRY_SLEEP)
 				continue
@@ -300,3 +300,8 @@ class Util:
 		url = base_url + "/hook?reqid=" + correlate_id + "&uagent=" + uagent + "&tag=" + return_code_tag
 		logger.debug("in send_hook_back " + url)
 		return url
+
+	@staticmethod
+	def terminate_action(correlate_id, error_message):
+		print("terminate_action")
+		return
