@@ -1,8 +1,9 @@
-# Create your mixin here.
+from __future__ import print_function
 
-# python
 import datetime
 import logging
+# python
+import time
 from abc import ABCMeta
 
 import requests
@@ -11,7 +12,7 @@ import requests
 # django
 from django.conf import settings
 
-from .exceptions import HaloError, HaloException, MaxTryHttpException
+from .exceptions import HaloError, HaloException, MaxTryHttpException, NoReturnHttpException
 
 # DRF
 
@@ -74,13 +75,26 @@ class AbsBaseApi(object):
         return self.url
 
     def exec_client(self, method, url, data=None, headers=None):
+        msg = "Max Try"
         for i in range(0, settings.HTTP_MAX_RETRY):
             try:
-                return requests.request(method, url, data=data, headers=headers, timeout=settings.SERVICE_TIMEOUT_IN_MS)
+                logger.debug("try " + str(i))
+                ret = requests.request(method, url, data=data, headers=headers, timeout=settings.SERVICE_TIMEOUT_IN_MS)
+                if ret.status_code == 500 or ret.status_code == 502 or ret.status_code == 504:
+                    if i > 0:
+                        time.sleep(settings.HTTP_RETRY_SLEEP)
+                    continue
+                return ret
+            except requests.exceptions.ReadTimeout:  # this confirms you that the request has reached server
+                if settings.SERVICE_NO_RETURN:
+                    raise NoReturnHttpException()
             except Exception, e:
-                logger.debug("method=" + method + " " + str(e.message))
+                msg = e.message
+                logger.debug("Exception in method=" + method + " " + str(e.message))
+                if i > 0:
+                    time.sleep(settings.HTTP_RETRY_SLEEP)
                 continue
-        raise MaxTryHttpException(e.message)
+        raise MaxTryHttpException(msg)
 
     def process(self, method, url, data=None, headers=None):
         try:

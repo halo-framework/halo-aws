@@ -286,6 +286,14 @@ LOGGING = {
             'level': 'DEBUG',
             'handlers': ['console']
         },
+        'halolib.halolib.apis': {
+            'level': 'DEBUG',
+            'handlers': ['console']
+        },
+        'halolib.halolib.util': {
+            'level': 'DEBUG',
+            'handlers': ['console']
+        },
     },
 }
 
@@ -293,11 +301,18 @@ USER_HEADERS = 'Mozilla/5.0'
 
 MIXIN_HANDLER = 'loader1service.api.mixin.mixin_handler'
 
-SERVICE_TIMEOUT_IN_MS = 3000
+SERVICE_TIMEOUT_IN_MS = 3  # in seconds
 
-HTTP_MAX_RETRY = 3
+HTTP_MAX_RETRY = 4
 
-THRIFT_MAX_RETRY = 3
+THRIFT_MAX_RETRY = 4
+
+HTTP_RETRY_SLEEP = 0.300  # in seconds
+
+SERVICE_NO_RETURN = True
+
+if SERVICE_NO_RETURN:
+    SERVICE_TIMEOUT_IN_MS = 0.001
 
 #######################################################################################3
 

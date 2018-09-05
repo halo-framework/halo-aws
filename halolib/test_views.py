@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from faker import Faker
 from nose.tools import eq_
 from rest_framework import status
@@ -33,14 +35,14 @@ class TestUserDetailTestCase(APITestCase):
         payload = {'first_name': 'new_first_name'}
         response = self.client.put(self.url, payload)
         eq_(response.status_code, status.HTTP_200_OK)
-        print "response", str(response)
+        print("response " + str(response))
         # eq_(response.data, 'new_first_name')
 
     def test_get_request_returns_a_given_string(self):
         from halolib.apis import ApiTest
         api = ApiTest()
         response = api.get()
-        print "google response", str(response.content)
+        print("google response " + str(response.content))
         eq_(response.status_code, status.HTTP_200_OK)
 
     def test_send_event(self):
@@ -53,5 +55,5 @@ class TestUserDetailTestCase(APITestCase):
         event = Event1Event()
         dict = {"name": "david"}
         response = event.send_event(dict)
-        print "event response", str(response)
+        print("event response " + str(response))
         eq_(response, 'sent event')

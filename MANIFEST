@@ -6,6 +6,7 @@ urls.py
 wsgi.py
 halolib\__init__.py
 halolib\apis.py
+halolib\cache.py
 halolib\const.py
 halolib\events.py
 halolib\exceptions.py

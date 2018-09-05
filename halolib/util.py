@@ -1,12 +1,18 @@
-#
+from __future__ import print_function
+
 # python
 import datetime
+import logging
 import os
 import re
+import time
 import uuid
 
+import requests
 # django
 from django.conf import settings
+
+from exceptions import MaxTryHookException
 
 # DRF
 
@@ -46,144 +52,247 @@ u'HTTP_REFERER': 'https://3oktz7m6j2.execute-api.us-east-1.amazonaws.com/dev', u
 u'HTTP_ACCEPT_ENCODING': 'gzip, deflate, br'}
 """
 
+logger = logging.getLogger(__name__)
+
 def strx(str1):
-    if str1:
-        try:
-            return str1.encode('utf-8').strip()
-        except Exception, e:
-            return str(str1)
-        except AttributeError, e:
-            return str(str1)
-    return ''
+	if str1:
+		try:
+			return str1.encode('utf-8').strip()
+		except Exception, e:
+			return str(str1)
+		except AttributeError, e:
+			return str(str1)
+	return ''
 
 
 class Util:
+	logprefix = None
 
-    @staticmethod
-    def mobile(request):
-        """Return True if the request comes from a mobile device."""
+	@staticmethod
+	def mobile(request):
+		"""Return True if the request comes from a mobile device."""
 
-        MOBILE_AGENT_RE = re.compile(r".*(iphone|mobile|androidtouch)", re.IGNORECASE)
+		MOBILE_AGENT_RE = re.compile(r".*(iphone|mobile|androidtouch)", re.IGNORECASE)
 
-        if MOBILE_AGENT_RE.match(request.META['HTTP_USER_AGENT']):
-            return True
-        else:
-            return False
+		if MOBILE_AGENT_RE.match(request.META['HTTP_USER_AGENT']):
+			return True
+		else:
+			return False
 
-    @staticmethod
-    def get_chrome_browser(request):
+	@staticmethod
+	def get_chrome_browser(request):
 
-        CHROME_AGENT_RE = re.compile(r".*(Chrome)", re.IGNORECASE)
-        NON_CHROME_AGENT_RE = re.compile(
-            r".*(Aviator | ChromePlus | coc_ | Dragon | Edge | Flock | Iron | Kinza | Maxthon | MxNitro | Nichrome | OPR | Perk | Rockmelt | Seznam | Sleipnir | Spark | UBrowser | Vivaldi | WebExplorer | YaBrowser)",
-            re.IGNORECASE)
+		CHROME_AGENT_RE = re.compile(r".*(Chrome)", re.IGNORECASE)
+		NON_CHROME_AGENT_RE = re.compile(
+			r".*(Aviator | ChromePlus | coc_ | Dragon | Edge | Flock | Iron | Kinza | Maxthon | MxNitro | Nichrome | OPR | Perk | Rockmelt | Seznam | Sleipnir | Spark | UBrowser | Vivaldi | WebExplorer | YaBrowser)",
+			re.IGNORECASE)
 
-        if CHROME_AGENT_RE.match(request.META['HTTP_USER_AGENT']):
-            if NON_CHROME_AGENT_RE.match(request.META['HTTP_USER_AGENT']):
-                return False
-            else:
-                return True
-        else:
-            return False
+		if CHROME_AGENT_RE.match(request.META['HTTP_USER_AGENT']):
+			if NON_CHROME_AGENT_RE.match(request.META['HTTP_USER_AGENT']):
+				return False
+			else:
+				return True
+		else:
+			return False
 
-    @staticmethod
-    def check_if_robot():
-        return False
+	@staticmethod
+	def check_if_robot():
+		return False
 
-    ################################################################################################3
+	################################################################################################3
 
-    @staticmethod
-    def get_lambda_context(request):
-        # AWS_REGION
-        # AWS_LAMBDA_FUNCTION_NAME
-        # 'lambda.context'
-        # x-amzn-RequestId
-        if 'lambda.context' in request.META:
-            return request.META['lambda.context']
-        else:
-            return None
+	@staticmethod
+	def get_lambda_context(request):
+		# AWS_REGION
+		# AWS_LAMBDA_FUNCTION_NAME
+		# 'lambda.context'
+		# x-amzn-RequestId
+		if 'lambda.context' in request.META:
+			return request.META['lambda.context']
+		else:
+			return None
 
-    @staticmethod
-    def get_aws_request_id(request):
-        context = Util.get_lambda_context(request)
-        if context:
-            return context.aws_request_id
-        return uuid.uuid4().__str__()
+	@staticmethod
+	def get_aws_request_id(request):
+		context = Util.get_lambda_context(request)
+		if context:
+			return context.aws_request_id
+		return uuid.uuid4().__str__()
 
-    @staticmethod
-    def get_func_name():
-        if 'AWS_LAMBDA_FUNCTION_NAME' in os.environ:
-            return os.environ['AWS_LAMBDA_FUNCTION_NAME']
-        else:
-            return settings.FUNC_NAME
+	@staticmethod
+	def get_func_name():
+		if 'AWS_LAMBDA_FUNCTION_NAME' in os.environ:
+			return os.environ['AWS_LAMBDA_FUNCTION_NAME']
+		else:
+			return settings.FUNC_NAME
 
-    @staticmethod
-    def get_correlation_id(request):
-        if "HTTP_X_CORRELATION_ID" in request.META:
-            x_correlation_id = request.META["HTTP_X_CORRELATION_ID"]
-        else:
-            x_correlation_id = Util.get_aws_request_id(request)
-        return x_correlation_id
+	@staticmethod
+	def get_correlation_id(request):
+		if "HTTP_X_CORRELATION_ID" in request.META:
+			x_correlation_id = request.META["HTTP_X_CORRELATION_ID"]
+		else:
+			x_correlation_id = Util.get_aws_request_id(request)
+		return x_correlation_id
 
-    @staticmethod
-    def get_user_agent(request):
-        if "HTTP_X_USER_AGENT" in request.META:
-            user_agent = request.META["HTTP_X_USER_AGENT"]
-        else:
-            user_agent = Util.get_func_name() + ':' + request.path + ':' + request.method + ':' + settings.INSTANCE_ID
-        return user_agent
+	@staticmethod
+	def get_user_agent(request):
+		if "HTTP_X_USER_AGENT" in request.META:
+			user_agent = request.META["HTTP_X_USER_AGENT"]
+		else:
+			user_agent = Util.get_func_name() + ':' + request.path + ':' + request.method + ':' + settings.INSTANCE_ID
+		return user_agent
 
-    @staticmethod
-    def get_req_context(request, api_key=None):
-        x_correlation_id = Util.get_correlation_id(request)
-        x_user_agent = Util.get_user_agent(request)
-        if "HTTP_DEBUG_LOG_ENABLED" in request.META:
-            dlog = request.META["HTTP_DEBUG_LOG_ENABLED"]
-        else:
-            dlog = 'false'
-        ret = {"x-user-agent": x_user_agent, "aws_request_id": Util.get_aws_request_id(request),
-               "x-correlation-id": x_correlation_id, "debug-log-enabled": dlog}
-        if api_key:
-            ret["x-api-key"] = api_key
-        return ret
+	@staticmethod
+	def get_req_context(request, api_key=None):
+		x_correlation_id = Util.get_correlation_id(request)
+		x_user_agent = Util.get_user_agent(request)
+		if "HTTP_DEBUG_LOG_ENABLED" in request.META:
+			dlog = request.META["HTTP_DEBUG_LOG_ENABLED"]
+		else:
+			dlog = 'false'
+		ret = {"x-user-agent": x_user_agent, "aws_request_id": Util.get_aws_request_id(request),
+			   "x-correlation-id": x_correlation_id, "debug-log-enabled": dlog}
+		if api_key:
+			ret["x-api-key"] = api_key
+		return ret
 
-    @staticmethod
-    def get_headers(request):
-        regex_http_ = re.compile(r'^HTTP_.+$')
-        regex_content_type = re.compile(r'^CONTENT_TYPE$')
-        regex_content_length = re.compile(r'^CONTENT_LENGTH$')
-        request_headers = {}
-        for header in request.META:
-            if regex_http_.match(header) or regex_content_type.match(header) or regex_content_length.match(header):
-                request_headers[header] = request.META[header]
-        request_headers
+	@staticmethod
+	def get_headers(request):
+		regex_http_ = re.compile(r'^HTTP_.+$')
+		regex_content_type = re.compile(r'^CONTENT_TYPE$')
+		regex_content_length = re.compile(r'^CONTENT_LENGTH$')
+		request_headers = {}
+		for header in request.META:
+			if regex_http_.match(header) or regex_content_type.match(header) or regex_content_length.match(header):
+				request_headers[header] = request.META[header]
+		request_headers
 
-    @staticmethod
-    def isDebugEnabled(request, req_context):
-        # disable debug logging by default, but allow override via env variables
-        # or if enabled via forwarded request context
-        if settings.DEBUG == True:
-            return True
-        if req_context["Debug-Log-Enabled"] == 'true':
-            epoch = datetime.datetime.utcfromtimestamp(0)
-            seconds = int((datetime.datetime.now() - epoch).total_seconds())
-            if seconds % 20:
-                return True
-        return False
+	@staticmethod
+	def isDebugEnabled(request, req_context):
+		# disable debug logging by default, but allow override via env variables
+		# or if enabled via forwarded request context
+		if settings.DEBUG == True:
+			return True
+		if req_context["Debug-Log-Enabled"] == 'true':
+			epoch = datetime.datetime.utcfromtimestamp(0)
+			seconds = int((datetime.datetime.now() - epoch).total_seconds())
+			if seconds % 20:
+				return True
+		return False
 
-    @staticmethod
-    def get_auth_context(request, key=None):
-        return {}
+	@staticmethod
+	def get_auth_context(request, key=None):
+		return {}
 
-    @staticmethod
-    def get_correlation_from_event(event):
-        correlate_id = ''
-        user_agent = ''
-        if "x-correlation-id" in event:
-            correlate_id = event["x-correlation-id"]
-        if "User-Agent" in event:
-            user_agent = event["User-Agent"]
-        if "Debug-Log-Enabled" in event:
-            debug_flag = event["Debug-Log-Enabled"]
-        logprefix = "User-Agent: " + user_agent + " - Correlate-ID: " + correlate_id + " - "
-        return logprefix
+	@staticmethod
+	def get_correlation_from_event(event):
+		if Util.logprefix:
+			print("cached logprefix " + Util.logprefix)
+			return Util.logprefix
+		correlate_id = ''
+		user_agent = ''
+		# from api gateway
+		if "httpMethod" in event and "requestContext" in event:
+			if "headers" in event:
+				headers = event["headers"]
+				# get correlation-id
+				if "x-correlation-id" in headers:
+					correlate_id = headers["x-correlation-id"]
+				else:
+					if "aws_request_id" in headers:
+						correlate_id = headers["aws_request_id"]
+					else:
+						correlate_id = uuid.uuid4().__str__()
+				# get user-agent = get_func_name + ':' + path + ':' + request.method + ':' + host_ip
+				if "x-user-agent" in headers:
+					user_agent = headers["x-user-agent"]
+				else:
+					if 'AWS_LAMBDA_FUNCTION_NAME' in os.environ:
+						func_name = os.environ['AWS_LAMBDA_FUNCTION_NAME']
+					else:
+						if "apiId" in event["requestContext"]:
+							func_name = event["requestContext"]["apiId"]
+						else:
+							func_name = headers["Host"]
+					if "path" in event["requestContext"]:
+						path = event["requestContext"]["path"]
+					else:
+						path = "path"
+					if "httpMethod" in event:
+						method = event["httpMethod"]
+					else:
+						if "httpMethod" in event["requestContext"]:
+							method = event["requestContext"]["httpMethod"]
+						else:
+							method = "method"
+					host_ip = "12.34.56.78"
+					user_agent = func_name + ':' + path + ':' + method + ':' + host_ip
+		# from other source
+		else:
+			if "x-correlation-id" in event:
+				correlate_id = event["x-correlation-id"]
+			if "x-user-agent" in event:
+				user_agent = event["x-user-agent"]
+			if "Debug-Log-Enabled" in event:
+				debug_flag = event["Debug-Log-Enabled"]
+		logprefix = user_agent + " " + correlate_id
+		Util.logprefix = logprefix
+		return logprefix
+
+	@staticmethod
+	def get_return_code_tag(request):
+		tag = "tag"
+		if "x-code-tag-id" in request.META:
+			tag = request.META["x-code-tag-id"]
+		return tag
+
+	@staticmethod
+	def send_hook(method, url, data=None, headers=None):
+		msg = "Max Try"
+		for i in range(0, settings.HTTP_MAX_RETRY):
+			try:
+				logger.debug("try " + str(i))
+				ret = requests.request(method, url, data=data, headers=headers, timeout=settings.SERVICE_TIMEOUT_IN_MS)
+				if ret.status_code == 500 or ret.status_code == 502 or ret.status_code == 504:
+					if i > 0:
+						time.sleep(settings.HTTP_RETRY_SLEEP)
+					continue
+				return ret
+			except Exception, e:
+				msg = e.message
+				logger.debug("Exception in method=" + method + " " + str(e.message))
+				if i > 0:
+					time.sleep(settings.HTTP_RETRY_SLEEP)
+				continue
+		raise MaxTryHookException(msg)
+
+	@staticmethod
+	def get_client_ip(request):
+		x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+		if x_forwarded_for:
+			ip = x_forwarded_for.split(',')[0]
+		else:
+			ip = request.META.get('REMOTE_ADDR')
+		return ip
+
+	@staticmethod
+	def get_client_ip(request):
+		return request.META.get('HTTP_REFERER')
+
+	@staticmethod
+	def get_hook_url(request, correlate_id, uagent):
+		env = "/dev"
+		port = "80"
+		base_url = None
+		host = "host"
+		return_code_tag = Util.get_return_code_tag(request)
+		if 'HTTP_REFERER' in request.META:
+			base_url = request.META['HTTP_REFERER']
+		if base_url is None and 'HTTP_HOST' in request.META:
+			host = request.META['HTTP_HOST']
+			base_url = "https://" + host + env
+		if base_url is None:
+			base_url = "https://" + host + ":" + port + env
+		url = base_url + "/hook?reqid=" + correlate_id + "&uagent=" + uagent + "&tag=" + return_code_tag
+		logger.debug("in send_hook_back " + url)
+		return url

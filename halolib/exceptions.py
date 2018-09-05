@@ -1,4 +1,4 @@
-# Create your mixin here.
+from __future__ import print_function
 
 class HaloException(Exception):
     """
@@ -39,4 +39,12 @@ class MaxTryHttpException(MaxTryException):
 
 
 class MaxTryThriftException(MaxTryException):
+    pass
+
+
+class MaxTryHookException(MaxTryException):
+    pass
+
+
+class NoReturnHttpException(HaloException):
     pass

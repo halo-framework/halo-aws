@@ -1,4 +1,4 @@
-# Create your mixin here.
+from __future__ import print_function
 
 # python
 import logging
@@ -18,6 +18,8 @@ from rest_framework.response import Response
 from .const import HTTPChoice
 from .exceptions import AuthException
 from .util import Util
+
+# Create your mixin here.
 
 # DRF
 
@@ -180,14 +182,14 @@ from .apis import ApiTest
 from .exceptions import HaloException
 class TestMixin(AbsApiMixin):
     def process_api(self, ctx, typer, request, vars):
-        api = ApiTest()
+        api = ApiTest("123")
         # api.set_api_url("upcid", upc)
         api.set_api_query(request)
         try:
             ret = api.fwd_process(typer, request, vars, self.req_context)
-            print str(ret.content)
+            print("ret=" + str(ret.content))
         except HaloException, e:
-            print str(e.message)
+            print("error=" + str(e.message))
         return {"test": "good"}, 200
 
 

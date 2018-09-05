@@ -1,4 +1,5 @@
-#
+from __future__ import print_function
+
 import boto3
 from botocore.exceptions import ClientError
 from django.conf import settings

@@ -1,7 +1,9 @@
-# Create your views here.
+from __future__ import print_function
 
 import datetime
 import logging
+# Create your views here.
+import os
 # python
 import traceback
 from abc import ABCMeta
@@ -18,6 +20,7 @@ from rest_framework.views import APIView
 
 from util import Util
 from .const import HTTPChoice
+from .exceptions import NoReturnHttpException, MaxTryHookException
 
 # aws
 # common
@@ -58,7 +61,7 @@ class AbsBaseLink(APIView):
 
         now = datetime.datetime.now()
 
-        # logger.setLevel(logging.INFO)
+        logger.setLevel(logging.INFO)
 
         logger.debug("headers: " + str(request.META))
 
@@ -67,10 +70,10 @@ class AbsBaseLink(APIView):
         self.user_agent = self.req_context["x-user-agent"]
         self.logprefix = "User-Agent: " + self.user_agent + " - Correlate-ID: " + self.correlate_id + " - "
 
-        ##logger.debug(self.logprefix + "environ: " + str(os.environ))
+        logger.debug(self.logprefix + " environ: " + str(os.environ))
 
         if Util.isDebugEnabled(request, self.req_context):
-            logger.info(self.logprefix + str(self.req_context))
+            logger.info(self.logprefix + ' DebugEnabled ' + str(self.req_context))
             logger.setLevel(logging.DEBUG)
             logger.debug("in debug mode")
 
@@ -82,7 +85,21 @@ class AbsBaseLink(APIView):
             total = datetime.datetime.now() - now
             logger.info(self.logprefix + "timing for LAMBDA " + str(typer.value) + " in milliseconds : " + str(
                 int(total.total_seconds() * 1000)))
-            return ret
+            if settings.SERVICE_NO_RETURN:
+                return self.send_hook_back(request, self.correlate_id, self.user_agent, ret)
+            else:
+                return ret
+
+        except MaxTryHookException as e:
+            logger.debug(self.logprefix + 'You sent no hook request.')
+            # logger.info(self.logprefix + 'An MaxTryHookException occurred in ' + str(traceback.format_exc()))
+            return HttpResponse(status=status.HTTP_200_OK)
+
+        except NoReturnHttpException as e:
+            logger.debug(self.logprefix + 'You sent no return request.')
+            # logger.info(self.logprefix + 'An NoReturnHttpException occurred in ' + str(traceback.format_exc()))
+            return HttpResponse(status=status.HTTP_200_OK)
+
         except IOError as e:
             logger.debug(self.logprefix + 'An IOerror occured :' + str(e.message))
             logger.info(self.logprefix + 'An IOError occurred in ' + str(traceback.format_exc()))
@@ -115,7 +132,18 @@ class AbsBaseLink(APIView):
         total = datetime.datetime.now() - now
         logger.info(self.logprefix + "timing for " + str(typer) + " in milliseconds : " + str(
             int(total.total_seconds() * 1000)))
-        return HttpResponseRedirect("/"+str(status.HTTP_400_BAD_REQUEST))
+        if settings.SERVICE_NO_RETURN:
+            return self.send_hook_back(request, self.correlate_id, self.user_agent, {"error": e.message})
+        else:
+            if settings.FRONT_API:
+                return HttpResponseRedirect("/" + str(status.HTTP_400_BAD_REQUEST))
+            return HttpResponse({"error": e.message}, status=status.HTTP_400_BAD_REQUEST)
+
+    def send_hook_back(self, request, correlate_id, uagent, ret):
+        url = Util.get_hook_url(request, correlate_id, uagent)
+        # @TODO send hook back
+        Util.send_hook('POST', url, data=ret, headers=None)
+        return HttpResponse("send hook back")
 
     def process_finally(self):
         logger.debug(self.logprefix + "process_finally")

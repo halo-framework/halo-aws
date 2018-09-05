@@ -1,4 +1,5 @@
-#
+from __future__ import print_function
+
 from django.conf.urls import *
 
 from .views import *

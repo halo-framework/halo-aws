@@ -1,7 +1,6 @@
-# Create your mixin here.
+from __future__ import print_function
 
 import importlib
-# python
 import json
 import logging
 from abc import ABCMeta, abstractmethod
