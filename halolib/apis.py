@@ -30,6 +30,29 @@ class ApiError(HaloError):
     pass
 
 
+def exec_client(method, url, data=None, headers=None):
+    msg = "Max Try"
+    for i in range(0, settings.HTTP_MAX_RETRY):
+        try:
+            logger.debug("try " + str(i))
+            ret = requests.request(method, url, data=data, headers=headers, timeout=settings.SERVICE_TIMEOUT_IN_MS)
+            if ret.status_code == 500 or ret.status_code == 502 or ret.status_code == 504:
+                if i > 0:
+                    time.sleep(settings.HTTP_RETRY_SLEEP)
+                continue
+            return ret
+        except requests.exceptions.ReadTimeout:  # this confirms you that the request has reached server
+            if settings.SERVICE_NO_RETURN:
+                raise NoReturnHttpException("one way http")
+        except Exception as e:
+            msg = e.message
+            logger.debug("Exception in method=" + method + " " + str(e.message))
+            if i > 0:
+                time.sleep(settings.HTTP_RETRY_SLEEP)
+            continue
+    raise MaxTryHttpException(msg)
+
+
 class AbsBaseApi(object):
     __metaclass__ = ABCMeta
 
@@ -74,72 +97,60 @@ class AbsBaseApi(object):
         self.url = strx
         return self.url
 
-    def exec_client(self, method, url, data=None, headers=None):
-        msg = "Max Try"
-        for i in range(0, settings.HTTP_MAX_RETRY):
-            try:
-                logger.debug("try " + str(i))
-                ret = requests.request(method, url, data=data, headers=headers, timeout=settings.SERVICE_TIMEOUT_IN_MS)
-                if ret.status_code == 500 or ret.status_code == 502 or ret.status_code == 504:
-                    if i > 0:
-                        time.sleep(settings.HTTP_RETRY_SLEEP)
-                    continue
-                return ret
-            except requests.exceptions.ReadTimeout:  # this confirms you that the request has reached server
-                if settings.SERVICE_NO_RETURN:
-                    raise NoReturnHttpException()
-            except Exception, e:
-                msg = e.message
-                logger.debug("Exception in method=" + method + " " + str(e.message))
-                if i > 0:
-                    time.sleep(settings.HTTP_RETRY_SLEEP)
-                continue
-        raise MaxTryHttpException(msg)
-
     def process(self, method, url, data=None, headers=None):
         try:
             logger.debug("method: " + str(method) + " url: " + str(url))
             now = datetime.datetime.now()
-            ret = self.exec_client(method, url, data=data, headers=headers)
+            ret = exec_client(method, url, data=data, headers=headers)
             total = datetime.datetime.now() - now
             logger.info(self.logprefix + "timing for API " + str(method) + " in milliseconds : " + str(
                 int(total.total_seconds() * 1000)) + " url: " + str(url))
             logger.debug("ret: " + str(ret))
             return ret
-        except requests.ConnectionError, e:
+        except requests.ConnectionError as e:
             logger.debug("error: " + str(e.message))
             ret = ApiError(e.message)
             ret.status_code = -1
             raise ret
-        except requests.HTTPError, e:
+        except requests.HTTPError as e:
             logger.debug("error: " + str(e.message))
             ret = ApiError(e.message)
             ret.status_code = -2
             raise ret
-        except requests.Timeout, e:
+        except requests.Timeout as e:
             logger.debug("error: " + str(e.message))
             ret = ApiError(e.message)
             ret.status_code = -3
             raise ret
-        except requests.RequestException, e:
+        except requests.RequestException as e:
             logger.debug("error: " + str(e.message))
             ret = ApiError(e.message)
             ret.status_code = -4
             raise ret
 
-    def get(self, headers=headers):
+    def get(self, headers=None):
+        if headers is None:
+            headers = headers
         return self.process('GET', self.url, headers=headers)
 
-    def post(self, data, headers=headers):
+    def post(self, data, headers=None):
+        if headers is None:
+            headers = headers
         return self.process('POST', self.url, data=data, headers=headers)
 
-    def put(self, data, headers=headers):
+    def put(self, data, headers=None):
+        if headers is None:
+            headers = headers
         return self.process('PUT', self.url, data=data, headers=headers)
 
-    def patch(self, data, headers=headers):
+    def patch(self, data, headers=None):
+        if headers is None:
+            headers = headers
         return self.process('PATCH', self.url, data=data, headers=headers)
 
-    def delete(self, headers=headers):
+    def delete(self, headers=None):
+        if headers is None:
+            headers = headers
         return self.process('DELETE', self.url, headers=headers)
 
     def fwd_process(self, typer, request, vars, headers):
@@ -167,16 +178,19 @@ response = client.invoke(
 """
 
 
+def call_lambda(func_name, event):
+    client = boto3.client('lambda', region_name=settings.AWS_REGION)
+    ret = client.invoke(
+        FunctionName=func_name,
+        InvocationType='RequestResponse',
+        LogType='None',
+        Payload=bytes(json.dumps(event))
+    )
+    return ret
+
+
 class ApiLambda(object):
-    def call_lambda(self, func_name, event):
-        client = boto3.client('lambda', region_name=settings.AWS_REGION)
-        ret = client.invoke(
-            FunctionName=func_name,
-            InvocationType='RequestResponse',
-            LogType='None',
-            Payload=bytes(json.dumps(event))
-        )
-        return ret
+    pass
 
 
 ##################################### test #########################

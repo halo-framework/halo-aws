@@ -35,7 +35,7 @@ class AbsBaseEvent(object):
     def get_loc_url(self):
         if self.target_service in settings.LOC_TABLE:
             return settings.LOC_TABLE[self.target_service]
-        raise NoTargetUrlException()
+        raise NoTargetUrlException("not a local service")
 
     def send_event(self, messageDict, request=None, ctx=None):
         if messageDict:
@@ -46,8 +46,8 @@ class AbsBaseEvent(object):
             if ctx:
                 messageDict.update(ctx)
         else:
-            raise NoMessageException()
-        if settings.SERVER_LOCAL == True:
+            raise NoMessageException("not halo msg")
+        if settings.SERVER_LOCAL:
             from multiprocessing.dummy import Pool
             import requests
             url = self.get_loc_url()

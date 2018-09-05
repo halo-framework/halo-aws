@@ -29,6 +29,18 @@ from .util import Util
 logger = logging.getLogger(__name__)
 
 
+def get_the_template(request, name):
+    return loader.get_template(name)
+
+
+def get_root_url():
+    if not settings.STAGE_URL:
+        root = '/'
+    else:
+        root = "/" + settings.ENV_NAME + "/"
+    return root
+
+
 class AbsBaseMixin(object):
     __metaclass__ = ABCMeta
 
@@ -42,20 +54,10 @@ class AbsBaseMixin(object):
         new_name = name.replace('Link', '')
         return new_name
 
-    def get_root_url(self):
-        if settings.STAGE_URL == False:
-            root = '/'
-        else:
-            root = "/" + settings.ENV_NAME + "/"
-        return root
-
-    def get_the_template(self, request, name):
-        return loader.get_template(name)
-
     def process_get(self, request, vars):
         try:
-            t = self.get_the_template(request, self.name + '.html')
-            root = self.get_root_url()
+            t = get_the_template(request, self.name + '.html')
+            root = get_root_url()
             c = {'the_title_string': 'welcome', 'the_site_string': settings.SITE_NAME, 'the_env_static_string': root,
                  'the_content': 'this is a get on view ' + self.name, 'version': settings.VERSION,
                  'messages': messages.get_messages(request)}
@@ -80,6 +82,16 @@ class AbsBaseMixin(object):
         return HttpResponse('this is a delete on view ' + self.name)
 
 
+def check_author(request, vars, json):
+    # @TODO check authorization and do masking
+    return True, json, None
+
+
+def check_authen(typer, request, vars):
+    # @TODO check authentication and do masking
+    return True, None
+
+
 class AbsApiMixin(AbsBaseMixin):
     __metaclass__ = ABCMeta
 
@@ -89,20 +101,12 @@ class AbsApiMixin(AbsBaseMixin):
     req_context = None
 
     def __init__(self):
-        self.name = self.get_name()
+        AbsBaseMixin.__init__(self)
         self.class_name = self.__class__.__name__
-
-    def check_authen(self, typer, request, vars):
-        # @TODO check authentication and do masking
-        return True, None
-
-    def check_author(self, request, vars, json):
-        # @TODO check authorization and do masking
-        return True, json, None
 
     def process_in_auth(self, typer, request, vars):
         # who can use this resource with this method - api product,app,user,role,scope
-        ret, cause = self.check_authen(typer, request, vars)
+        ret, cause = check_authen(typer, request, vars)
         if ret:
             ctx = Util.get_auth_context(request)
             logger.debug("ctx:" + str(ctx))
@@ -110,7 +114,7 @@ class AbsApiMixin(AbsBaseMixin):
         raise AuthException(request, cause)
 
     def process_out_auth(self, request, vars, json):
-        ret, jsonx, cause = self.check_author(request, vars, json)
+        ret, jsonx, cause = check_author(request, vars, json)
         # who can use this model with this method - object,field
         if ret:
             logger.debug("jsonx:" + str(jsonx))
@@ -122,7 +126,7 @@ class AbsApiMixin(AbsBaseMixin):
     def process_get(self, request, vars):
         try:
             ctx = self.process_in_auth(HTTPChoice.get, request, vars)
-        except AuthException, e:
+        except AuthException as e:
             return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
         json, ret_status = self.process_api(ctx, HTTPChoice.get, request, vars)
         if ret_status == status.HTTP_200_OK:
@@ -133,7 +137,7 @@ class AbsApiMixin(AbsBaseMixin):
     def process_post(self, request, vars):
         try:
             ctx = self.process_in_auth(HTTPChoice.post, request, vars)
-        except AuthException, e:
+        except AuthException as e:
             return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
         json, ret_status = self.process_api(ctx, HTTPChoice.post, request, vars)
         if ret_status == status.HTTP_201_CREATED:
@@ -144,7 +148,7 @@ class AbsApiMixin(AbsBaseMixin):
     def process_put(self, request, vars):
         try:
             ctx = self.process_in_auth(HTTPChoice.put, request, vars)
-        except AuthException, e:
+        except AuthException as e:
             return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
         json, ret_status = self.process_api(ctx, HTTPChoice.put, request, vars)
         if ret_status == status.HTTP_202_ACCEPTED:
@@ -155,7 +159,7 @@ class AbsApiMixin(AbsBaseMixin):
     def process_patch(self, request, vars):
         try:
             ctx = self.process_in_auth(HTTPChoice.patch, request, vars)
-        except AuthException, e:
+        except AuthException as e:
             return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
         json, ret_status = self.process_api(ctx, HTTPChoice.patch, request, vars)
         if ret_status == status.HTTP_202_ACCEPTED:
@@ -166,7 +170,7 @@ class AbsApiMixin(AbsBaseMixin):
     def process_delete(self, request, vars):
         try:
             ctx = self.process_in_auth(HTTPChoice.delete, request, vars)
-        except AuthException, e:
+        except AuthException as e:
             return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
         json, ret_status = self.process_api(ctx, HTTPChoice.delete, request, vars)
         if ret_status == status.HTTP_200_OK:
@@ -188,7 +192,7 @@ class TestMixin(AbsApiMixin):
         try:
             ret = api.fwd_process(typer, request, vars, self.req_context)
             print("ret=" + str(ret.content))
-        except HaloException, e:
+        except HaloException as e:
             print("error=" + str(e.message))
         return {"test": "good"}, 200
 

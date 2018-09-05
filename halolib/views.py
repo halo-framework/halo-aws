@@ -57,6 +57,9 @@ class AbsBaseLink(APIView):
     user_locale = settings.LOCALE_CODE
     user_lang = settings.LANGUAGE_CODE
 
+    def __init__(self, **kwargs):
+        super(AbsBaseLink, self).__init__(**kwargs)
+
     def do_process(self, request, typer, vars, format=None):
 
         now = datetime.datetime.now()
@@ -64,6 +67,8 @@ class AbsBaseLink(APIView):
         logger.setLevel(logging.INFO)
 
         logger.debug("headers: " + str(request.META))
+
+        self.user_langs = request.META.get('HTTP_ACCEPT_LANGUAGE', ['en-US', ])
 
         self.req_context = Util.get_req_context(request)
         self.correlate_id = self.req_context["x-correlation-id"]
@@ -173,7 +178,7 @@ class AbsBaseLink(APIView):
         logger.debug(self.logprefix + 'split_locale_from_request:  ' + str(locale))
         return locale
 
-    #es,ar;q=0.9,he-IL;q=0.8,he;q=0.7,en-US;q=0.6,en;q=0.5,es-ES;q=0.4
+        # es,ar;q=0.9,he-IL;q=0.8,he;q=0.7,en-US;q=0.6,en;q=0.5,es-ES;q=0.4
     def get_user_locale(self, request):
         locale = self.split_locale_from_request(request)
         if (not locale) or (locale == ''):
@@ -182,18 +187,18 @@ class AbsBaseLink(APIView):
                 logger.debug(self.logprefix + 'user_languages:  ' + str(self.user_languages))
                 arr = self.user_languages.split(",")
                 for l in arr:
-                   if "-" in l:
+                    if "-" in l:
                         if ";" not in l:
                             self.user_locale = l
                         else:
                             self.user_locale = l.split(";")[0]
                         break
-                   else:
-                       continue
+                    else:
+                        continue
         else:
             self.user_locale = locale
         logger.debug(self.logprefix + 'process LOCALE_CODE:  ' + str(self.user_locale))
-        if settings.GET_LANGUAGE == True:
+        if settings.GET_LANGUAGE:
             #translation.activate(self.user_locale)
             self.user_lang = self.user_locale.split("-")[0]#translation.get_language().split("-")[0]
         logger.debug(self.logprefix + 'process LANGUAGE_CODE:  ' + str(self.user_lang))
@@ -223,7 +228,6 @@ class AbsBaseLink(APIView):
         """
         Return a list of all users.
         """
-        self.user_langs = request.META.get('HTTP_ACCEPT_LANGUAGE', ['en-US', ])
         logger.debug(self.logprefix + 'process user_langs:  ' + str(self.user_langs))
 
         if typer == HTTPChoice.get:
@@ -310,4 +314,4 @@ from .mixin import TestMixin
 
 
 class TestLink(TestMixin, AbsBaseLink):
-	permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.AllowAny,)

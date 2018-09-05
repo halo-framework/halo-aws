@@ -12,7 +12,7 @@ import requests
 # django
 from django.conf import settings
 
-from exceptions import MaxTryHookException
+from .exceptions import MaxTryHookException
 
 # DRF
 
@@ -58,14 +58,18 @@ def strx(str1):
 	if str1:
 		try:
 			return str1.encode('utf-8').strip()
-		except Exception, e:
+		except Exception as e:
 			return str(str1)
-		except AttributeError, e:
+		except AttributeError as e:
 			return str(str1)
 	return ''
 
 
 class Util:
+
+	def __init__(self):
+		pass
+
 	logprefix = None
 
 	@staticmethod
@@ -165,13 +169,13 @@ class Util:
 		for header in request.META:
 			if regex_http_.match(header) or regex_content_type.match(header) or regex_content_length.match(header):
 				request_headers[header] = request.META[header]
-		request_headers
+		return request_headers
 
 	@staticmethod
 	def isDebugEnabled(request, req_context):
 		# disable debug logging by default, but allow override via env variables
 		# or if enabled via forwarded request context
-		if settings.DEBUG == True:
+		if settings.DEBUG:
 			return True
 		if req_context["Debug-Log-Enabled"] == 'true':
 			epoch = datetime.datetime.utcfromtimestamp(0)
@@ -258,7 +262,7 @@ class Util:
 						time.sleep(settings.HTTP_RETRY_SLEEP)
 					continue
 				return ret
-			except Exception, e:
+			except Exception as e:
 				msg = e.message
 				logger.debug("Exception in method=" + method + " " + str(e.message))
 				if i > 0:
@@ -267,7 +271,7 @@ class Util:
 		raise MaxTryHookException(msg)
 
 	@staticmethod
-	def get_client_ip(request):
+	def get_client_ip(request):  # front - when browser calls us
 		x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
 		if x_forwarded_for:
 			ip = x_forwarded_for.split(',')[0]
@@ -276,7 +280,7 @@ class Util:
 		return ip
 
 	@staticmethod
-	def get_client_ip(request):
+	def get_server_client_ip(request):  #not front - when service calls us
 		return request.META.get('HTTP_REFERER')
 
 	@staticmethod
