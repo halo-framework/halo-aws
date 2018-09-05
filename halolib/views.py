@@ -18,9 +18,9 @@ from rest_framework import status
 # DRF
 from rest_framework.views import APIView
 
-from util import Util
 from .const import HTTPChoice
 from .exceptions import NoReturnHttpException, MaxTryHookException
+from .util import Util
 
 # aws
 # common
