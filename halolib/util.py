@@ -256,7 +256,8 @@ class Util:
 		for i in range(0, settings.HTTP_MAX_RETRY):
 			try:
 				logger.debug("try " + str(i))
-				ret = requests.request(method, url, data=data, headers=headers, timeout=settings.HOOK_TIMEOUT_IN_MS)
+				ret = requests.request(method, url, data=data, headers=headers,
+									   timeout=(settings.SERVICE_CONNECT_TIMEOUT_IN_MS, settings.HOOK_TIMEOUT_IN_MS))
 				if ret.status_code == 500 or ret.status_code == 502 or ret.status_code == 504:
 					if i > 0:
 						time.sleep(settings.HTTP_RETRY_SLEEP)

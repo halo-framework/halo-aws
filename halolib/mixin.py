@@ -193,7 +193,7 @@ class TestMixin(AbsApiMixin):
             ret = api.fwd_process(typer, request, vars, self.req_context)
             print("ret=" + str(ret.content))
         except HaloException as e:
-            print("error=" + str(e.message))
+            print("error=" + str(e))
         return {"test": "good"}, 200
 
 

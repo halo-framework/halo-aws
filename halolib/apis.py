@@ -30,12 +30,17 @@ class ApiError(HaloError):
     pass
 
 
-def exec_client(method, url, data=None, headers=None):
+def exec_client(method, url, api_type, data=None, headers=None):
     msg = "Max Try"
+    read_timeout = settings.SERVICE_TIMEOUT_IN_MS
+    if api_type == "service":
+        read_timeout = settings.SERVICE_NO_RETURN_TIMEOUT_IN_MS
     for i in range(0, settings.HTTP_MAX_RETRY):
         try:
             logger.debug("try " + str(i))
-            ret = requests.request(method, url, data=data, headers=headers, timeout=settings.SERVICE_TIMEOUT_IN_MS)
+            ret = requests.request(method, url, data=data, headers=headers,
+                                   timeout=(settings.SERVICE_CONNECT_TIMEOUT_IN_MS, read_timeout))
+            print(str(ret))
             if ret.status_code == 500 or ret.status_code == 502 or ret.status_code == 504:
                 if i > 0:
                     time.sleep(settings.HTTP_RETRY_SLEEP)
@@ -44,9 +49,14 @@ def exec_client(method, url, data=None, headers=None):
         except requests.exceptions.ReadTimeout:  # this confirms you that the request has reached server
             if settings.SERVICE_NO_RETURN:
                 raise NoReturnHttpException("one way http")
+        except requests.exceptions.ConnectTimeout:
+            logger.debug("ConnectTimeout in method=" + method + " for url=" + url)
+            if i > 0:
+                time.sleep(settings.HTTP_RETRY_SLEEP)
+            continue
         except Exception as e:
             msg = str(e)
-            logger.debug("Exception in method=" + method + " " + str(e.message))
+            logger.debug("Exception in method=" + method + " " + msg)
             if i > 0:
                 time.sleep(settings.HTTP_RETRY_SLEEP)
             continue
@@ -58,16 +68,17 @@ class AbsBaseApi(object):
 
     name = None
     url = None
+    api_type = None
     logprefix = None
 
     def __init__(self, logprefix):
         self.logprefix = logprefix
-        self.url = self.get_url_str()
+        self.url, self.api_type = self.get_url_str()
 
     def get_url_str(self):
         api_config = settings.API_CONFIG
         logger.debug("api_config: " + str(api_config))
-        return api_config[self.name]
+        return api_config[self.name]["url"], api_config[self.name]["type"]
 
     def set_api_url(self, key, val):
         strx = self.url
@@ -101,30 +112,34 @@ class AbsBaseApi(object):
         try:
             logger.debug("method: " + str(method) + " url: " + str(url))
             now = datetime.datetime.now()
-            ret = exec_client(method, url, data=data, headers=headers)
+            ret = exec_client(method, url, self.api_type, data=data, headers=headers)
             total = datetime.datetime.now() - now
-            logger.info(self.logprefix + "timing for API " + str(method) + " in milliseconds : " + str(
+            logger.info(self.logprefix + " timing for API " + str(method) + " in milliseconds : " + str(
                 int(total.total_seconds() * 1000)) + " url: " + str(url))
             logger.debug("ret: " + str(ret))
             return ret
         except requests.ConnectionError as e:
-            logger.debug("error: " + str(e.message))
-            ret = ApiError(e.message)
+            msg = str(e)
+            logger.debug("error: " + msg)
+            ret = ApiError(msg)
             ret.status_code = -1
             raise ret
         except requests.HTTPError as e:
-            logger.debug("error: " + str(e.message))
-            ret = ApiError(e.message)
+            msg = str(e)
+            logger.debug("error: " + msg)
+            ret = ApiError(msg)
             ret.status_code = -2
             raise ret
         except requests.Timeout as e:
-            logger.debug("error: " + str(e.message))
-            ret = ApiError(e.message)
+            msg = str(e)
+            logger.debug("error: " + msg)
+            ret = ApiError(msg)
             ret.status_code = -3
             raise ret
         except requests.RequestException as e:
-            logger.debug("error: " + str(e.message))
-            ret = ApiError(e.message)
+            msg = str(e)
+            logger.debug("error: " + msg)
+            ret = ApiError(msg)
             ret.status_code = -4
             raise ret
 

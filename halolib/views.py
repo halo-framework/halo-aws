@@ -95,41 +95,46 @@ class AbsBaseLink(APIView):
             else:
                 return ret
 
-        except MaxTryHookException as e:
+        except MaxTryHookException as e:  # if hook is not working
             logger.debug(self.logprefix + 'You sent no hook request.')
             error_message = str(e)
             Util.terminate_action(self.correlate_id, error_message)
             # logger.info(self.logprefix + 'An MaxTryHookException occurred in ' + str(traceback.format_exc()))
             return HttpResponse(status=status.HTTP_200_OK)
 
-        except NoReturnHttpException as e:
+        except NoReturnHttpException as e:  #if no need to return data
             logger.debug(self.logprefix + 'You do not send a return to request.')
             # logger.info(self.logprefix + 'An NoReturnHttpException occurred in ' + str(traceback.format_exc()))
             return HttpResponse(status=status.HTTP_200_OK)
 
         except IOError as e:
-            logger.debug(self.logprefix + 'An IOerror occured :' + str(e.message))
-            error_message = e.message
+            emsg = str(e)
+            logger.debug(self.logprefix + 'An IOerror occured :' + emsg)
+            error_message = emsg
             logger.info(self.logprefix + 'An IOError occurred in ' + str(traceback.format_exc()))
 
         except ValueError as e:
-            logger.debug(self.logprefix + 'Non-numeric data found : ' + str(e.message))
-            error_message = e.message
+            emsg = str(e)
+            logger.debug(self.logprefix + 'Non-numeric data found : ' + emsg)
+            error_message = emsg
             logger.info(self.logprefix + 'An ValueError occurred in ' + str(traceback.format_exc()))
 
         except ImportError as e:
+            emsg = str(e)
             logger.debug(self.logprefix + "NO module found")
-            error_message = e.message
+            error_message = emsg
             logger.info(self.logprefix + 'An ImportError occurred in ' + str(traceback.format_exc()))
 
         except EOFError as e:
+            emsg = str(e)
             logger.debug(self.logprefix + 'Why did you do an EOF on me?')
-            error_message = e.message
+            error_message = emsg
             logger.info(self.logprefix + 'An EOFError occurred in ' + str(traceback.format_exc()))
 
         except KeyboardInterrupt as e:
+            emsg = str(e)
             logger.debug(self.logprefix + 'You cancelled the operation.')
-            error_message = e.message
+            error_message = emsg
             logger.info(self.logprefix + 'An KeyboardInterrupt occurred in ' + str(traceback.format_exc()))
 
         except AttributeError as e:
@@ -138,7 +143,7 @@ class AbsBaseLink(APIView):
             logger.info(self.logprefix + 'An KeyboardInterrupt occurred in ' + str(traceback.format_exc()))
 
         except Exception as e:
-            error_message = e.message
+            error_message = str(e)
             #exc_type, exc_obj, exc_tb = sys.exc_info()
             #fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             #logger.debug('An error occured in '+str(fname)+' lineno: '+str(exc_tb.tb_lineno)+' exc_type '+str(exc_type)+' '+e.message)
