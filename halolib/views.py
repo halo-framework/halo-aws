@@ -182,7 +182,7 @@ class AbsBaseLink(APIView):
     def get_user_locale(self, request):
         locale = self.split_locale_from_request(request)
         if (not locale) or (locale == ''):
-            if request.META.has_key('HTTP_ACCEPT_LANGUAGE'):
+            if 'HTTP_ACCEPT_LANGUAGE' in request.META:
                 self.user_languages = request.META.get('HTTP_ACCEPT_LANGUAGE', self.user_locale+",")
                 logger.debug(self.logprefix + 'user_languages:  ' + str(self.user_languages))
                 arr = self.user_languages.split(",")
