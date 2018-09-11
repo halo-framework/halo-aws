@@ -183,7 +183,7 @@ class AbsApiMixin(AbsBaseMixin):
 ##################################### test #########################
 
 from .apis import ApiTest
-from .exceptions import HaloException
+from .exceptions import ApiException
 class TestMixin(AbsApiMixin):
     def process_api(self, ctx, typer, request, vars):
         api = ApiTest("123")
@@ -192,8 +192,10 @@ class TestMixin(AbsApiMixin):
         try:
             ret = api.fwd_process(typer, request, vars, self.req_context)
             print("ret=" + str(ret.content))
-        except HaloException as e:
+        except ApiException as e:
             print("error=" + str(e))
+        # except NoReturnApiException as e:
+        #    print("NoReturnApiException="+e.message)
         return {"test": "good"}, 200
 
 

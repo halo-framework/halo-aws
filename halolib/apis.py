@@ -12,7 +12,7 @@ import requests
 # django
 from django.conf import settings
 
-from .exceptions import HaloError, HaloException, MaxTryHttpException, NoReturnHttpException
+from .exceptions import HaloError, HaloException, MaxTryHttpException, NoReturnApiException
 
 # DRF
 
@@ -47,8 +47,9 @@ def exec_client(method, url, api_type, data=None, headers=None):
                 continue
             return ret
         except requests.exceptions.ReadTimeout:  # this confirms you that the request has reached server
-            if settings.SERVICE_NO_RETURN:
-                raise NoReturnHttpException("one way http")
+            logger.debug("ReadTimeout " + str(read_timeout) + " in method=" + method + " for url=" + url)
+            # if settings.SERVICE_NO_RETURN:
+            raise NoReturnApiException(url)
         except requests.exceptions.ConnectTimeout:
             logger.debug("ConnectTimeout in method=" + method + " for url=" + url)
             if i > 0:

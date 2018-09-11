@@ -30,7 +30,7 @@ class AuthException(HaloException):
     pass
 
 
-class MaxTryException(HaloException):
+class MaxTryException(ApiException):
     pass
 
 
@@ -42,9 +42,9 @@ class MaxTryThriftException(MaxTryException):
     pass
 
 
-class MaxTryHookException(MaxTryException):
+class MaxTryHookException(ApiException):
     pass
 
 
-class NoReturnHttpException(HaloException):
+class NoReturnApiException(HaloException):
     pass

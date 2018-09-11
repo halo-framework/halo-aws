@@ -304,5 +304,28 @@ class Util:
 
 	@staticmethod
 	def terminate_action(correlate_id, error_message):
-		print("terminate_action")
+		logger.info("terminate_action " + correlate_id + " error:" + error_message)
 		return
+
+	@staticmethod
+	def sleep_action(correlate_id):
+		logger.debug("sleep_action " + correlate_id)
+		name = 'xyz'
+		import dill
+		start = datetime.datetime.now()
+		dill.dump_session('session.pkl')
+		z = datetime.datetime.now() - start
+		print("time=" + str(z))
+		# sys.exit(1)
+		Util.wake_action(correlate_id)
+
+	@staticmethod
+	def wake_action(correlate_id):
+		logger.debug("wake_action " + correlate_id)
+		import dill
+		import sys
+		dill.load_session('session.pkl')
+		print("c=" + str(sys.modules['__main__']))
+		for i in sys.modules:
+			if "halolib" in str(i):
+				print("i=" + str(i))
