@@ -29,18 +29,6 @@ from .util import Util
 logger = logging.getLogger(__name__)
 
 
-def get_the_template(request, name):
-    return loader.get_template(name)
-
-
-def get_root_url():
-    if not settings.STAGE_URL:
-        root = '/'
-    else:
-        root = "/" + settings.ENV_NAME + "/"
-    return root
-
-
 class AbsBaseMixin(object):
     __metaclass__ = ABCMeta
 
@@ -49,6 +37,16 @@ class AbsBaseMixin(object):
     def __init__(self):
         self.name = self.get_name()
 
+    def get_the_template(self, request, name):
+        return loader.get_template(name)
+
+    def get_root_url(self):
+        if not settings.STAGE_URL:
+            root = '/'
+        else:
+            root = "/" + settings.ENV_NAME + "/"
+        return root
+
     def get_name(self):
         name = self.__class__.__name__
         new_name = name.replace('Link', '')
@@ -56,8 +54,8 @@ class AbsBaseMixin(object):
 
     def process_get(self, request, vars):
         try:
-            t = get_the_template(request, self.name + '.html')
-            root = get_root_url()
+            t = self.get_the_template(request, self.name + '.html')
+            root = self.get_root_url()
             c = {'the_title_string': 'welcome', 'the_site_string': settings.SITE_NAME, 'the_env_static_string': root,
                  'the_content': 'this is a get on view ' + self.name, 'version': settings.VERSION,
                  'messages': messages.get_messages(request)}
@@ -81,15 +79,13 @@ class AbsBaseMixin(object):
     def process_delete(self, request, vars):
         return HttpResponse('this is a delete on view ' + self.name)
 
+    def check_author(self, request, vars, json):
+        # @TODO check authorization and do masking
+        return True, json, None
 
-def check_author(request, vars, json):
-    # @TODO check authorization and do masking
-    return True, json, None
-
-
-def check_authen(typer, request, vars):
-    # @TODO check authentication and do masking
-    return True, None
+    def check_authen(self, typer, request, vars):
+        # @TODO check authentication and do masking
+        return True, None
 
 
 class AbsApiMixin(AbsBaseMixin):
@@ -106,7 +102,7 @@ class AbsApiMixin(AbsBaseMixin):
 
     def process_in_auth(self, typer, request, vars):
         # who can use this resource with this method - api product,app,user,role,scope
-        ret, cause = check_authen(typer, request, vars)
+        ret, cause = self.check_authen(typer, request, vars)
         if ret:
             ctx = Util.get_auth_context(request)
             logger.debug("ctx:" + str(ctx))
@@ -114,7 +110,7 @@ class AbsApiMixin(AbsBaseMixin):
         raise AuthException(request, cause)
 
     def process_out_auth(self, request, vars, json):
-        ret, jsonx, cause = check_author(request, vars, json)
+        ret, jsonx, cause = self.check_author(request, vars, json)
         # who can use this model with this method - object,field
         if ret:
             logger.debug("jsonx:" + str(jsonx))

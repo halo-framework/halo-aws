@@ -284,48 +284,4 @@ class Util:
 	def get_server_client_ip(request):  #not front - when service calls us
 		return request.META.get('HTTP_REFERER')
 
-	@staticmethod
-	def get_hook_url(request, correlate_id, uagent):
-		env = "/dev"
-		port = "80"
-		base_url = None
-		host = "host"
-		return_code_tag = Util.get_return_code_tag(request)
-		if 'HTTP_REFERER' in request.META:
-			base_url = request.META['HTTP_REFERER']
-		if base_url is None and 'HTTP_HOST' in request.META:
-			host = request.META['HTTP_HOST']
-			base_url = "https://" + host + env
-		if base_url is None:
-			base_url = "https://" + host + ":" + port + env
-		url = base_url + "/hook?reqid=" + correlate_id + "&uagent=" + uagent + "&tag=" + return_code_tag
-		logger.debug("in send_hook_back " + url)
-		return url
 
-	@staticmethod
-	def terminate_action(correlate_id, error_message):
-		logger.info("terminate_action " + correlate_id + " error:" + error_message)
-		return
-
-	@staticmethod
-	def sleep_action(correlate_id):
-		logger.debug("sleep_action " + correlate_id)
-		name = 'xyz'
-		import dill
-		start = datetime.datetime.now()
-		dill.dump_session('session.pkl')
-		z = datetime.datetime.now() - start
-		print("time=" + str(z))
-		# sys.exit(1)
-		Util.wake_action(correlate_id)
-
-	@staticmethod
-	def wake_action(correlate_id):
-		logger.debug("wake_action " + correlate_id)
-		import dill
-		import sys
-		dill.load_session('session.pkl')
-		print("c=" + str(sys.modules['__main__']))
-		for i in sys.modules:
-			if "halolib" in str(i):
-				print("i=" + str(i))
