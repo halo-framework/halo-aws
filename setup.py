@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 # pip install halolib-1.0.1.zip
-# python setup.py sdist
+# python setup.py sdist --formats=zip
 # \dev\python27\python setup.py build
 
 setup(
