@@ -32,14 +32,12 @@ class ApiError(HaloError):
 
 def exec_client(method, url, api_type, data=None, headers=None):
     msg = "Max Try"
-    read_timeout = settings.SERVICE_TIMEOUT_IN_MS
-    if api_type == "service":
-        read_timeout = settings.SERVICE_NO_RETURN_TIMEOUT_IN_MS
     for i in range(0, settings.HTTP_MAX_RETRY):
         try:
             logger.debug("try " + str(i))
             ret = requests.request(method, url, data=data, headers=headers,
-                                   timeout=(settings.SERVICE_CONNECT_TIMEOUT_IN_MS, read_timeout))
+                                   timeout=(
+                                   settings.SERVICE_CONNECT_TIMEOUT_IN_MS, settings.SERVICE_READ_TIMEOUT_IN_MS))
             print(str(ret))
             if ret.status_code == 500 or ret.status_code == 502 or ret.status_code == 504:
                 if i > 0:
@@ -47,8 +45,8 @@ def exec_client(method, url, api_type, data=None, headers=None):
                 continue
             return ret
         except requests.exceptions.ReadTimeout:  # this confirms you that the request has reached server
-            logger.debug("ReadTimeout " + str(read_timeout) + " in method=" + method + " for url=" + url)
-            # if settings.SERVICE_NO_RETURN:
+            logger.debug(
+                "ReadTimeout " + str(settings.SERVICE_READ_TIMEOUT_IN_MS) + " in method=" + method + " for url=" + url)
             raise NoReturnApiException(url)
         except requests.exceptions.ConnectTimeout:
             logger.debug("ConnectTimeout in method=" + method + " for url=" + url)

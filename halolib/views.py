@@ -90,10 +90,7 @@ class AbsBaseLink(APIView):
             total = datetime.datetime.now() - now
             logger.info(self.logprefix + "timing for LAMBDA " + str(typer.value) + " in milliseconds : " + str(
                 int(total.total_seconds() * 1000)))
-            if settings.SERVICE_NO_RETURN:
-                return self.send_hook_back(request, self.correlate_id, self.user_agent, ret)
-            else:
-                return ret
+            return ret
 
         except MaxTryHookException as e:  # if hook is not working
             logger.debug(self.logprefix + 'You sent no hook request.')
