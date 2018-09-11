@@ -153,12 +153,9 @@ class AbsBaseLink(APIView):
         total = datetime.datetime.now() - now
         logger.info(self.logprefix + "timing for " + str(typer) + " in milliseconds : " + str(
             int(total.total_seconds() * 1000)))
-        if settings.SERVICE_NO_RETURN:
-            return self.send_hook_back(request, self.correlate_id, self.user_agent, {"error": error_message})
-        else:
-            if settings.FRONT_API:
-                return HttpResponseRedirect("/" + str(status.HTTP_400_BAD_REQUEST))
-            return HttpResponse({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
+        if settings.FRONT_API:
+            return HttpResponseRedirect("/" + str(status.HTTP_400_BAD_REQUEST))
+        return HttpResponse({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
 
     def send_hook_back(self, request, correlate_id, uagent, ret):
         url = Util.get_hook_url(request, correlate_id, uagent)
