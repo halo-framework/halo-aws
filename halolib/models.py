@@ -5,6 +5,7 @@ import logging
 from django.conf import settings
 
 # java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -port 8600
+# java -D"java.library.path"=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -port 8600
 
 logger = logging.getLogger(__name__)
 
