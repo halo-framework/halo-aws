@@ -12,7 +12,7 @@ import requests
 # django
 from django.conf import settings
 
-from .exceptions import HaloError, HaloException, MaxTryHttpException, NoReturnApiException
+from .exceptions import HaloError, HaloException, MaxTryHttpException
 
 # DRF
 
@@ -47,9 +47,12 @@ def exec_client(method, url, api_type, data=None, headers=None):
         except requests.exceptions.ReadTimeout:  # this confirms you that the request has reached server
             logger.debug(
                 "ReadTimeout " + str(settings.SERVICE_READ_TIMEOUT_IN_MS) + " in method=" + method + " for url=" + url)
-            raise NoReturnApiException(url)
+            if i > 0:
+                time.sleep(settings.HTTP_RETRY_SLEEP)
+            continue
         except requests.exceptions.ConnectTimeout:
-            logger.debug("ConnectTimeout in method=" + method + " for url=" + url)
+            logger.debug(
+                "ConnectTimeout in method=" + str(settings.SERVICE_CONNECT_TIMEOUT_IN_MS) + method + " for url=" + url)
             if i > 0:
                 time.sleep(settings.HTTP_RETRY_SLEEP)
             continue

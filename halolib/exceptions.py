@@ -22,11 +22,12 @@ class HaloError(HaloException):
         super(HaloError, self).__init__(msg)
 
 
-class ApiException(HaloException):
+
+class AuthException(HaloException):
     pass
 
 
-class AuthException(HaloException):
+class ApiException(HaloException):
     pass
 
 
@@ -38,13 +39,7 @@ class MaxTryHttpException(MaxTryException):
     pass
 
 
-class MaxTryThriftException(MaxTryException):
+class MaxTryRpcException(MaxTryException):
     pass
 
 
-class MaxTryHookException(ApiException):
-    pass
-
-
-class NoReturnApiException(HaloException):
-    pass

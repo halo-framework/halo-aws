@@ -5,14 +5,10 @@ import datetime
 import logging
 import os
 import re
-import time
 import uuid
 
-import requests
 # django
 from django.conf import settings
-
-from .exceptions import MaxTryHookException
 
 # DRF
 
@@ -249,27 +245,6 @@ class Util:
 		if "x-code-tag-id" in request.META:
 			tag = request.META["x-code-tag-id"]
 		return tag
-
-	@staticmethod
-	def send_hook(method, url, data=None, headers=None):
-		msg = "can not send hook"
-		for i in range(0, settings.HTTP_MAX_RETRY):
-			try:
-				logger.debug("try " + str(i))
-				ret = requests.request(method, url, data=data, headers=headers,
-									   timeout=(settings.SERVICE_CONNECT_TIMEOUT_IN_MS, settings.HOOK_TIMEOUT_IN_MS))
-				if ret.status_code == 500 or ret.status_code == 502 or ret.status_code == 504:
-					if i > 0:
-						time.sleep(settings.HTTP_RETRY_SLEEP)
-					continue
-				return ret
-			except Exception as e:
-				emsg = str(e)
-				logger.debug("Exception in method=" + method + " " + emsg)
-				if i > 0:
-					time.sleep(settings.HTTP_RETRY_SLEEP)
-				continue
-		raise MaxTryHookException(msg)
 
 	@staticmethod
 	def get_client_ip(request):  # front - when browser calls us

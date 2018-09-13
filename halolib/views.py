@@ -19,7 +19,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from .const import HTTPChoice
-from .exceptions import NoReturnApiException, MaxTryHookException
+from .exceptions import MaxTryException
 from .util import Util
 
 # aws
@@ -92,18 +92,11 @@ class AbsBaseLink(APIView):
                 int(total.total_seconds() * 1000)))
             return ret
 
-        except MaxTryHookException as e:  # if hook is not working
-            logger.debug(self.logprefix + 'You sent no hook request.')
-            error_message = str(e)
-            Util.terminate_action(self.correlate_id, error_message)  # inform webfront action has failed
-            # logger.info(self.logprefix + 'An MaxTryHookException occurred in ' + str(traceback.format_exc()))
-            return HttpResponse(status=status.HTTP_200_OK)
-
-        except NoReturnApiException as e:  # if no need to wait for api return data
-            logger.debug(self.logprefix + 'You do not need to wait for api return to request:' + str(e))
-            # logger.info(self.logprefix + 'An NoReturnHttpException occurred in ' + str(traceback.format_exc()))
-            return HttpResponse(status=status.HTTP_200_OK)
-            #Util.sleep_action(self.correlate_id)
+        except MaxTryException as e:  # if api not responding
+            emsg = str(e)
+            logger.debug(self.logprefix + 'MaxTryException: ' + emsg)
+            error_message = emsg
+            logger.info(self.logprefix + 'An MaxTryException occurred in ' + emsg)  # str(traceback.format_exc()))
 
         except IOError as e:
             emsg = str(e)
