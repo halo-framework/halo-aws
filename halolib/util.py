@@ -66,7 +66,7 @@ class Util:
 	def __init__(self):
 		pass
 
-	logprefix = None
+	event_logprefix = None
 
 	@staticmethod
 	def mobile(request):
@@ -186,9 +186,9 @@ class Util:
 
 	@staticmethod
 	def get_correlation_from_event(event):
-		if Util.logprefix:
-			print("cached logprefix " + Util.logprefix)
-			return Util.logprefix
+		if Util.event_logprefix:
+			print("cached event logprefix " + Util.event_logprefix)
+			return Util.event_logprefix
 		correlate_id = ''
 		user_agent = ''
 		# from api gateway
@@ -235,9 +235,8 @@ class Util:
 				user_agent = event["x-user-agent"]
 			if "Debug-Log-Enabled" in event:
 				debug_flag = event["Debug-Log-Enabled"]
-		logprefix = user_agent + " " + correlate_id
-		Util.logprefix = logprefix
-		return logprefix
+		Util.event_logprefix = user_agent + " " + correlate_id
+		return Util.event_logprefix
 
 	@staticmethod
 	def get_return_code_tag(request):
