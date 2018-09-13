@@ -317,7 +317,7 @@ class AbsBaseLink(APIView):
 
     def get_jwt_str(self, request):
         logger.debug(self.logprefix + "get_jwt_str: ")
-        return '&jwt='+self.get_jwt(request)
+        return '&jwt=' + self.get_jwt(request).decode()
 
 
 
