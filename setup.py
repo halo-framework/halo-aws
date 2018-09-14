@@ -6,7 +6,7 @@ from distutils.core import setup
 
 setup(
     name='halolib',
-    version='0.11.41',
+    version='0.12.1',
     packages=['', 'halolib'],
     url='',
     license='',
