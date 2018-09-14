@@ -17,6 +17,8 @@ page_size = settings.PAGE_SIZE
 
 
 class AbsDbMixin(object):
+    # intercept db calls
+
     logprefix = None
 
     def __init__(self, logprefix):
