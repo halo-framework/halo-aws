@@ -9,8 +9,8 @@ import uuid
 
 # django
 from django.conf import settings
-
 # DRF
+from rest_framework.response import Response
 
 """
 [DEBUG]	2018-07-04T14:43:13.413Z	943ecbc5-7f98-11e8-b37a-5f5dcef64369	APIG: 946fe9db-d4bd-42ec-b0b8-33c701d8f2e2 - environ: 
@@ -281,8 +281,8 @@ class Util:
 
     @staticmethod
     def json_data_response(data):
-        return {"data": {data}}
+        return Response({"data": {data}})
 
     @staticmethod
     def json_error_response(code, msg):
-        return {"error": {"code": code, "message": msg}}
+        return Response({"error": {"code": code, "message": msg}})
