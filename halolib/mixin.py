@@ -177,7 +177,7 @@ class AbsApiMixin(AbsBaseMixin):
         return {}, 200
 
 ##################################### test #########################
-
+from .logs import log_json, LogLevels
 from .apis import ApiTest
 from .exceptions import ApiException
 class TestMixin(AbsApiMixin):
@@ -192,6 +192,7 @@ class TestMixin(AbsApiMixin):
             print("error=" + str(e))
         # except NoReturnApiException as e:
         #    print("NoReturnApiException="+e.message)
+        log_json(self.req_context, LogLevels.DEBUG._name_, "we did it", Util.get_req_params(request))
         return {"test": "good"}, 200
 
 

@@ -127,6 +127,45 @@ class Util:
             return settings.FUNC_NAME
 
     @staticmethod
+    def get_func_ver():
+        if 'AWS_LAMBDA_FUNCTION_VERSION' in os.environ:
+            return os.environ['AWS_LAMBDA_FUNCTION_VERSION']
+        else:
+            return "VER"
+
+    @staticmethod
+    def get_func_mem():
+        if 'AWS_LAMBDA_FUNCTION_MEMORY_SIZE' in os.environ:
+            return os.environ['AWS_LAMBDA_FUNCTION_MEMORY_SIZE']
+        else:
+            return "MEM"
+
+    @staticmethod
+    def get_func_region():
+        if 'AWS_REGION' in os.environ:
+            return os.environ['AWS_REGION']
+        else:
+            if 'AWS_DEFAULT_REGION' in os.environ:
+                return os.environ['AWS_DEFAULT_REGION']
+            return "REGION"
+
+    @staticmethod
+    def get_stage():
+        if 'ENVIRONMENT' in os.environ:
+            return os.environ['ENVIRONMENT']
+        else:
+            if 'STAGE' in os.environ:
+                return os.environ['STAGE']
+            return "STAGE"
+
+    @staticmethod
+    def get_context():
+        ret = {"awsRegion": Util.get_func_region(), "functionName": Util.get_func_name(),
+               "functionVersion": Util.get_func_ver(), "functionMemorySize": Util.get_func_mem(),
+               "stage": Util.get_stage()}
+        return ret
+
+    @staticmethod
     def get_correlation_id(request):
         if "HTTP_X_CORRELATION_ID" in request.META:
             x_correlation_id = request.META["HTTP_X_CORRELATION_ID"]
@@ -143,13 +182,23 @@ class Util:
         return user_agent
 
     @staticmethod
+    def get_debug_enabled(request):
+        if "HTTP_DEBUG_LOG_ENABLED" in request.META:
+            dlog = request.META["HTTP_DEBUG_LOG_ENABLED"]
+            if dlog == 'true' and "HTTP_X_CORRELATION_ID" not in request.META:
+                epoch = datetime.datetime.utcfromtimestamp(0)
+                seconds = int((datetime.datetime.now() - epoch).total_seconds())
+                if seconds % 20:
+                    return 'true'
+            if dlog == 'true' and "HTTP_X_CORRELATION_ID" in request.META:
+                return 'true'
+        return 'false'
+
+    @staticmethod
     def get_req_context(request, api_key=None):
         x_correlation_id = Util.get_correlation_id(request)
         x_user_agent = Util.get_user_agent(request)
-        if "HTTP_DEBUG_LOG_ENABLED" in request.META:
-            dlog = request.META["HTTP_DEBUG_LOG_ENABLED"]
-        else:
-            dlog = 'false'
+        dlog = Util.get_debug_enabled(request)
         ret = {"x-user-agent": x_user_agent, "aws_request_id": Util.get_aws_request_id(request),
                "x-correlation-id": x_correlation_id, "debug-log-enabled": dlog}
         if api_key:
@@ -168,16 +217,13 @@ class Util:
         return request_headers
 
     @staticmethod
-    def isDebugEnabled(request, req_context):
+    def isDebugEnabled(req_context, request=None):
         # disable debug logging by default, but allow override via env variables
         # or if enabled via forwarded request context
         if settings.DEBUG:
             return True
-        if req_context["Debug-Log-Enabled"] == 'true':
-            epoch = datetime.datetime.utcfromtimestamp(0)
-            seconds = int((datetime.datetime.now() - epoch).total_seconds())
-            if seconds % 20:
-                return True
+        if req_context["debug-log-enabled"] == 'true':
+            return True
         return False
 
     @staticmethod
@@ -274,15 +320,25 @@ class Util:
     {
         "error": {
             "code": 404,
-            "message": "ID not found"
+            "message": "ID not found",
+            "requestId": "123-456"
         }
     }
     """
 
     @staticmethod
     def json_data_response(data):
-        return Response({"data": {data}})
+        return Response({"data": data})
 
     @staticmethod
-    def json_error_response(code, msg):
-        return Response({"error": {"code": code, "message": msg}})
+    def json_error_response(code, msg, requestId):
+        return Response({"error": {"code": code, "message": msg, "requestId": requestId}})
+
+    @staticmethod
+    def get_req_params(request):
+        qd = {}
+        if request.method == 'GET':
+            qd = request.GET
+        elif request.method == 'POST':
+            qd = request.POST
+        return qd
