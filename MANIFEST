@@ -10,6 +10,7 @@ halolib\cache.py
 halolib\const.py
 halolib\events.py
 halolib\exceptions.py
+halolib\logs.py
 halolib\mixin.py
 halolib\models.py
 halolib\ses.py
