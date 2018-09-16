@@ -179,7 +179,7 @@ class AbsApiMixin(AbsBaseMixin):
 ##################################### test #########################
 from .logs import log_json, LogLevels
 from .apis import ApiTest
-from .exceptions import ApiException
+from .exceptions import ApiError
 class TestMixin(AbsApiMixin):
     def process_api(self, ctx, typer, request, vars):
         api = ApiTest("123")
@@ -188,8 +188,8 @@ class TestMixin(AbsApiMixin):
         try:
             ret = api.fwd_process(typer, request, vars, self.req_context)
             print("ret=" + str(ret.content))
-        except ApiException as e:
-            print("error=" + str(e))
+        except ApiError as e:
+            log_json(self.req_context, LogLevels.DEBUG._name_, "we did it", Util.get_req_params(request), e)
         # except NoReturnApiException as e:
         #    print("NoReturnApiException="+e.message)
         log_json(self.req_context, LogLevels.DEBUG._name_, "we did it", Util.get_req_params(request))

@@ -19,21 +19,24 @@ class LogLevels(Enum):
     ERROR = 3
 
 
-def appendError(params, err):
+def append_error(params, err):
     if not err:
         return params
+    error = {"errorName": type(err).__name__, "errorMessage": str(err), "stackTrace": err.stack}
+    dict_items = dict(params.items() | error.items())
+    return dict_items
 
-    return {params, {"errorName": err.name, "errorMessage": err.message, "stackTrace": err.stack}}
 
-
-def log_json(req_context, levelName, message, params):
+def log_json(req_context, levelName, message, params, err=None):
     if not Util.isDebugEnabled(req_context):
         return None
 
     context = Util.get_context()
-
-    # logMsg = {}.append(req_context),context }
-    logMsg = {key: value for (key, value) in (req_context.items() + context.items() + params.items())}
+    pe = append_error(params, err)
+    dict_items = dict(req_context.items() | context.items())
+    if params:
+        dict_items = dict(dict_items.items() | pe.items())
+    logMsg = {key: value for (key, value) in (dict_items.items())}
 
     logMsg['level'] = levelName
 

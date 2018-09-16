@@ -294,6 +294,10 @@ LOGGING = {
             'level': 'DEBUG',
             'handlers': ['console']
         },
+        'halolib.halolib.test_views': {
+            'level': 'DEBUG',
+            'handlers': ['console']
+        },
     },
 }
 

@@ -1,8 +1,8 @@
 from __future__ import print_function
 
+# python
 import datetime
 import logging
-# python
 import time
 from abc import ABCMeta
 
@@ -12,7 +12,7 @@ import requests
 # django
 from django.conf import settings
 
-from .exceptions import HaloError, HaloException, MaxTryHttpException
+from .exceptions import MaxTryHttpException, ApiError
 
 # DRF
 
@@ -23,26 +23,25 @@ headers = {
 
 logger = logging.getLogger(__name__)
 
-class ApiException(HaloException):
-    pass
-
-class ApiError(HaloError):
-    pass
-
 
 def exec_client(method, url, api_type, data=None, headers=None):
     msg = "Max Try"
     for i in range(0, settings.HTTP_MAX_RETRY):
         try:
-            logger.debug("try " + str(i))
+            logger.debug("try: " + str(i))
             ret = requests.request(method, url, data=data, headers=headers,
                                    timeout=(
                                    settings.SERVICE_CONNECT_TIMEOUT_IN_MS, settings.SERVICE_READ_TIMEOUT_IN_MS))
-            print(str(ret))
-            if ret.status_code == 500 or ret.status_code == 502 or ret.status_code == 504:
+            logger.debug("status_code=" + str(ret.status_code))
+            if ret.status_code >= 500:
                 if i > 0:
                     time.sleep(settings.HTTP_RETRY_SLEEP)
                 continue
+            if 200 > ret.status_code or 500 > ret.status_code >= 300:
+                err = ApiError("error status_code " + str(ret.status_code) + " in : " + url)
+                err.status_code = ret.status_code
+                err.stack = None
+                raise err
             return ret
         except requests.exceptions.ReadTimeout:  # this confirms you that the request has reached server
             logger.debug(
@@ -53,12 +52,6 @@ def exec_client(method, url, api_type, data=None, headers=None):
         except requests.exceptions.ConnectTimeout:
             logger.debug(
                 "ConnectTimeout in method=" + str(settings.SERVICE_CONNECT_TIMEOUT_IN_MS) + method + " for url=" + url)
-            if i > 0:
-                time.sleep(settings.HTTP_RETRY_SLEEP)
-            continue
-        except Exception as e:
-            msg = str(e)
-            logger.debug("Exception in method=" + method + " " + msg)
             if i > 0:
                 time.sleep(settings.HTTP_RETRY_SLEEP)
             continue
