@@ -20,6 +20,7 @@ from rest_framework.views import APIView
 
 from .const import HTTPChoice
 from .exceptions import MaxTryException
+from .logs import log_json, LogLevels
 from .util import Util
 
 # aws
@@ -74,13 +75,15 @@ class AbsBaseLink(APIView):
         self.user_agent = self.req_context["x-user-agent"]
         self.logprefix = "User-Agent: " + self.user_agent + " - Correlate-ID: " + self.correlate_id + " - "
         error_message = None
+        ex = None
 
         logger.debug(self.logprefix + " environ: " + str(os.environ))
 
-        if Util.isDebugEnabled(request, self.req_context):
+        if Util.isDebugEnabled(self.req_context, request):
             logger.info(self.logprefix + ' DebugEnabled ' + str(self.req_context))
             logger.setLevel(logging.DEBUG)
             logger.debug("in debug mode")
+            print("in debug mode")
 
         self.get_user_locale(request)
         logger.info(self.logprefix + 'process LANGUAGE:  ' + str(self.user_lang) + " LOCALE: " + str(self.user_locale))
@@ -90,51 +93,60 @@ class AbsBaseLink(APIView):
             total = datetime.datetime.now() - now
             logger.info(self.logprefix + "timing for LAMBDA " + str(typer.value) + " in milliseconds : " + str(
                 int(total.total_seconds() * 1000)))
+            log_json(self.req_context, LogLevels.ERROR._name_, error_message, Util.get_req_params(request))
             return ret
 
         except MaxTryException as e:  # if api not responding
             emsg = str(e)
             logger.debug(self.logprefix + 'MaxTryException: ' + emsg)
             error_message = emsg
+            ex = e
             logger.info(self.logprefix + 'An MaxTryException occurred in ' + emsg)  # str(traceback.format_exc()))
 
         except IOError as e:
             emsg = str(e)
             logger.debug(self.logprefix + 'An IOerror occured :' + emsg)
             error_message = emsg
+            ex = e
             logger.info(self.logprefix + 'An IOError occurred in ' + str(traceback.format_exc()))
 
         except ValueError as e:
             emsg = str(e)
             logger.debug(self.logprefix + 'Non-numeric data found : ' + emsg)
             error_message = emsg
+            ex = e
             logger.info(self.logprefix + 'An ValueError occurred in ' + str(traceback.format_exc()))
 
         except ImportError as e:
             emsg = str(e)
             logger.debug(self.logprefix + "NO module found")
             error_message = emsg
+            ex = e
             logger.info(self.logprefix + 'An ImportError occurred in ' + str(traceback.format_exc()))
 
         except EOFError as e:
             emsg = str(e)
             logger.debug(self.logprefix + 'Why did you do an EOF on me?')
             error_message = emsg
+            ex = e
             logger.info(self.logprefix + 'An EOFError occurred in ' + str(traceback.format_exc()))
 
         except KeyboardInterrupt as e:
             emsg = str(e)
             logger.debug(self.logprefix + 'You cancelled the operation.')
             error_message = emsg
+            ex = e
             logger.info(self.logprefix + 'An KeyboardInterrupt occurred in ' + str(traceback.format_exc()))
 
         except AttributeError as e:
             logger.debug(self.logprefix + 'You cancelled the operation.')
             error_message = str(e)
+            ex = e
             logger.info(self.logprefix + 'An KeyboardInterrupt occurred in ' + str(traceback.format_exc()))
 
         except Exception as e:
             error_message = str(e)
+            ex = e
             #exc_type, exc_obj, exc_tb = sys.exc_info()
             #fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             #logger.debug('An error occured in '+str(fname)+' lineno: '+str(exc_tb.tb_lineno)+' exc_type '+str(exc_type)+' '+e.message)
@@ -146,15 +158,10 @@ class AbsBaseLink(APIView):
         total = datetime.datetime.now() - now
         logger.info(self.logprefix + "timing for " + str(typer) + " in milliseconds : " + str(
             int(total.total_seconds() * 1000)))
+        log_json(self.req_context, LogLevels.ERROR._name_, error_message, Util.get_req_params(request), ex)
         if settings.FRONT_API:
             return HttpResponseRedirect("/" + str(status.HTTP_400_BAD_REQUEST))
         return HttpResponse({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
-
-    def send_hook_back(self, request, correlate_id, uagent, ret):
-        url = Util.get_hook_url(request, correlate_id, uagent)
-        # @TODO send hook back
-        Util.send_hook('POST', url, data=ret, headers=None)
-        return HttpResponse("send hook back")
 
     def process_finally(self):
         logger.debug(self.logprefix + "process_finally")

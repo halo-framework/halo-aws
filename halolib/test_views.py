@@ -70,3 +70,13 @@ class TestUserDetailTestCase(APITestCase):
         response = event.send_event(dict)
         print("event response " + str(response))
         eq_(response, 'sent event')
+
+    def test_debug_enabled(self):
+        for i in range(0, 40):
+            header = {'HTTP_DEBUG_LOG_ENABLED': 'true'}
+            response = self.client.get(self.url, **header)
+            eq_(response.status_code, status.HTTP_200_OK)
+
+    def test_json_log(self):
+        response = self.client.get(self.url)
+        eq_(response.status_code, status.HTTP_200_OK)

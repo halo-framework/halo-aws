@@ -192,7 +192,7 @@ class TestMixin(AbsApiMixin):
             log_json(self.req_context, LogLevels.DEBUG._name_, "we did it", Util.get_req_params(request), e)
         # except NoReturnApiException as e:
         #    print("NoReturnApiException="+e.message)
-        log_json(self.req_context, LogLevels.DEBUG._name_, "we did it", Util.get_req_params(request))
+        # log_json(self.req_context, LogLevels.DEBUG._name_, "we did it", Util.get_req_params(request))
         return {"test": "good"}, 200
 
 

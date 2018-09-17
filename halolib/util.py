@@ -188,7 +188,9 @@ class Util:
             if dlog == 'true' and "HTTP_X_CORRELATION_ID" not in request.META:
                 epoch = datetime.datetime.utcfromtimestamp(0)
                 seconds = int((datetime.datetime.now() - epoch).total_seconds())
-                if seconds % 20:
+                mod = seconds % 15
+                print("mod=" + str(mod))
+                if mod == 0:
                     return 'true'
             if dlog == 'true' and "HTTP_X_CORRELATION_ID" in request.META:
                 return 'true'
@@ -220,6 +222,7 @@ class Util:
     def isDebugEnabled(req_context, request=None):
         # disable debug logging by default, but allow override via env variables
         # or if enabled via forwarded request context
+        print("req_context=" + str(req_context) + " " + str(settings.DEBUG))
         if settings.DEBUG:
             return True
         if req_context["debug-log-enabled"] == 'true':
