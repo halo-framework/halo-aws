@@ -1,9 +1,9 @@
 from __future__ import print_function
 
 # python
-import datetime
 import logging
 import os
+import random
 import re
 import uuid
 
@@ -183,16 +183,23 @@ class Util:
 
     @staticmethod
     def get_debug_enabled(request):
+        # check if the specific call is debug enabled or system wide enabled
         if "HTTP_DEBUG_LOG_ENABLED" in request.META:
             dlog = request.META["HTTP_DEBUG_LOG_ENABLED"]
-            if dlog == 'true' and "HTTP_X_CORRELATION_ID" not in request.META:
-                epoch = datetime.datetime.utcfromtimestamp(0)
-                seconds = int((datetime.datetime.now() - epoch).total_seconds())
-                mod = seconds % 15
-                print("mod=" + str(mod))
-                if mod == 0:
-                    return 'true'
-            if dlog == 'true' and "HTTP_X_CORRELATION_ID" in request.META:
+            if dlog == 'true':
+                return 'true'
+        if "HTTP_X_CORRELATION_ID" not in request.META:
+            dlog = Util.get_system_debug_enabled(request)
+            if dlog == 'true':
+                return 'true'
+        return 'false'
+
+    @staticmethod
+    def get_system_debug_enabled(request):
+        # check if env var for sampled debug logs is on and activate for percentage in settings (5%)
+        if 'DEBUG_LOG' in os.environ and os.environ['DEBUG_LOG'] == 'true':
+            rand = random.random()
+            if settings.LOG_SAMPLE_RATE > rand:
                 return 'true'
         return 'false'
 
@@ -220,12 +227,10 @@ class Util:
 
     @staticmethod
     def isDebugEnabled(req_context, request=None):
-        # disable debug logging by default, but allow override via env variables
+        # log_json => disable debug logging by default, but allow override via env variables
         # or if enabled via forwarded request context
-        print("req_context=" + str(req_context) + " " + str(settings.DEBUG))
-        if settings.DEBUG:
-            return True
-        if req_context["debug-log-enabled"] == 'true':
+        if settings.DEBUG or req_context["debug-log-enabled"] == 'true' or (
+                'DEBUG_LOG' in os.environ and os.environ['DEBUG_LOG'] == 'true'):
             return True
         return False
 
@@ -236,7 +241,7 @@ class Util:
     @staticmethod
     def get_correlation_from_event(event):
         if Util.event_logprefix:
-            print("cached event logprefix " + Util.event_logprefix)
+            logger.debug("cached event logprefix " + Util.event_logprefix)
             return Util.event_logprefix
         correlate_id = ''
         user_agent = ''

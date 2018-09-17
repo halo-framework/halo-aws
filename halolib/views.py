@@ -27,7 +27,7 @@ from .util import Util
 # common
 
 logger = logging.getLogger(__name__)
-
+logger.setLevel(logging.WARNING)
 
 
 class AbsBaseLink(APIView):
@@ -65,7 +65,11 @@ class AbsBaseLink(APIView):
 
         now = datetime.datetime.now()
 
-        logger.setLevel(logging.INFO)
+        logger.debug('debug message')
+        logger.info('info message')
+        logger.warning('warn message')
+        logger.error('error message')
+        logger.critical('critical message')
 
         logger.debug("headers: " + str(request.META))
 
@@ -80,10 +84,11 @@ class AbsBaseLink(APIView):
         logger.debug(self.logprefix + " environ: " + str(os.environ))
 
         if Util.isDebugEnabled(self.req_context, request):
+            print('DEBUG_LOG=' + os.environ['DEBUG_LOG'])
+            console_handler = logger.handlers[0]
+            console_handler.setLevel(logging.DEBUG)
             logger.info(self.logprefix + ' DebugEnabled ' + str(self.req_context))
-            logger.setLevel(logging.DEBUG)
             logger.debug("in debug mode")
-            print("in debug mode")
 
         self.get_user_locale(request)
         logger.info(self.logprefix + 'process LANGUAGE:  ' + str(self.user_lang) + " LOCALE: " + str(self.user_locale))
@@ -166,8 +171,9 @@ class AbsBaseLink(APIView):
     def process_finally(self):
         logger.debug(self.logprefix + "process_finally")
         if logger.getEffectiveLevel() == logging.DEBUG:
-            logger.setLevel(logging.INFO)
-            logger.info("back to INFO")
+            console_handler = logger.handlers[0]
+            console_handler.setLevel(logging.WARNING)
+            logger.warning("back to INFO")
 
     def split_locale_from_request(self, request):
         locale = ''

@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import json
+import os
 
 from faker import Faker
 from nose.tools import eq_
@@ -23,6 +24,16 @@ class TestUserDetailTestCase(APITestCase):
 
     def setUp(self):
         self.url = 'http://127.0.0.1:8000/?abc=def'
+
+    def mock_request(self, type, header={}):
+        from django.test.client import RequestFactory
+        rf = RequestFactory()
+        if type == 'GET':
+            get_request = rf.get('/hello/', **header)
+            return get_request
+        else:
+            post_request = rf.post('/submit/', {'foo': 'bar'}, **header)
+            return post_request
 
     def test_get_request_returns_a_given_string(self):
         response = self.client.get(self.url)
@@ -71,12 +82,42 @@ class TestUserDetailTestCase(APITestCase):
         print("event response " + str(response))
         eq_(response, 'sent event')
 
-    def test_debug_enabled(self):
+    def test_system_debug_enabled(self):
+        from halolib.util import Util
+        os.environ['DEBUG_LOG'] = 'true'
+        flag = 'false'
         for i in range(0, 40):
-            header = {'HTTP_DEBUG_LOG_ENABLED': 'true'}
-            response = self.client.get(self.url, **header)
-            eq_(response.status_code, status.HTTP_200_OK)
+            ret = Util.get_system_debug_enabled(self.mock_request('GET'))
+            # print(ret)
+            if ret == 'true':
+                flag = ret
+        eq_(flag, 'true')
+
+    def test_debug_enabled(self):
+        from halolib.util import Util
+        header = {'HTTP_DEBUG_LOG_ENABLED': 'true'}
+        req = self.mock_request('GET', header)
+        ret = Util.get_req_context(req)
+        eq_(ret["debug-log-enabled"], 'true')
 
     def test_json_log(self):
-        response = self.client.get(self.url)
+        from halolib.logs import log_json
+        from halolib.util import Util
+        from halolib.exceptions import ApiError
+        import traceback
+        header = {'HTTP_DEBUG_LOG_ENABLED': 'true'}
+        req = self.mock_request('GET', header)
+        req_context = Util.get_req_context(req)
+        err = ApiError("test it")
+        try:
+            e = exception()
+        except Exception as e:
+            err.stack = traceback.format_exc()
+        ret = log_json(req_context, 'DEBUG', "test", {"abc": "def"}, err=err)
+        eq_(ret["debug-log-enabled"], 'true')
+
+    def test_get_request_with_debug(self):
+        header = {'HTTP_DEBUG_LOG_ENABLED': 'true'}
+        response = self.client.get(self.url, **header)
         eq_(response.status_code, status.HTTP_200_OK)
+        eq_(json.loads(response.content), {"test": "good"})

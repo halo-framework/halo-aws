@@ -249,8 +249,8 @@ LOGGING = {
     #        'filename': '/path/to/django/debug.log',
     #    },
         'console': {
-            'level': 'DEBUG',
-            'filters': ['require_debug_true'],
+            'level': 'INFO',
+            'filters': ['require_debug_false'],
             'class': 'logging.StreamHandler',
             'formatter': 'main_formatter',
         },
@@ -274,7 +274,7 @@ LOGGING = {
             'level': 'DEBUG',
             'handlers': ['console']
         },
-        'halolib.views':          {
+        'halolib.halolib.views': {
             'level':    'DEBUG',
             'handlers': ['console']
         },
@@ -339,5 +339,7 @@ with open(file_path, 'r') as fi:
 import uuid
 
 INSTANCE_ID = uuid.uuid4().__str__()[0:4]
+
+LOG_SAMPLE_RATE = 0.05  # 5%
 
 print('The settings file has been loaded.')

@@ -190,6 +190,7 @@ class TestMixin(AbsApiMixin):
             print("ret=" + str(ret.content))
         except ApiError as e:
             log_json(self.req_context, LogLevels.DEBUG._name_, "we did it", Util.get_req_params(request), e)
+            return {"test": "bad"}, 400
         # except NoReturnApiException as e:
         #    print("NoReturnApiException="+e.message)
         # log_json(self.req_context, LogLevels.DEBUG._name_, "we did it", Util.get_req_params(request))
