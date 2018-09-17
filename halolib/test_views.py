@@ -43,12 +43,12 @@ class TestUserDetailTestCase(APITestCase):
     def test_post_request_returns_a_given_code(self):
         payload = {'first_name': 'new_first_name'}
         response = self.client.post(self.url, payload)
-        eq_(response.status_code, status.HTTP_200_OK)
+        eq_(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_put_request_updates_a_code(self):
         payload = {'first_name': 'new_first_name'}
         response = self.client.put(self.url, payload)
-        eq_(response.status_code, status.HTTP_200_OK)
+        eq_(response.status_code, status.HTTP_400_BAD_REQUEST)
         # print("response " + str(response))
         # eq_(response.data, 'new_first_name')
 

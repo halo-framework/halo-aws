@@ -23,7 +23,8 @@ def append_error(params, err):
     if not err:
         return params
     error = {"errorName": type(err).__name__, "errorMessage": str(err), "stackTrace": err.stack}
-    dict_items = dict(params.items() | error.items())
+    dict_items = params.copy()
+    dict_items.update(error)
     return dict_items
 
 
@@ -32,7 +33,8 @@ def log_json(req_context, levelName, message, params, err=None):
         return None
 
     context = Util.get_context()
-    dict_items = dict(req_context.items() + context.items())
+    dict_items = req_context.copy()
+    dict_items.update(context)
     logMsg = {key: value for (key, value) in (dict_items.items())}
     logMsg['level'] = levelName
     logMsg['message'] = message

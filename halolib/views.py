@@ -84,9 +84,9 @@ class AbsBaseLink(APIView):
         logger.debug(self.logprefix + " environ: " + str(os.environ))
 
         if Util.isDebugEnabled(self.req_context, request):
-            print('DEBUG_LOG=' + os.environ['DEBUG_LOG'])
-            console_handler = logger.handlers[0]
-            console_handler.setLevel(logging.DEBUG)
+            if len(logger.handlers) > 0:
+                console_handler = logger.handlers[0]
+                console_handler.setLevel(logging.DEBUG)
             logger.info(self.logprefix + ' DebugEnabled ' + str(self.req_context))
             logger.debug("in debug mode")
 
