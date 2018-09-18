@@ -86,7 +86,7 @@ class TestUserDetailTestCase(APITestCase):
         from halolib.util import Util
         os.environ['DEBUG_LOG'] = 'true'
         flag = 'false'
-        for i in range(0, 40):
+        for i in range(0, 60):
             ret = Util.get_system_debug_enabled(self.mock_request('GET'))
             # print(ret)
             if ret == 'true':
@@ -105,6 +105,8 @@ class TestUserDetailTestCase(APITestCase):
         from halolib.util import Util
         from halolib.exceptions import ApiError
         import traceback
+        import logging
+        logger = logging.getLogger(__name__)
         header = {'HTTP_DEBUG_LOG_ENABLED': 'true'}
         req = self.mock_request('GET', header)
         req_context = Util.get_req_context(req)
@@ -113,7 +115,7 @@ class TestUserDetailTestCase(APITestCase):
             e = exception()
         except Exception as e:
             err.stack = traceback.format_exc()
-        ret = log_json(req_context, 'DEBUG', "test", {"abc": "def"}, err=err)
+        ret = log_json(logger, req_context, logging.DEBUG, "test", {"abc": "def"}, err=err)
         eq_(ret["debug-log-enabled"], 'true')
 
     def test_get_request_with_debug(self):

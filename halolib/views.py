@@ -20,7 +20,7 @@ from rest_framework.views import APIView
 
 from .const import HTTPChoice
 from .exceptions import MaxTryException
-from .logs import log_json, LogLevels
+from .logs import log_json
 from .util import Util
 
 # aws
@@ -98,7 +98,7 @@ class AbsBaseLink(APIView):
             total = datetime.datetime.now() - now
             logger.info(self.logprefix + "timing for LAMBDA " + str(typer.value) + " in milliseconds : " + str(
                 int(total.total_seconds() * 1000)))
-            log_json(self.req_context, LogLevels.ERROR._name_, error_message, Util.get_req_params(request))
+            log_json(logger, self.req_context, logging.ERROR, error_message, Util.get_req_params(request))
             return ret
 
         except MaxTryException as e:  # if api not responding
@@ -163,7 +163,7 @@ class AbsBaseLink(APIView):
         total = datetime.datetime.now() - now
         logger.info(self.logprefix + "timing for " + str(typer) + " in milliseconds : " + str(
             int(total.total_seconds() * 1000)))
-        log_json(self.req_context, LogLevels.ERROR._name_, error_message, Util.get_req_params(request), ex)
+        log_json(logger, self.req_context, logging.ERROR, error_message, Util.get_req_params(request), ex)
         if settings.FRONT_API:
             return HttpResponseRedirect("/" + str(status.HTTP_400_BAD_REQUEST))
         return HttpResponse({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
