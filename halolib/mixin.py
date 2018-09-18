@@ -105,7 +105,7 @@ class AbsApiMixin(AbsBaseMixin):
         ret, cause = self.check_authen(typer, request, vars)
         if ret:
             ctx = Util.get_auth_context(request)
-            logger.debug("ctx:" + str(ctx))
+            logger.debug(log_json(self.req_context, logging.DEBUG, "ctx:" + str(ctx)))
             return ctx
         raise AuthException(request, cause)
 
@@ -113,7 +113,7 @@ class AbsApiMixin(AbsBaseMixin):
         ret, jsonx, cause = self.check_author(request, vars, json)
         # who can use this model with this method - object,field
         if ret:
-            logger.debug("jsonx:" + str(jsonx))
+            logger.debug(log_json(self.req_context, logging.DEBUG, "jsonx:" + str(jsonx)))
             return jsonx
         raise AuthException(request, cause)
 
@@ -182,14 +182,16 @@ from .apis import ApiTest
 from .exceptions import ApiError
 class TestMixin(AbsApiMixin):
     def process_api(self, ctx, typer, request, vars):
-        api = ApiTest("123")
+        print("start")
+        api = ApiTest(self.req_context)
         # api.set_api_url("upcid", upc)
-        api.set_api_query(request)
+        # api.set_api_query(request)
         try:
-            ret = api.fwd_process(typer, request, vars, self.req_context)
+            print("get")
+            ret = api.get()
             print("ret=" + str(ret.content))
         except ApiError as e:
-            log_json(logger, self.req_context, logging.DEBUG, "we did it", Util.get_req_params(request), e)
+            logger.debug(log_json(self.req_context, logging.DEBUG, "we did it", Util.get_req_params(request), e))
             return {"test": "bad"}, 400
         # except NoReturnApiException as e:
         #    print("NoReturnApiException="+e.message)

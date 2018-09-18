@@ -21,8 +21,8 @@ class AbsDbMixin(object):
 
     logprefix = None
 
-    def __init__(self, logprefix):
-        self.logprefix = logprefix
+    def __init__(self, req_context):
+        self.req_context = req_context
 
     def __getattribute__(self, name):
         attr = object.__getattribute__(self, name)
