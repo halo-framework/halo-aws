@@ -108,7 +108,6 @@ class TestUserDetailTestCase(APITestCase):
         from halolib.logs import log_json
         from halolib.util import Util
         import traceback
-        import logging
         header = {'HTTP_DEBUG_LOG_ENABLED': 'true'}
         req = self.mock_request('GET', header)
         req_context = Util.get_req_context(req)
@@ -116,9 +115,9 @@ class TestUserDetailTestCase(APITestCase):
             raise Exception("test it")
         except Exception as e:
             e.stack = traceback.format_exc()
-            ret = log_json(req_context, logging.DEBUG, "test", {"abc": "def"}, err=e)
+            ret = log_json(req_context, {"abc": "def"}, err=e)
             print(str(ret))
-            eq_("debug-log-enabled" in ret, True)
+            eq_(ret["debug-log-enabled"], 'true')
 
     def test_get_request_with_debug(self):
         header = {'HTTP_DEBUG_LOG_ENABLED': 'true'}

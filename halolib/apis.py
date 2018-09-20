@@ -29,11 +29,11 @@ def exec_client(req_context, method, url, api_type, data=None, headers=None):
     msg = "Max Try"
     for i in range(0, settings.HTTP_MAX_RETRY):
         try:
-            logger.debug(log_json(req_context, logging.DEBUG, "try: " + str(i)))
+            logger.debug("try: " + str(i), extra=log_json(req_context))
             ret = requests.request(method, url, data=data, headers=headers,
                                    timeout=(
                                    settings.SERVICE_CONNECT_TIMEOUT_IN_MS, settings.SERVICE_READ_TIMEOUT_IN_MS))
-            logger.debug(log_json(req_context, logging.DEBUG, "status_code=" + str(ret.status_code)))
+            logger.debug("status_code=" + str(ret.status_code), extra=log_json(req_context))
             if ret.status_code >= 500:
                 if i > 0:
                     time.sleep(settings.HTTP_RETRY_SLEEP)
@@ -45,15 +45,17 @@ def exec_client(req_context, method, url, api_type, data=None, headers=None):
                 raise err
             return ret
         except requests.exceptions.ReadTimeout:  # this confirms you that the request has reached server
-            logger.debug(log_json(req_context, logging.DEBUG, "ReadTimeout " + str(
-                settings.SERVICE_READ_TIMEOUT_IN_MS) + " in method=" + method + " for url=" + url))
+            logger.debug(
+                "ReadTimeout " + str(settings.SERVICE_READ_TIMEOUT_IN_MS) + " in method=" + method + " for url=" + url,
+                extra=log_json(req_context))
             "status_code=" + str(ret.status_code)
             if i > 0:
                 time.sleep(settings.HTTP_RETRY_SLEEP)
             continue
         except requests.exceptions.ConnectTimeout:
-            logger.debug(log_json(req_context, logging.DEBUG, "ConnectTimeout in method=" + str(
-                settings.SERVICE_CONNECT_TIMEOUT_IN_MS) + " in method=" + method + " for url=" + url))
+            logger.debug("ConnectTimeout in method=" + str(
+                settings.SERVICE_CONNECT_TIMEOUT_IN_MS) + " in method=" + method + " for url=" + url,
+                         extra=log_json(req_context))
             if i > 0:
                 time.sleep(settings.HTTP_RETRY_SLEEP)
             continue
@@ -74,13 +76,13 @@ class AbsBaseApi(object):
 
     def get_url_str(self):
         api_config = settings.API_CONFIG
-        logger.debug(log_json(self.req_context, logging.DEBUG, "api_config: " + str(api_config)))
+        logger.debug("api_config: " + str(api_config), extra=log_json(self.req_context))
         return api_config[self.name]["url"], api_config[self.name]["type"]
 
     def set_api_url(self, key, val):
         strx = self.url
         strx = strx.replace("$" + str(key), str(val))
-        logger.debug(log_json(self.req_context, logging.DEBUG, "url replace var: " + strx))
+        logger.debug("url replace var: " + strx, extra=log_json(self.req_context))
         self.url = strx
         return self.url
 
@@ -91,7 +93,7 @@ class AbsBaseApi(object):
             strx = strx + "&" + query
         else:
             strx = strx + "?" + query
-        logger.debug(log_json(self.req_context, logging.DEBUG, "url add query: " + strx))
+        logger.debug("url add query: " + strx, extra=log_json(self.req_context))
         self.url = strx
         return self.url
 
@@ -101,41 +103,42 @@ class AbsBaseApi(object):
             strx = strx + "&" + params
         else:
             strx = strx + "?" + params
-        logger.debug(log_json(self.req_context, logging.DEBUG, "url add query: " + strx))
+        logger.debug("url add query: " + strx, extra=log_json(self.req_context))
         self.url = strx
         return self.url
 
     def process(self, method, url, data=None, headers=None):
         try:
-            logger.debug(log_json(self.req_context, logging.DEBUG, "method: " + str(method) + " url: " + str(url)))
+            logger.debug("method: " + str(method) + " url: " + str(url), extra=log_json(self.req_context))
             now = datetime.datetime.now()
             ret = exec_client(self.req_context, method, url, self.api_type, data=data, headers=headers)
             total = datetime.datetime.now() - now
-            logger.info(log_json(self.req_context, logging.INFO, "performance",
-                                 {"type": "API", "milliseconds": int(total.total_seconds() * 1000), "url": str(url)}))
-            logger.debug(log_json(self.req_context, logging.DEBUG, "ret: " + str(ret)))
+            logger.info("performance", extra=log_json(self.req_context,
+                                                      {"type": "API", "milliseconds": int(total.total_seconds() * 1000),
+                                                       "url": str(url)}))
+            logger.debug("ret: " + str(ret), extra=log_json(self.req_context))
             return ret
         except requests.ConnectionError as e:
             msg = str(e)
-            logger.debug("error: " + msg)
+            logger.debug("error: " + msg, extra=log_json(self.req_context))
             ret = ApiError(msg)
             ret.status_code = -1
             raise ret
         except requests.HTTPError as e:
             msg = str(e)
-            logger.debug("error: " + msg)
+            logger.debug("error: " + msg, extra=log_json(self.req_context))
             ret = ApiError(msg)
             ret.status_code = -2
             raise ret
         except requests.Timeout as e:
             msg = str(e)
-            logger.debug("error: " + msg)
+            logger.debug("error: " + msg, extra=log_json(self.req_context))
             ret = ApiError(msg)
             ret.status_code = -3
             raise ret
         except requests.RequestException as e:
             msg = str(e)
-            logger.debug("error: " + msg)
+            logger.debug("error: " + msg, extra=log_json(self.req_context))
             ret = ApiError(msg)
             ret.status_code = -4
             raise ret

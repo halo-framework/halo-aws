@@ -238,6 +238,12 @@ LOGGING = {
     'formatters': {
         'main_formatter': {
             'format': '%(levelname)s:%(name)s: %(message)s '
+                      '%(asctime)s; %(filename)s:%(lineno)d',
+            'datefmt': "%Y-%m-%d %H:%M:%S",
+            'class': "pythonjsonlogger.jsonlogger.JsonFormatter",
+        },
+        'main_formatter1': {
+            'format': '%(levelname)s:%(name)s: %(message)s '
                       '(%(asctime)s; %(filename)s:%(lineno)d)',
             'datefmt': "%Y-%m-%d %H:%M:%S",
         },
