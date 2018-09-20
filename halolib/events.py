@@ -13,6 +13,7 @@ from django.conf import settings
 
 # DRF
 from halolib.exceptions import HaloException
+from halolib.logs import log_json
 from halolib.util import Util
 
 logger = logging.getLogger(__name__)
@@ -103,8 +104,8 @@ class AbsBaseHandler(object):
     key_val = None
 
     def do_event(self, event, context):
-        logprefix = Util.get_correlation_from_event(event)
-        logger.debug(logprefix + ' get_event : ' + str(event))
+        req_context = Util.get_correlation_from_event(event)
+        logger.debug(' get_event : ' + str(event), extra=log_json(req_context))
         self.process_event(event, context)
 
     @abstractmethod

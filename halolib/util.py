@@ -66,7 +66,7 @@ class Util:
     def __init__(self):
         pass
 
-    event_logprefix = None
+    event_req_context = None
 
     @staticmethod
     def mobile(request):
@@ -240,11 +240,12 @@ class Util:
 
     @staticmethod
     def get_correlation_from_event(event):
-        if Util.event_logprefix:
-            logger.debug("cached event logprefix " + Util.event_logprefix)
-            return Util.event_logprefix
+        if Util.event_req_context:
+            logger.debug("cached event req_context " + Util.event_req_context)
+            return Util.event_req_context
         correlate_id = ''
         user_agent = ''
+        debug_flag = ''
         # from api gateway
         if "httpMethod" in event and "requestContext" in event:
             if "headers" in event:
@@ -289,8 +290,13 @@ class Util:
                 user_agent = event["x-user-agent"]
             if "Debug-Log-Enabled" in event:
                 debug_flag = event["Debug-Log-Enabled"]
-        Util.event_logprefix = user_agent + " " + correlate_id
-        return Util.event_logprefix
+        ret = {"x-user-agent": user_agent, "aws_request_id": '',
+               "x-correlation-id": correlate_id, "debug-log-enabled": debug_flag}
+        if "x-api-key" in event:
+            ret["x-api-key"] = event["x-api-key"]
+        # @TODO get all data for request contect
+        Util.event_req_context = ret
+        return Util.event_req_context
 
     @staticmethod
     def get_return_code_tag(request):

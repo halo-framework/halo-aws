@@ -5,6 +5,8 @@ import logging
 
 from django.conf import settings
 
+from halolib.logs import log_json
+
 # java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -port 8600
 # java -D"java.library.path"=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -port 8600
 
@@ -19,7 +21,7 @@ page_size = settings.PAGE_SIZE
 class AbsDbMixin(object):
     # intercept db calls
 
-    logprefix = None
+    req_context = None
 
     def __init__(self, req_context):
         self.req_context = req_context
@@ -31,8 +33,8 @@ class AbsDbMixin(object):
                 now = datetime.datetime.now()
                 result = attr(*args, **kwargs)
                 total = datetime.datetime.now() - now
-                logger.info(self.logprefix + "timing for DBACCESS " + attr.__name__ + " in milliseconds : " + str(
-                    int(total.total_seconds() * 1000)))
+                logger.info("timing for DBACCESS " + attr.__name__ + " in milliseconds : " + str(
+                    int(total.total_seconds() * 1000)), extra=log_json(self.req_context))
                 return result
 
             return newfunc
