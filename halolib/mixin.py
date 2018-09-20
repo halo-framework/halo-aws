@@ -182,7 +182,7 @@ from .apis import ApiTest
 from .exceptions import ApiError
 class TestMixin(AbsApiMixin):
     def process_api(self, ctx, typer, request, vars):
-        print("start")
+        logger.debug("start")
         api = ApiTest(self.req_context)
         # api.set_api_url("upcid", upc)
         # api.set_api_query(request)

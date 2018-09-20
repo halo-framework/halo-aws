@@ -27,7 +27,7 @@ from .util import Util
 # common
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.INFO)
 
 
 class AbsBaseLink(APIView):
@@ -76,7 +76,7 @@ class AbsBaseLink(APIView):
                 logger.error(
                     log_json(self.req_context, logging.ERROR, "DebugEnabled - can not do debug mode - no handlers"))
 
-        logger.debug(log_json(self.req_context, logging.DEBUG, "headers", request.META))
+        logger.debug(log_json(self.req_context, logging.DEBUG, "headers", Util.get_headers(request)))
 
         logger.debug(log_json(self.req_context, logging.DEBUG, "environ", os.environ))
 
@@ -151,8 +151,8 @@ class AbsBaseLink(APIView):
         if logger.getEffectiveLevel() == logging.DEBUG:
             if len(logger.handlers) > 0:
                 console_handler = logger.handlers[0]
-                console_handler.setLevel(logging.WARNING)
-                logger.debug(log_json(self.req_context, logging.DEBUG, "process_finally - back to WARNING"))
+                console_handler.setLevel(logging.INFO)
+                logger.info(log_json(self.req_context, logging.DEBUG, "process_finally - back to INFO"))
 
     def split_locale_from_request(self, request):
         locale = ''

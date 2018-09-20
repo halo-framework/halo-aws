@@ -74,7 +74,7 @@ class AbsBaseApi(object):
 
     def get_url_str(self):
         api_config = settings.API_CONFIG
-        logger.debug((log_json(self.req_context, logging.DEBUG, "api_config: " + str(api_config))))
+        logger.debug(log_json(self.req_context, logging.DEBUG, "api_config: " + str(api_config)))
         return api_config[self.name]["url"], api_config[self.name]["type"]
 
     def set_api_url(self, key, val):

@@ -43,18 +43,20 @@ class TestUserDetailTestCase(APITestCase):
     def test_post_request_returns_a_given_code(self):
         payload = {'first_name': 'new_first_name'}
         response = self.client.post(self.url, payload)
-        eq_(response.status_code, status.HTTP_400_BAD_REQUEST)
+        eq_(response.status_code, status.HTTP_200_OK)
 
     def test_put_request_updates_a_code(self):
         payload = {'first_name': 'new_first_name'}
         response = self.client.put(self.url, payload)
-        eq_(response.status_code, status.HTTP_400_BAD_REQUEST)
+        eq_(response.status_code, status.HTTP_200_OK)
         # print("response " + str(response))
         # eq_(response.data, 'new_first_name')
 
     def test_api_request_returns_a_given_string(self):
         from halolib.apis import ApiTest
-        api = ApiTest('123')
+        from halolib.util import Util
+        request = self.mock_request('GET')
+        api = ApiTest(Util.get_req_context(request))
         response = api.get()
         print("google response " + str(response.content))
         eq_(response.status_code, status.HTTP_200_OK)
@@ -62,7 +64,9 @@ class TestUserDetailTestCase(APITestCase):
     def test_api_request_returns_a_fail(self):
         from halolib.exceptions import ApiError
         from halolib.apis import ApiTest
-        api = ApiTest('123')
+        from halolib.util import Util
+        request = self.mock_request('GET')
+        api = ApiTest(Util.get_req_context(request))
         api.url = api.url + "/lgkmlgkhm??l,mhb&&,g,hj "
         try:
             response = api.get()
@@ -105,7 +109,6 @@ class TestUserDetailTestCase(APITestCase):
         from halolib.util import Util
         import traceback
         import logging
-        logger = logging.getLogger(__name__)
         header = {'HTTP_DEBUG_LOG_ENABLED': 'true'}
         req = self.mock_request('GET', header)
         req_context = Util.get_req_context(req)
@@ -115,7 +118,7 @@ class TestUserDetailTestCase(APITestCase):
             e.stack = traceback.format_exc()
             ret = log_json(req_context, logging.DEBUG, "test", {"abc": "def"}, err=e)
             print(str(ret))
-            eq_(ret["debug-log-enabled"], 'true')
+            eq_("debug-log-enabled" in ret, True)
 
     def test_get_request_with_debug(self):
         header = {'HTTP_DEBUG_LOG_ENABLED': 'true'}
