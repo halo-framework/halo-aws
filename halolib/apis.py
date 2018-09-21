@@ -48,7 +48,6 @@ def exec_client(req_context, method, url, api_type, data=None, headers=None):
             logger.debug(
                 "ReadTimeout " + str(settings.SERVICE_READ_TIMEOUT_IN_MS) + " in method=" + method + " for url=" + url,
                 extra=log_json(req_context))
-            "status_code=" + str(ret.status_code)
             if i > 0:
                 time.sleep(settings.HTTP_RETRY_SLEEP)
             continue
