@@ -124,3 +124,11 @@ class TestUserDetailTestCase(APITestCase):
         response = self.client.get(self.url, **header)
         eq_(response.status_code, status.HTTP_200_OK)
         eq_(json.loads(response.content), {"test": "good"})
+
+    def test_debug_event(self):
+        from halolib.util import Util
+        event = {'debug-log-enabled': 'true'}
+        ret = Util.get_correlation_from_event(event)
+        eq_(Util.event_req_context["debug-log-enabled"], 'true')
+        ret = Util.get_correlation_from_event(event)
+        eq_(ret["debug-log-enabled"], 'true')

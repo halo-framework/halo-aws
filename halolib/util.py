@@ -241,7 +241,7 @@ class Util:
     @staticmethod
     def get_correlation_from_event(event):
         if Util.event_req_context:
-            logger.debug("cached event req_context " + Util.event_req_context)
+            logger.debug("cached event req_context", extra=Util.event_req_context)
             return Util.event_req_context
         correlate_id = ''
         user_agent = ''
@@ -288,8 +288,8 @@ class Util:
                 correlate_id = event["x-correlation-id"]
             if "x-user-agent" in event:
                 user_agent = event["x-user-agent"]
-            if "Debug-Log-Enabled" in event:
-                debug_flag = event["Debug-Log-Enabled"]
+            if "debug-log-enabled" in event:
+                debug_flag = event["debug-log-enabled"]
         ret = {"x-user-agent": user_agent, "aws_request_id": '',
                "x-correlation-id": correlate_id, "debug-log-enabled": debug_flag}
         if "x-api-key" in event:
