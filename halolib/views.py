@@ -72,7 +72,6 @@ class AbsBaseLink(APIView):
             orig_log_level = logger.getEffectiveLevel()
             if len(logger.handlers) > 0:
                 console_handler = logger.handlers[0]
-                print("console_handler=" + str(console_handler))
                 console_handler.setLevel(logging.DEBUG)
                 logger.debug("DebugEnabled - in debug mode",
                              extra=log_json(self.req_context, Util.get_req_params(request)))
