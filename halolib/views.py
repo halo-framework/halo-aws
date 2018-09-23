@@ -65,7 +65,6 @@ class AbsBaseLink(APIView):
         self.correlate_id = self.req_context["x-correlation-id"]
         self.user_agent = self.req_context["x-user-agent"]
         error_message = None
-        ex = None
         orig_log_level = 0
 
         if Util.isDebugEnabled(self.req_context, request):
