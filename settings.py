@@ -50,6 +50,7 @@ APPEND_SLASH = True
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=False)
+print("DEBUG=" + str(DEBUG))
 
 SERVER = env('SERVER_NAME')
 ALLOWED_HOSTS = ['*','127.0.0.1',SERVER]
@@ -255,40 +256,24 @@ LOGGING = {
     #        'filename': '/path/to/django/debug.log',
     #    },
         'console': {
-            'level': 'INFO',
+            'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'logging.StreamHandler',
             'formatter': 'main_formatter',
         },
+
     },
     'loggers': {
-        'django.request':         {
+        'django':                 {
             'handlers': ['console'],
             'level': 'ERROR',
             'propagate': True,
         },
-        'django':                 {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
         'root':                   {
             'handlers': ['console'],
-            'level': "DEBUG",
-        },
-        'halolib.halolib.views':  {
-            'level': 'DEBUG',
-            'handlers': ['console']
+            'level': "ERROR",
         },
         'halolib.halolib.views': {
-            'level':    'DEBUG',
-            'handlers': ['console']
-        },
-        'halolib.halolib.models': {
-            'level': 'DEBUG',
-            'handlers': ['console']
-        },
-        'halolib.halolib.mixin':  {
             'level': 'DEBUG',
             'handlers': ['console']
         },
@@ -296,14 +281,26 @@ LOGGING = {
             'level': 'DEBUG',
             'handlers': ['console']
         },
+        'halolib.halolib.events': {
+            'level': 'DEBUG',
+            'handlers': ['console']
+        },
+        'halolib.halolib.mixin': {
+            'level': 'DEBUG',
+            'handlers': ['console']
+        },
+        'halolib.halolib.models': {
+            'level': 'DEBUG',
+            'handlers': ['console']
+        },
         'halolib.halolib.util': {
             'level': 'DEBUG',
             'handlers': ['console']
         },
-        'halolib.halolib.test_views': {
-            'level': 'DEBUG',
-            'handlers': ['console']
-        },
+
+
+
+
     },
 }
 

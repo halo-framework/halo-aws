@@ -66,10 +66,13 @@ class AbsBaseLink(APIView):
         self.user_agent = self.req_context["x-user-agent"]
         error_message = None
         ex = None
+        orig_log_level = 0
 
         if Util.isDebugEnabled(self.req_context, request):
+            orig_log_level = logger.getEffectiveLevel()
             if len(logger.handlers) > 0:
                 console_handler = logger.handlers[0]
+                print("console_handler=" + str(console_handler))
                 console_handler.setLevel(logging.DEBUG)
                 logger.debug("DebugEnabled - in debug mode",
                              extra=log_json(self.req_context, Util.get_req_params(request)))
@@ -137,7 +140,7 @@ class AbsBaseLink(APIView):
             #logger.debug('An error occured in '+str(fname)+' lineno: '+str(exc_tb.tb_lineno)+' exc_type '+str(exc_type)+' '+e.message)
 
         finally:
-            self.process_finally()
+            self.process_finally(request, orig_log_level)
 
         total = datetime.datetime.now() - now
         logger.info("error performance", extra=log_json(self.req_context,
@@ -148,12 +151,14 @@ class AbsBaseLink(APIView):
             return HttpResponseRedirect("/" + str(status.HTTP_400_BAD_REQUEST))
         return HttpResponse({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
 
-    def process_finally(self):
-        if logger.getEffectiveLevel() == logging.DEBUG:
-            if len(logger.handlers) > 0:
-                console_handler = logger.handlers[0]
-                console_handler.setLevel(logging.INFO)
-                logger.info("process_finally - back to INFO", extra=log_json(self.req_context))
+    def process_finally(self, request, orig_log_level):
+        if Util.isDebugEnabled(self.req_context, request):
+            if logger.getEffectiveLevel() != orig_log_level:
+                if len(logger.handlers) > 0:
+                    console_handler = logger.handlers[0]
+                    console_handler.setLevel(orig_log_level)
+                    logger.info("process_finally - back to orig:" + str(orig_log_level),
+                                extra=log_json(self.req_context))
 
     def split_locale_from_request(self, request):
         locale = ''
