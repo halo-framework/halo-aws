@@ -19,7 +19,7 @@ from rest_framework.views import APIView
 
 # halolib
 from .const import HTTPChoice
-from .exceptions import MaxTryException
+from .exceptions import MaxTryException, HaloError, HaloException
 from .logs import log_json
 from .util import Util
 
@@ -98,6 +98,16 @@ class AbsBaseLink(APIView):
             e.stack = traceback.format_exc()
             logger.error(error_message, extra=log_json(self.req_context, Util.get_req_params(request), e))
 
+        except HaloError as e:  # if api not responding
+            error_message = str(e)
+            e.stack = traceback.format_exc()
+            logger.error(error_message, extra=log_json(self.req_context, Util.get_req_params(request), e))
+
+        except HaloException as e:  # if api not responding
+            error_message = str(e)
+            e.stack = traceback.format_exc()
+            logger.error(error_message, extra=log_json(self.req_context, Util.get_req_params(request), e))
+
         except IOError as e:
             error_message = str(e)
             e.stack = traceback.format_exc()
@@ -145,7 +155,7 @@ class AbsBaseLink(APIView):
                                                         {"type": "LAMBDA", "milliseconds": int(total.total_seconds() * 1000)}))
         #log_json(logger, self.req_context, logging.DEBUG, str(ret), Util.get_req_params(request))
 
-        if settings.FRONT_API:
+        if settings.FRONT_WEB:
             return HttpResponseRedirect("/" + str(status.HTTP_400_BAD_REQUEST))
         return HttpResponse({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
 

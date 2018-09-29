@@ -33,10 +33,13 @@ DEV = "dev"
 TST = "tst"
 PRD = "prd"
 ENV_NAME = LOC  # env.str('ENV_NAME')
+os.environ["STAGE"] = ENV_NAME
 
 FUNC_NAME = env.str('FUNC_NAME')
+os.environ['APP_CONFIG_PATH'] = FUNC_NAME
 
 SERVER_LOCAL = True
+AWS_REGION = env.str('AWS_REGION')
 DB_URL = env('DYNAMODB_LOCAL_URL')
 if 'SERVERTYPE' in os.environ and os.environ['SERVERTYPE'] == 'AWS Lambda':
     DB_URL = env('DYNAMODB_URL')
@@ -318,6 +321,8 @@ THRIFT_MAX_RETRY = 4
 
 HTTP_RETRY_SLEEP = 0.300  # in seconds
 
+FRONT_WEB = False
+
 FRONT_API = False
 
 #######################################################################################3
@@ -344,5 +349,12 @@ import uuid
 INSTANCE_ID = uuid.uuid4().__str__()[0:4]
 
 LOG_SAMPLE_RATE = 0.05  # 5%
+
+SSM_CONFIG = None
+if ENV_NAME == LOC:
+    # from halolib.ssm import get_config as get_config
+    from .halolib.ssm import get_config as get_config
+
+    SSM_CONFIG = get_config()
 
 print('The settings file has been loaded.')

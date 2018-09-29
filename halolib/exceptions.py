@@ -45,3 +45,7 @@ class MaxTryRpcException(MaxTryException):
 
 class ApiError(HaloError):
     pass
+
+
+class DbError(HaloError):
+    pass
