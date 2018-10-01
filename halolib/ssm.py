@@ -1,20 +1,28 @@
 from __future__ import print_function
 
-import boto3
 import configparser
 import json
+import logging
 import os
 import traceback
 
+import boto3
 from django.conf import settings
+
+from .logs import log_json
+
+logger = logging.getLogger(__name__)
 
 # Initialize boto3 client at global scope for connection reuse
 client = boto3.client('ssm', region_name=settings.AWS_REGION)
 env = os.environ['STAGE']
 app_config_path = os.environ['APP_CONFIG_PATH']
-full_config_path = '/' + env + '/' + app_config_path
+app_name = os.environ['APP_NAME']
+full_config_path = '/' + app_name + '/' + env + '/' + app_config_path
+short_config_path = '/' + app_name + '/' + env
 # Initialize app at global scope for reuse across invocations
 myconfig = None
+appconfig = None
 
 
 class MyConfig:
@@ -66,9 +74,21 @@ def get_config():
     global myconfig
     # Initialize app if it doesn't yet exist
     if myconfig is None:
-        print("Loading config and creating new MyApp...")
+        print("Loading config and creating new MyConfig...")
         config = load_config(full_config_path)
         myconfig = MyConfig(config)
 
-    print("MyApp config is " + str(myconfig.get_config()._sections))
+    print("MyConfig is " + str(myconfig.get_config()._sections))
     return myconfig
+
+
+def get_app_config():
+    global appconfig
+    # Initialize app if it doesn't yet exist
+    if appconfig is None:
+        print("Loading app config and creating new AppConfig...")
+        config = load_config(short_config_path)
+        appconfig = MyConfig(config)
+
+    print("AppConfig is " + str(appconfig.get_config()._sections))
+    return appconfig

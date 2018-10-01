@@ -37,6 +37,7 @@ os.environ["STAGE"] = ENV_NAME
 
 FUNC_NAME = env.str('FUNC_NAME')
 os.environ['APP_CONFIG_PATH'] = FUNC_NAME
+os.environ['APP_NAME'] = 'app'
 
 SERVER_LOCAL = True
 AWS_REGION = env.str('AWS_REGION')
@@ -356,5 +357,12 @@ if ENV_NAME == LOC:
     from .halolib.ssm import get_config as get_config
 
     SSM_CONFIG = get_config()
+
+SSM_APP_CONFIG = None
+if ENV_NAME == LOC:
+    # from halolib.ssm import get_config as get_config
+    from .halolib.ssm import get_app_config as get_app_config
+
+    SSM_APP_CONFIG = get_app_config()
 
 print('The settings file has been loaded.')
