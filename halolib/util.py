@@ -183,19 +183,20 @@ class Util:
 
     @staticmethod
     def get_debug_enabled(request):
-        # check if the specific call is debug enabled or system wide enabled
+        # check if the specific call is debug enabled
         if "HTTP_DEBUG_LOG_ENABLED" in request.META:
             dlog = request.META["HTTP_DEBUG_LOG_ENABLED"]
             if dlog == 'true':
                 return 'true'
+        # check if system wide enabled - done on edge
         if "HTTP_X_CORRELATION_ID" not in request.META:
-            dlog = Util.get_system_debug_enabled(request)
+            dlog = Util.get_system_debug_enabled()
             if dlog == 'true':
                 return 'true'
         return 'false'
 
     @staticmethod
-    def get_system_debug_enabled(request):
+    def get_system_debug_enabled():
         # check if env var for sampled debug logs is on and activate for percentage in settings (5%)
         if 'DEBUG_LOG' in os.environ and os.environ['DEBUG_LOG'] == 'true':
             rand = random.random()
@@ -227,10 +228,9 @@ class Util:
 
     @staticmethod
     def isDebugEnabled(req_context, request=None):
-        # log_json => disable debug logging by default, but allow override via env variables
-        # or if enabled via forwarded request context
-        if settings.DEBUG or req_context["debug-log-enabled"] == 'true' or (
-                'DEBUG_LOG' in os.environ and os.environ['DEBUG_LOG'] == 'true'):
+        # disable debug logging by default, but allow override via env variables
+        # or if enabled via forwarded request context or if debug flag is on
+        if settings.DEBUG or req_context["debug-log-enabled"] == 'true' or Util.get_system_debug_enabled() == 'true':
             return True
         return False
 

@@ -7,6 +7,7 @@ from abc import ABCMeta, abstractmethod
 
 # aws
 import boto3
+from botocore.exceptions import ClientError
 # common
 # django
 from django.conf import settings
@@ -17,7 +18,6 @@ from halolib.logs import log_json
 from halolib.util import Util
 
 logger = logging.getLogger(__name__)
-
 
 class NoMessageException(HaloException):
     pass
@@ -60,15 +60,19 @@ class AbsBaseEvent(object):
                 logger.debug("future:" + str(future.get()))
             return "sent event"
         else:
-            client = boto3.client('lambda', region_name=settings.AWS_REGION)
-            ret = client.invoke(
+            try:
+                client = boto3.client('lambda', region_name=settings.AWS_REGION)
+                ret = client.invoke(
                     FunctionName=self.target_service + str('-') + settings.ENV_NAME.replace("_", "-"),
                     InvocationType='Event',
                     LogType='None',
-                    Payload=bytes(json.dumps(messageDict))
-            )
-
-        logger.debug("send_event to service " + self.target_service + " ret: " + str(ret))
+                    Payload=bytes(json.dumps(messageDict), "utf8")
+                )
+            except ClientError as e:
+                logger.error("Unexpected boto client Error", extra=log_json(ctx, messageDict, e))
+            else:
+                logger.debug("send_event to service " + self.target_service + " ret: " + str(ret),
+                             extra=log_json(ctx, messageDict))
 
         return ret
 

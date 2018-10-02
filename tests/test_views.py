@@ -91,7 +91,7 @@ class TestUserDetailTestCase(APITestCase):
         os.environ['DEBUG_LOG'] = 'true'
         flag = 'false'
         for i in range(0, 60):
-            ret = Util.get_system_debug_enabled(self.mock_request('GET'))
+            ret = Util.get_system_debug_enabled()
             print(ret)
             if ret == 'true':
                 flag = ret

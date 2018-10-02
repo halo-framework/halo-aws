@@ -260,8 +260,8 @@ LOGGING = {
     #        'filename': '/path/to/django/debug.log',
     #    },
         'console': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
             'formatter': 'main_formatter',
         },
@@ -301,10 +301,10 @@ LOGGING = {
             'level': 'DEBUG',
             'handlers': ['console']
         },
-
-
-
-
+        'halolib.halolib.ssm': {
+            'level': 'DEBUG',
+            'handlers': ['console']
+        },
     },
 }
 
@@ -326,6 +326,12 @@ FRONT_WEB = False
 
 FRONT_API = False
 
+import uuid
+
+INSTANCE_ID = uuid.uuid4().__str__()[0:4]
+
+LOG_SAMPLE_RATE = 0.05  # 5%
+
 #######################################################################################3
 
 import json
@@ -344,12 +350,6 @@ file_path = os.path.join(file_dir, 'loc_settings.json')
 with open(file_path, 'r') as fi:
     LOC_TABLE = json.load(fi)
     print("loc_settings:" + str(LOC_TABLE))
-
-import uuid
-
-INSTANCE_ID = uuid.uuid4().__str__()[0:4]
-
-LOG_SAMPLE_RATE = 0.05  # 5%
 
 SSM_CONFIG = None
 if ENV_NAME == LOC:

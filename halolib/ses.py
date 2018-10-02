@@ -1,8 +1,12 @@
 from __future__ import print_function
 
+import logging
+
 import boto3
 from botocore.exceptions import ClientError
 from django.conf import settings
+
+from halolib.logs import log_json
 
 # Replace sender@example.com with your "From" address.
 # This address must be verified with Amazon SES.
@@ -22,6 +26,8 @@ AWS_REGION = settings.AWS_REGION
 
 # The subject line for the email.
 SUBJECT = "contact form"
+
+logger = logging.getLogger(__name__)
 
 # The email body for recipients with non-HTML email clients.
 BODY_TEXT = ("Amazon SES Test (Python)\r\n"
@@ -45,7 +51,8 @@ BODY_HTML = """<html>
 # The character encoding for the email.
 CHARSET = "UTF-8"
 
-def send_mail(vars,from1=None,to=None):
+
+def send_mail(req_context, vars, from1=None, to=None):
     name1 = vars["name1"]
     email1 = vars["email1"]
     message1 = vars["message1"]
@@ -87,9 +94,8 @@ def send_mail(vars,from1=None,to=None):
         )
     # Display an error if something goes wrong.
     except ClientError as e:
-        print(e.response['Error']['Message'])
+        logger.error("failed to send mail", extra=log_json(req_context, vars, e))
         return False
     else:
-        print("Email sent! Message ID:"),
-        print(response['ResponseMetadata']['RequestId'])
+        logger.info("Email sent! Message ID:" + response['ResponseMetadata']['RequestId'], extra=log_json(req_context))
         return True

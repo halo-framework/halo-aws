@@ -4,9 +4,9 @@ import configparser
 import json
 import logging
 import os
-import traceback
 
 import boto3
+from botocore.exceptions import ClientError
 from django.conf import settings
 
 from .logs import log_json
@@ -60,12 +60,12 @@ def load_config(ssm_parameter_path):
                 section_name = param_path_array[section_position]
                 config_values = json.loads(param.get('Value'))
                 config_dict = {section_name: config_values}
-                print("Found configuration: " + str(config_dict))
+                logger.debug("Found configuration: " + str(config_dict))
                 configuration.read_dict(config_dict)
 
-    except:
-        print("Encountered an error loading config from SSM.")
-        traceback.print_exc()
+    except ClientError as e:
+        logger.error("Encountered an error loading config from SSM.",
+                     extra=log_json(req_context={}, params={"path": ssm_parameter_path}, err=e))
     finally:
         return configuration
 
@@ -74,11 +74,11 @@ def get_config():
     global myconfig
     # Initialize app if it doesn't yet exist
     if myconfig is None:
-        print("Loading config and creating new MyConfig...")
+        logger.debug("Loading config and creating new MyConfig...")
         config = load_config(full_config_path)
         myconfig = MyConfig(config)
 
-    print("MyConfig is " + str(myconfig.get_config()._sections))
+    logger.debug("MyConfig is " + str(myconfig.get_config()._sections))
     return myconfig
 
 
@@ -86,9 +86,9 @@ def get_app_config():
     global appconfig
     # Initialize app if it doesn't yet exist
     if appconfig is None:
-        print("Loading app config and creating new AppConfig...")
+        logger.debug("Loading app config and creating new AppConfig...")
         config = load_config(short_config_path)
         appconfig = MyConfig(config)
 
-    print("AppConfig is " + str(appconfig.get_config()._sections))
+    logger.debug("AppConfig is " + str(appconfig.get_config()._sections))
     return appconfig
