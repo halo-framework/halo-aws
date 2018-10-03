@@ -32,6 +32,8 @@ LOC = "loc"
 DEV = "dev"
 TST = "tst"
 PRD = "prd"
+ENV_TYPE = LOC
+
 ENV_NAME = LOC  # env.str('ENV_NAME')
 os.environ["STAGE"] = ENV_NAME
 

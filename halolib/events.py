@@ -62,8 +62,10 @@ class AbsBaseEvent(object):
             return "sent event"
         else:
             try:
-                service_name = self.target_service_name[settings.ENV_NAME]
+                service_name = self.target_service_name[settings.ENV_TYPE]
                 logger.debug("send event to target_service:" + service_name, extra=log_json(ctx))
+                if 'headers' not in messageDict:
+                    messageDict['headers'] = {}
                 client = boto3.client('lambda', region_name=settings.AWS_REGION)
                 ret = client.invoke(
                     FunctionName=service_name,
