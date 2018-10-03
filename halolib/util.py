@@ -281,7 +281,8 @@ class Util:
                         else:
                             method = "method"
                     host_ip = "12.34.56.78"
-                    user_agent = func_name + ':' + path + ':' + method + ':' + host_ip
+                    user_agent = str(func_name) + ':' + str(path) + ':' + str(method) + ':' + str(host_ip)
+                    logger.debug("user_agent:" + user_agent, extra=Util.event_req_context)
         # from other source
         else:
             if "x-correlation-id" in event:
