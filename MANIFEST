@@ -11,7 +11,6 @@ halolib\mixin.py
 halolib\models.py
 halolib\ses.py
 halolib\ssm.py
-halolib\test_views.py
 halolib\urls.py
 halolib\util.py
 halolib\views.py

@@ -30,6 +30,7 @@ class AbsBaseEvent(object):
     __metaclass__ = ABCMeta
 
     target_service = None
+    target_service_name = None
     key_name = None
     key_val = None
 
@@ -61,9 +62,11 @@ class AbsBaseEvent(object):
             return "sent event"
         else:
             try:
+                service_name = self.target_service_name[settings.ENV_NAME]
+                logger.debug("send event to target_service:" + service_name, extra=log_json(ctx))
                 client = boto3.client('lambda', region_name=settings.AWS_REGION)
                 ret = client.invoke(
-                    FunctionName=self.target_service + str('-') + settings.ENV_NAME.replace("_", "-"),
+                    FunctionName=service_name,
                     InvocationType='Event',
                     LogType='None',
                     Payload=bytes(json.dumps(messageDict), "utf8")
