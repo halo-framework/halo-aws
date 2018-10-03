@@ -356,14 +356,20 @@ with open(file_path, 'r') as fi:
 SSM_CONFIG = None
 if ENV_NAME == LOC:
     # from halolib.ssm import get_config as get_config
-    from .halolib.ssm import get_config as get_config
+    try:
+        from .halolib.ssm import get_config as get_config
+    except:
+        from halolib.ssm import get_config as get_config
 
     SSM_CONFIG = get_config()
 
 SSM_APP_CONFIG = None
 if ENV_NAME == LOC:
     # from halolib.ssm import get_config as get_config
-    from .halolib.ssm import get_app_config as get_app_config
+    try:
+        from .halolib.ssm import get_app_config as get_app_config
+    except:
+        from halolib.ssm import get_app_config as get_app_config
 
     SSM_APP_CONFIG = get_app_config()
 
