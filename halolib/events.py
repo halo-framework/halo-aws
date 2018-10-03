@@ -66,6 +66,14 @@ class AbsBaseEvent(object):
                 logger.debug("send event to target_service:" + service_name, extra=log_json(ctx))
                 if 'headers' not in messageDict:
                     messageDict['headers'] = {}
+                if 'httpMethod' not in messageDict:
+                    messageDict['httpMethod'] = {}
+                if 'requestContext' not in messageDict:
+                    messageDict['requestContext'] = {}
+                if 'body' not in messageDict:
+                    messageDict['body'] = ""
+                if 'path' not in messageDict:
+                    messageDict['path'] = ""
                 client = boto3.client('lambda', region_name=settings.AWS_REGION)
                 ret = client.invoke(
                     FunctionName=service_name,
