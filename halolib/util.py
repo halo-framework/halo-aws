@@ -46,6 +46,9 @@ u'HTTP_VIA': '2.0 e4a44efc4b3241dc23019df63a1f645c.cloudfront.net (CloudFront)',
 u'HTTP_CLOUDFRONT_IS_SMARTTV_VIEWER': 'false', u'SERVER_PORT': u'443', u'HTTP_X_FORWARDED_FOR': '62.219.237.170, 54.182.239.100', 
 u'HTTP_REFERER': 'https://3oktz7m6j2.execute-api.us-east-1.amazonaws.com/dev', u'lambda.context': <__main__.LambdaContext object at 0x7f4e589e3ed0>, 
 u'HTTP_ACCEPT_ENCODING': 'gzip, deflate, br'}
+
+/aws/lambda/trader1-yor-dev-trader1 2018/10/04/[$LATEST]1d428b2d6b3140e2affb1411079c7e8c in handle_request {'resource': '/{proxy+}', 'path': '/state/0719192620988/', 'httpMethod': 'GET', 'headers': {'Accept': '*/*', 'Accept-Encoding': 'gzip, deflate', 'aws_request_id': '69f453f9-9d79-4999-a606-2e5f4a32b5d5', 'CloudFront-Forwarded-Proto': 'https', 'CloudFront-Is-Desktop-Viewer': 'true', 'CloudFront-Is-Mobile-Viewer': 'false', 'CloudFront-Is-SmartTV-Viewer': 'false', 'CloudFront-Is-Tablet-Viewer': 'false', 'CloudFront-Viewer-Country': 'US', 'debug-log-enabled': 'false', 'Host': 'igguvb9ry7.execute-api.us-east-1.amazonaws.com', 'User-Agent': 'python-requests/2.18.4', 'Via': '1.1 aacaf57a89a827fd9e2cbb6fe0d21e43.cloudfront.net (CloudFront)', 'X-Amz-Cf-Id': '-tlbYkrrl5oumBW6pTICkCnyFUZLYvnKFISOwbCaoJOn-TPvXOmx1A==', 'X-Amzn-Trace-Id': 'Root=1-5bb6243c-673f08475eeec7c3f1a3f289', 'x-correlation-id': 'ee4e40f3-976c-4563-bb4f-18af4e35c34d', 'X-Forwarded-For': '54.208.1.115, 52.46.14.108', 'X-Forwarded-Port': '443', 'X-Forwarded-Proto': 'https', 'x-user-agent': 'webfront-dev1-webfront:/dev1/page/0719192620988/:GET:3728'}, 'multiValueHeaders': {'Accept': ['*/*'], 'Accept-Encoding': ['gzip, deflate'], 'aws_request_id': ['69f453f9-9d79-4999-a606-2e5f4a32b5d5'], 'CloudFront-Forwarded-Proto': ['https'], 'CloudFront-Is-Desktop-Viewer': ['true'], 'CloudFront-Is-Mobile-Viewer': ['false'], 'CloudFront-Is-SmartTV-Viewer': ['false'], 'CloudFront-Is-Tablet-Viewer': ['false'], 'CloudFront-Viewer-Country': ['US'], 'debug-log-enabled': ['false'], 'Host': ['igguvb9ry7.execute-api.us-east-1.amazonaws.com'], 'User-Agent': ['python-requests/2.18.4'], 'Via': ['1.1 aacaf57a89a827fd9e2cbb6fe0d21e43.cloudfront.net (CloudFront)'], 'X-Amz-Cf-Id': ['-tlbYkrrl5oumBW6pTICkCnyFUZLYvnKFISOwbCaoJOn-TPvXOmx1A=='], 'X-Amzn-Trace-Id': ['Root=1-5bb6243c-673f08475eeec7c3f1a3f289'], 'x-correlation-id': ['ee4e40f3-976c-4563-bb4f-18af4e35c34d'], 'X-Forwarded-For': ['54.208.1.115, 52.46.14.108'], 'X-Forwarded-Port': ['443'], 'X-Forwarded-Proto': ['https'], 'x-user-agent': ['webfront-dev1-webfront:/dev1/page/0719192620988/:GET:3728']}, 'queryStringParameters': None, 'multiValueQueryStringParameters': None, 'pathParameters': {'proxy': 'state/0719192620988'}, 'stageVariables': None, 'requestContext': {'resourceId': 'sc9qkt', 'resourcePath': '/{proxy+}', 'httpMethod': 'GET', 'extendedRequestId': 'OPqZfFR_oAMFayA=', 'requestTime': '04/Oct/2018:14:31:24 +0000', 'path': '/yor-dev/state/0719192620988/', 'accountId': '510393669663', 'protocol': 'HTTP/1.1', 'stage': 'yor-dev', 'requestTimeEpoch': 1538663484747, 'requestId': '2be0822b-c7e2-11e8-b565-b98007fc4e52', 'identity': {'cognitoIdentityPoolId': None, 'accountId': None, 'cognitoIdentityId': None, 'caller': None, 'sourceIp': '54.208.1.115', 'accessKey': None, 'cognitoAuthenticationType': None, 'cognitoAuthenticationProvider': None, 'userArn': None, 'userAgent': 'python-requests/2.18.4', 'user': None}, 'apiId': 'igguvb9ry7'}, 'body': None, 'isBase64Encoded': False}
+
 """
 
 logger = logging.getLogger(__name__)
@@ -99,7 +102,7 @@ class Util:
     def check_if_robot():
         return False
 
-    ################################################################################################3
+    ################################################################################################
 
     @staticmethod
     def get_lambda_context(request):
@@ -107,8 +110,12 @@ class Util:
         # AWS_LAMBDA_FUNCTION_NAME
         # 'lambda.context'
         # x-amzn-RequestId
+        for item in request.META:
+            print(str(item) + "=" + str(request.META[item]))
         if 'lambda.context' in request.META:
             return request.META['lambda.context']
+        elif 'context' in request.META:
+            return request.META['context']
         else:
             return None
 
@@ -151,12 +158,9 @@ class Util:
 
     @staticmethod
     def get_stage():
-        if 'ENVIRONMENT' in os.environ:
-            return os.environ['ENVIRONMENT']
-        else:
-            if 'STAGE' in os.environ:
-                return os.environ['STAGE']
-            return "STAGE"
+        if 'HALO_STAGE' in os.environ:
+            return os.environ['HALO_STAGE']
+        return "STAGE"
 
     @staticmethod
     def get_context():
@@ -210,7 +214,7 @@ class Util:
         x_user_agent = Util.get_user_agent(request)
         dlog = Util.get_debug_enabled(request)
         ret = {"x-user-agent": x_user_agent, "aws_request_id": Util.get_aws_request_id(request),
-               "x-correlation-id": x_correlation_id, "debug-log-enabled": dlog}
+               "x-correlation-id": x_correlation_id, "debug-log-enabled": dlog, "request_path": request.path}
         if api_key:
             ret["x-api-key"] = api_key
         return ret
@@ -230,7 +234,7 @@ class Util:
     def isDebugEnabled(req_context, request=None):
         # disable debug logging by default, but allow override via env variables
         # or if enabled via forwarded request context or if debug flag is on
-        if settings.DEBUG or req_context["debug-log-enabled"] == 'true' or Util.get_system_debug_enabled() == 'true':
+        if req_context["debug-log-enabled"] == 'true' or Util.get_system_debug_enabled() == 'true':
             return True
         return False
 

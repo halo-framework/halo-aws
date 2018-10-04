@@ -33,8 +33,8 @@ class AbsDbMixin(object):
                 now = datetime.datetime.now()
                 result = attr(*args, **kwargs)
                 total = datetime.datetime.now() - now
-                logger.info("performance", extra=log_json(self.req_context,
-                                                          {"type": "DBACCESS",
+                logger.info("performance_data", extra=log_json(self.req_context,
+                                                               {"type": "DBACCESS",
                                                            "milliseconds": int(total.total_seconds() * 1000),
                                                            "function": str(attr.__name__)}))
                 return result

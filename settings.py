@@ -35,16 +35,16 @@ PRD = "prd"
 ENV_TYPE = LOC
 
 ENV_NAME = LOC  # env.str('ENV_NAME')
-os.environ["STAGE"] = ENV_NAME
+os.environ["HALO_STAGE"] = ENV_NAME  # done in settings json file
 
 FUNC_NAME = env.str('FUNC_NAME')
-os.environ['APP_CONFIG_PATH'] = FUNC_NAME
-os.environ['APP_NAME'] = 'app'
+os.environ['HALO_CONFIG_PATH'] = FUNC_NAME  # done in settings json file
+os.environ['HALO_APP_NAME'] = 'app'  #done in settings json file
 
 SERVER_LOCAL = True
 AWS_REGION = env.str('AWS_REGION')
 DB_URL = env('DYNAMODB_LOCAL_URL')
-if 'SERVERTYPE' in os.environ and os.environ['SERVERTYPE'] == 'AWS Lambda':
+if 'AWS_LAMBDA_FUNCTION_NAME' in os.environ:
     DB_URL = env('DYNAMODB_URL')
     SERVER_LOCAL = False
 

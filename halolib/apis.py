@@ -112,8 +112,8 @@ class AbsBaseApi(object):
             now = datetime.datetime.now()
             ret = exec_client(self.req_context, method, url, self.api_type, data=data, headers=headers)
             total = datetime.datetime.now() - now
-            logger.info("performance", extra=log_json(self.req_context,
-                                                      {"type": "API", "milliseconds": int(total.total_seconds() * 1000),
+            logger.info("performance_data", extra=log_json(self.req_context,
+                                                           {"type": "API", "milliseconds": int(total.total_seconds() * 1000),
                                                        "url": str(url)}))
             logger.debug("ret: " + str(ret), extra=log_json(self.req_context))
             return ret

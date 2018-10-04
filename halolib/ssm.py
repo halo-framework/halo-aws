@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 
 # Initialize boto3 client at global scope for connection reuse
 client = boto3.client('ssm', region_name=settings.AWS_REGION)
-env = os.environ['STAGE']
-app_config_path = os.environ['APP_CONFIG_PATH']
-app_name = os.environ['APP_NAME']
+env = os.environ['HALO_STAGE']
+app_config_path = os.environ['HALO_CONFIG_PATH']
+app_name = os.environ['HALO_APP_NAME']
 full_config_path = '/' + app_name + '/' + env + '/' + app_config_path
 short_config_path = '/' + app_name + '/' + env
 # Initialize app at global scope for reuse across invocations

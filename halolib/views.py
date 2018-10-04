@@ -89,8 +89,8 @@ class AbsBaseLink(APIView):
         try:
             ret = self.process(request,typer,vars)
             total = datetime.datetime.now() - now
-            logger.info("performance", extra=log_json(self.req_context,
-                                                      {"type": "LAMBDA", "milliseconds": int(total.total_seconds() * 1000)}))
+            logger.info("performance_data", extra=log_json(self.req_context,
+                                                           {"type": "LAMBDA", "milliseconds": int(total.total_seconds() * 1000)}))
             return ret
 
         except MaxTryException as e:  # if api not responding
@@ -151,8 +151,8 @@ class AbsBaseLink(APIView):
             self.process_finally(request, orig_log_level)
 
         total = datetime.datetime.now() - now
-        logger.info("error performance", extra=log_json(self.req_context,
-                                                        {"type": "LAMBDA", "milliseconds": int(total.total_seconds() * 1000)}))
+        logger.info("error performance_data", extra=log_json(self.req_context,
+                                                             {"type": "LAMBDA", "milliseconds": int(total.total_seconds() * 1000)}))
         #log_json(logger, self.req_context, logging.DEBUG, str(ret), Util.get_req_params(request))
 
         if settings.FRONT_WEB:
