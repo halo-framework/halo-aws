@@ -110,8 +110,6 @@ class Util:
         # AWS_LAMBDA_FUNCTION_NAME
         # 'lambda.context'
         # x-amzn-RequestId
-        for item in request.META:
-            print(str(item) + "=" + str(request.META[item]))
         if 'lambda.context' in request.META:
             return request.META['lambda.context']
         elif 'context' in request.META:

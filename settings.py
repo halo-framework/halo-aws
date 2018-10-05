@@ -363,6 +363,8 @@ if ENV_NAME == LOC:
 
     SSM_CONFIG = get_config()
 
+    # SSM_CONFIG.get_param("abc")
+
 SSM_APP_CONFIG = None
 if ENV_NAME == LOC:
     # from halolib.ssm import get_config as get_config
@@ -372,5 +374,7 @@ if ENV_NAME == LOC:
         from halolib.ssm import get_app_config as get_app_config
 
     SSM_APP_CONFIG = get_app_config()
+
+    #SSM_APP_CONFIG.get_param("def")
 
 print('The settings file has been loaded.')

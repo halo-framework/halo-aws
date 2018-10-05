@@ -49,3 +49,11 @@ class ApiError(HaloError):
 
 class DbError(HaloError):
     pass
+
+
+class CacheKeyError(HaloError):
+    pass
+
+
+class CacheExpireError(HaloError):
+    pass
