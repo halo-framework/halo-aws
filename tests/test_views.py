@@ -132,3 +132,14 @@ class TestUserDetailTestCase(APITestCase):
         eq_(Util.event_req_context["debug-log-enabled"], 'true')
         ret = Util.get_correlation_from_event(event)
         eq_(ret["debug-log-enabled"], 'true')
+
+    def test_load_saga(self):
+        from halolib import saga
+        with open("C:\\dev\\projects\\halo\\test98\\saga.json") as f:
+            jsonx = json.load(f)
+        sagax = saga.load_saga(jsonx)
+        eq_(len(sagax.actions), 6)
+
+    def test_run_saga(self):
+        response = self.client.post(self.url)
+        eq_(response.status_code, status.HTTP_200_OK)

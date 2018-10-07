@@ -361,7 +361,7 @@ if ENV_NAME == LOC:
     except:
         from halolib.ssm import get_config as get_config
 
-    SSM_CONFIG = get_config()
+    # SSM_CONFIG = get_config()
 
     # SSM_CONFIG.get_param("abc")
 
@@ -373,7 +373,7 @@ if ENV_NAME == LOC:
     except:
         from halolib.ssm import get_app_config as get_app_config
 
-    SSM_APP_CONFIG = get_app_config()
+    # SSM_APP_CONFIG = get_app_config()
 
     #SSM_APP_CONFIG.get_param("def")
 

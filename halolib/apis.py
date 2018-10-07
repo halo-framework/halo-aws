@@ -2,6 +2,7 @@ from __future__ import print_function
 
 # python
 import datetime
+import importlib
 import logging
 import time
 from abc import ABCMeta
@@ -23,6 +24,7 @@ headers = {
 }
 
 logger = logging.getLogger(__name__)
+
 
 
 def exec_client(req_context, method, url, api_type, data=None, headers=None):
@@ -176,6 +178,27 @@ class AbsBaseApi(object):
         return self.process(verb, self.url, data=data, headers=headers)
 
 
+class ApiMngr(object):
+
+    def __init__(self, req_context):
+        print("ApiMngr=" + str(req_context))
+        self.req_context = req_context
+
+    @staticmethod
+    def get_api(name):
+        print("get_api=" + name)
+        if name in API_LIST:
+            return API_LIST[name]
+        return None
+
+    def get_api_instance(self, class_name, **kwargs):
+        print("get_api_insance=" + class_name)
+        module = importlib.import_module(__name__)
+        class_ = getattr(module, class_name)
+        instance = class_(self.req_context)
+        print("class=" + str(instance))
+        return instance
+
 ##################################### lambda #########################
 import boto3
 import json
@@ -212,3 +235,10 @@ class ApiLambda(object):
 
 class ApiTest(AbsBaseApi):
     name = 'Google'
+
+
+class GoogleApi(AbsBaseApi):
+    name = 'Google'
+
+
+API_LIST = {"Google": 'GoogleApi'}

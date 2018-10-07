@@ -177,24 +177,35 @@ class AbsApiMixin(AbsBaseMixin):
         return {}, 200
 
 ##################################### test #########################
+import json
 from .logs import log_json
 from .apis import ApiTest
 from .exceptions import ApiError
+from .saga import load_saga, run_saga
 class TestMixin(AbsApiMixin):
     def process_api(self, ctx, typer, request, vars):
-        logger.debug("start")
-        api = ApiTest(self.req_context)
-        # api.set_api_url("upcid", upc)
-        # api.set_api_query(request)
-        try:
-            ret = api.get()
-        except ApiError as e:
-            logger.debug("we did it", extra=log_json(self.req_context, Util.get_req_params(request), e))
-            return {"test": "bad"}, 400
-        # except NoReturnApiException as e:
-        #    print("NoReturnApiException="+e.message)
-        # log_json(self.req_context, LogLevels.DEBUG._name_, "we did it", Util.get_req_params(request))
-        return {"test": "good"}, 200
+        if typer == typer.get:
+            logger.debug("start get")
+            api = ApiTest(self.req_context)
+            # api.set_api_url("upcid", upc)
+            # api.set_api_query(request)
+            try:
+                ret = api.get()
+            except ApiError as e:
+                logger.debug("we did it", extra=log_json(self.req_context, Util.get_req_params(request), e))
+                return {"test": "bad"}, 400
+            # except NoReturnApiException as e:
+            #    print("NoReturnApiException="+e.message)
+            # log_json(self.req_context, LogLevels.DEBUG._name_, "we did it", Util.get_req_params(request))
+            return {"test": "good"}, 200
+        if typer == typer.post:
+            logger.debug("start post")
+            with open("C:\\dev\\projects\\halo\\test98\\saga.json") as f:
+                jsonx = json.load(f)
+            sagax = load_saga(jsonx)
+            payloads = [{"abc": "def"}, None, None, None, None, None]
+            ret = run_saga(self.req_context, sagax)
+            return {"test": "good"}, 200
 
 
 """
