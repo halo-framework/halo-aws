@@ -71,7 +71,7 @@ class Saga(object):
         """
         self.actions = actions
 
-    def execute(self, req_context, payloads):
+    def execute(self, req_context, payloads, apis):
         """
         Execute this Saga.
         :return: None
@@ -81,10 +81,8 @@ class Saga(object):
             try:
                 print("execute=" + str(action_index))
                 kwargs['req_context'] = req_context
-                kwargs['payload'] = None
-                if payloads:
-                    if len(payloads) == len(self.actions):
-                        kwargs['payload'] = payloads[action_index]
+                kwargs['payload'] = payloads[action_index]
+                kwargs['create_api'] = apis[action_index]
                 kwargs = self.__get_action(action_index).act(**kwargs) or {}
             except BaseException as e:
                 print("e=" + str(e))
@@ -161,8 +159,9 @@ def load_saga(jsonx):
                 print("api_name=" + api_name)
                 api_instance_name = ApiMngr.get_api(api_name)
                 print("api_instance_name=" + str(api_instance_name))
-                action = lambda req_context, payload, api=api_instance_name: ApiMngr(req_context).get_api_instance(
-                    api).post(payload)
+                # action = lambda req_context, payload, api=api_instance_name: ApiMngr(req_context).get_api_instance(api).post(payload)
+                action = lambda req_context, payload, create_api, api=api_instance_name: create_api(
+                    ApiMngr(req_context).get_api_instance(api)).post(payload)
                 comps = jsonx["States"][state]["Catch"]
                 saga.action(state, action, comps)
         return saga.build()
@@ -171,9 +170,9 @@ def load_saga(jsonx):
         raise HaloError("can not build saga")
 
 
-def run_saga(req_context, saga, payloads=None):
+def run_saga(req_context, saga, payloads, apis):
     try:
-        saga.execute(req_context, payloads)
+        saga.execute(req_context, payloads, apis)
     except SagaError as e:
         print(e)  # wraps the BaseException('some error happened')
         raise HaloError("can not execute saga")

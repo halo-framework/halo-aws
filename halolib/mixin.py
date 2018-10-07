@@ -184,6 +184,7 @@ from .exceptions import ApiError
 from .saga import load_saga, run_saga
 class TestMixin(AbsApiMixin):
     def process_api(self, ctx, typer, request, vars):
+        self.upc = "123"
         if typer == typer.get:
             logger.debug("start get")
             api = ApiTest(self.req_context)
@@ -204,8 +205,17 @@ class TestMixin(AbsApiMixin):
                 jsonx = json.load(f)
             sagax = load_saga(jsonx)
             payloads = [{"abc": "def"}, None, None, None, None, None]
-            ret = run_saga(self.req_context, sagax)
+            apis = [self.create_api1, self.create_api2, None, None, None, None]
+            ret = run_saga(self.req_context, sagax, payloads, apis)
             return {"test": "good"}, 200
+
+    def create_api1(self, api):
+        print("create_api1")
+        api.set_api_url("upcid", self.upc)
+        return api
+
+    def create_api2(self, api):
+        print("create_api2")
 
 
 """

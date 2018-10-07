@@ -150,6 +150,7 @@ class AbsBaseApi(object):
         return self.process('GET', self.url, headers=headers)
 
     def post(self, data, headers=None):
+        print("payload=" + str(data))
         if headers is None:
             headers = headers
         return self.process('POST', self.url, data=data, headers=headers)
