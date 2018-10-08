@@ -204,8 +204,8 @@ class TestMixin(AbsApiMixin):
             with open("C:\\dev\\projects\\halo\\test98\\saga.json") as f:
                 jsonx = json.load(f)
             sagax = load_saga(jsonx)
-            payloads = [{"abc": "def"}, None, None, None, None, None]
-            apis = [self.create_api1, self.create_api2, None, None, None, None]
+            payloads = {"BookHotel": {"abc": "def"}, "BookFlight": {"abc": "def"}, "BookRental": {"abc": "def"}}
+            apis = {"BookHotel": self.create_api1, "BookFlight": self.create_api2, "BookRental": self.create_api3}
             ret = run_saga(self.req_context, sagax, payloads, apis)
             return {"test": "good"}, 200
 

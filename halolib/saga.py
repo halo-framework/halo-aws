@@ -1,4 +1,5 @@
 from .apis import ApiMngr
+from .exceptions import ApiError
 from .exceptions import HaloError
 
 """
@@ -27,7 +28,7 @@ class Action(object):
     Groups an action with its corresponding compensation. For internal use.
     """
 
-    def __init__(self, name, action, compensation):
+    def __init__(self, name, action, compensation, next):
         """
 
         :param action: Callable a function executed as the action
@@ -37,6 +38,7 @@ class Action(object):
         self.__action = action
         self.__compensation = compensation
         self.__name = name
+        self.__next = next
 
     def act(self, **kwargs):
         """
@@ -46,7 +48,7 @@ class Action(object):
                             return values of the previous action
         :return: dict optional return value of this action
         """
-        print("act " + self.__name + " " + str(self.__action))
+        print("act " + self.__name)
         self.__kwargs = kwargs
         return self.__action(**kwargs)
 
@@ -60,6 +62,9 @@ class Action(object):
         else:
             self.__compensation()
 
+    def next(self):
+        return self.__next
+
 
 class Saga(object):
     """
@@ -71,11 +76,12 @@ class Saga(object):
     compensations have been executed.
     """
 
-    def __init__(self, actions):
+    def __init__(self, actions, start):
         """
         :param actions: list[Action]
         """
         self.actions = actions
+        self.start = start
 
     def execute(self, req_context, payloads, apis):
         """
@@ -83,14 +89,22 @@ class Saga(object):
         :return: None
         """
         kwargs = {'result_key': None}
+        name = self.start
         for action_index in range(len(self.actions)):
             try:
-                print("execute=" + str(action_index))
+                print("execute=" + name)
                 kwargs['req_context'] = req_context
-                kwargs['payload'] = payloads[action_index]
-                kwargs['exec_api'] = apis[action_index]
-                kwargs = self.__get_action(action_index).act(**kwargs) or {}
-                print("kwargs=" + str(kwargs))
+                kwargs['payload'] = payloads[name]
+                kwargs['exec_api'] = apis[name]
+                try:
+                    kwargs = self.__get_action(name).act(**kwargs) or {}
+                    print("kwargs=" + str(kwargs))
+                    name = self.__get_action(name).next()
+                    if name is True:
+                        print("finished")
+                        break
+                except ApiError as e:
+                    print("error")
             except BaseException as e:
                 print("e=" + str(e))
                 compensation_exceptions = self.__run_compensations(action_index)
@@ -99,15 +113,14 @@ class Saga(object):
             if type(kwargs) is not dict:
                 raise TypeError('action return type should be dict or None but is {}'.format(type(kwargs)))
 
-    def __get_action(self, index):
+    def __get_action(self, name):
         """
         Returns an action by index.
 
         :param index: int
         :return: Action
         """
-        print("index " + str(index) + "=" + str(self.actions[index]))
-        return self.actions[index]
+        return self.actions[name]
 
     def __run_compensations(self, last_action_index):
         """
@@ -130,7 +143,7 @@ class SagaBuilder(object):
     """
 
     def __init__(self):
-        self.actions = []
+        self.actions = {}
 
     @staticmethod
     def create():
@@ -145,24 +158,24 @@ class SagaBuilder(object):
         :return: SagaBuilder
         """
         actionx = Action(name, action, compensation, next)
-        self.actions.append(actionx)
+        self.actions[name] = actionx
         return self
 
-    def build(self):
+    def build(self, start):
         """
         Returns a new Saga ready to execute all actions passed to the builder.
         :return: Saga
         """
-        return Saga(self.actions)
+        return Saga(self.actions, start)
 
 
 def load_saga(jsonx):
     try:
-        saga = SagaBuilder.create()
         if "StartAt" in jsonx:
             start = jsonx["StartAt"]
         else:
             raise HaloError("can not build saga. No StartAt")
+        saga = SagaBuilder.create()
         for state in jsonx["States"]:
             print(str(state))
             if jsonx["States"][state]["Type"] == "Task":
@@ -175,9 +188,12 @@ def load_saga(jsonx):
                 action = lambda req_context, payload, exec_api, result_key, api=api_instance_name: exec_api(
                     ApiMngr(req_context).get_api_instance(api), result_key, payload)
                 comps = jsonx["States"][state]["Catch"]
-                next = jsonx["States"][state]["Next"]
+                if "Next" in jsonx["States"][state]:
+                    next = jsonx["States"][state]["Next"]
+                else:
+                    next = jsonx["States"][state]["End"]
                 saga.action(state, action, comps, next)
-        return saga.build()
+        return saga.build(start)
     except SagaError as e:
         print(e)  # wraps the BaseException('some error happened')
         raise HaloError("can not build saga")
