@@ -52,15 +52,16 @@ class Action(object):
         self.__kwargs = kwargs
         return self.__action(**kwargs)
 
-    def compensate(self):
+    def compensate(self, error):
         """
         Execute the compensation.
         :return: None
         """
-        if self.__kwargs:
-            self.__compensation(**self.__kwargs)
-        else:
-            self.__compensation()
+        for comp in self.__compensation:
+            for error_code in comp["error"]:
+                if error_code == "States.ALL" or error_code == error:
+                    return comp["next"]
+        raise SagaError("no compenation for : " + self.__name)
 
     def next(self):
         return self.__next
@@ -96,19 +97,20 @@ class Saga(object):
                 kwargs['req_context'] = req_context
                 kwargs['payload'] = payloads[name]
                 kwargs['exec_api'] = apis[name]
-                try:
-                    kwargs = self.__get_action(name).act(**kwargs) or {}
-                    print("kwargs=" + str(kwargs))
-                    name = self.__get_action(name).next()
-                    if name is True:
-                        print("finished")
-                        break
-                except ApiError as e:
-                    print("error")
+                kwargs = self.__get_action(name).act(**kwargs) or {}
+                print("kwargs=" + str(kwargs))
+                name = self.__get_action(name).next()
+                if name is True:
+                    print("finished")
+                    break
+            except ApiError as e:
+                print("ApiError=" + str(e))
+                name = self.__get_action(name).compensate(e.status_code)
             except BaseException as e:
                 print("e=" + str(e))
-                compensation_exceptions = self.__run_compensations(action_index)
-                raise SagaError(e, compensation_exceptions)
+                # compensation_exceptions = self.__run_compensations(action_index)
+                # raise SagaError(e, compensation_exceptions)
+
 
             if type(kwargs) is not dict:
                 raise TypeError('action return type should be dict or None but is {}'.format(type(kwargs)))
@@ -187,7 +189,11 @@ def load_saga(jsonx):
                 # action = lambda req_context, payload, api=api_instance_name: ApiMngr(req_context).get_api_instance(api).post(payload)
                 action = lambda req_context, payload, exec_api, result_key, api=api_instance_name: exec_api(
                     ApiMngr(req_context).get_api_instance(api), result_key, payload)
-                comps = jsonx["States"][state]["Catch"]
+                comps = []
+                if "Catch" in jsonx["States"][state]:
+                    for item in jsonx["States"][state]["Catch"]:
+                        comp = {"error": item["ErrorEquals"], "next": item["Next"]}
+                        comps.append(comp)
                 if "Next" in jsonx["States"][state]:
                     next = jsonx["States"][state]["Next"]
                 else:

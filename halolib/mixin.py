@@ -204,8 +204,10 @@ class TestMixin(AbsApiMixin):
             with open("C:\\dev\\projects\\halo\\test98\\saga.json") as f:
                 jsonx = json.load(f)
             sagax = load_saga(jsonx)
-            payloads = {"BookHotel": {"abc": "def"}, "BookFlight": {"abc": "def"}, "BookRental": {"abc": "def"}}
-            apis = {"BookHotel": self.create_api1, "BookFlight": self.create_api2, "BookRental": self.create_api3}
+            payloads = {"BookHotel": {"abc": "def"}, "BookFlight": {"abc": "def"}, "BookRental": {"abc": "def"},
+                        "CancelHotel": {"abc": "def"}, "CancelFlight": {"abc": "def"}, "CancelRental": {"abc": "def"}}
+            apis = {"BookHotel": self.create_api1, "BookFlight": self.create_api2, "BookRental": self.create_api3,
+                    "CancelHotel": self.create_api4, "CancelFlight": self.create_api5, "CancelRental": self.create_api6}
             ret = run_saga(self.req_context, sagax, payloads, apis)
             return {"test": "good"}, 200
 
@@ -223,6 +225,24 @@ class TestMixin(AbsApiMixin):
 
     def create_api3(self, api, result, payload):
         print("create_api3=" + str(api) + " result=" + str(result))
+        api.set_api_url("upcid", self.upc)
+        ret = api.post(payload)
+        return {'result_key': ret}
+
+    def create_api4(self, api, result, payload):
+        print("create_api4=" + str(api) + " result=" + str(result))
+        api.set_api_url("upcid", self.upc)
+        ret = api.get(payload)
+        return {'result_key': ret}
+
+    def create_api5(self, api, result, payload):
+        print("create_api5=" + str(api) + " result=" + str(result))
+        api.set_api_url("upcid", self.upc)
+        ret = api.get(payload)
+        return {'result_key': ret}
+
+    def create_api6(self, api, result, payload):
+        print("create_api6=" + str(api) + " result=" + str(result))
         api.set_api_url("upcid", self.upc)
         ret = api.get(payload)
         return {'result_key': ret}
