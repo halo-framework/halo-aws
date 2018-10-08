@@ -1,7 +1,13 @@
 from .apis import ApiMngr
 from .exceptions import HaloError
 
-
+"""
+We'll need a transaction log for the saga
+this is our coordinator for the saga Functions
+Because the compensating requests can also fail  we need to be able to retry them until success, which means they have to be idempotent.
+we implements backward recovery only.
+For forward recovery you also need to ensure the requests are imdempotent.
+"""
 class SagaError(HaloError):
     """
     Raised when an action failed and at least one compensation also failed.
@@ -76,14 +82,15 @@ class Saga(object):
         Execute this Saga.
         :return: None
         """
-        kwargs = {}
+        kwargs = {'result_key': None}
         for action_index in range(len(self.actions)):
             try:
                 print("execute=" + str(action_index))
                 kwargs['req_context'] = req_context
                 kwargs['payload'] = payloads[action_index]
-                kwargs['create_api'] = apis[action_index]
+                kwargs['exec_api'] = apis[action_index]
                 kwargs = self.__get_action(action_index).act(**kwargs) or {}
+                print("kwargs=" + str(kwargs))
             except BaseException as e:
                 print("e=" + str(e))
                 compensation_exceptions = self.__run_compensations(action_index)
@@ -129,7 +136,7 @@ class SagaBuilder(object):
     def create():
         return SagaBuilder()
 
-    def action(self, name, action, compensation):
+    def action(self, name, action, compensation, next):
         """
         Add an action and a corresponding compensation.
 
@@ -137,7 +144,7 @@ class SagaBuilder(object):
         :param compensation: Callable an action that reverses the effects of action
         :return: SagaBuilder
         """
-        actionx = Action(name, action, compensation)
+        actionx = Action(name, action, compensation, next)
         self.actions.append(actionx)
         return self
 
@@ -152,6 +159,10 @@ class SagaBuilder(object):
 def load_saga(jsonx):
     try:
         saga = SagaBuilder.create()
+        if "StartAt" in jsonx:
+            start = jsonx["StartAt"]
+        else:
+            raise HaloError("can not build saga. No StartAt")
         for state in jsonx["States"]:
             print(str(state))
             if jsonx["States"][state]["Type"] == "Task":
@@ -159,11 +170,13 @@ def load_saga(jsonx):
                 print("api_name=" + api_name)
                 api_instance_name = ApiMngr.get_api(api_name)
                 print("api_instance_name=" + str(api_instance_name))
+                # result_key = 'result'#jsonx["States"][state]["ResultPath"]
                 # action = lambda req_context, payload, api=api_instance_name: ApiMngr(req_context).get_api_instance(api).post(payload)
-                action = lambda req_context, payload, create_api, api=api_instance_name: create_api(
-                    ApiMngr(req_context).get_api_instance(api)).post(payload)
+                action = lambda req_context, payload, exec_api, result_key, api=api_instance_name: exec_api(
+                    ApiMngr(req_context).get_api_instance(api), result_key, payload)
                 comps = jsonx["States"][state]["Catch"]
-                saga.action(state, action, comps)
+                next = jsonx["States"][state]["Next"]
+                saga.action(state, action, comps, next)
         return saga.build()
     except SagaError as e:
         print(e)  # wraps the BaseException('some error happened')

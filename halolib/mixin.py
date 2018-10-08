@@ -209,13 +209,23 @@ class TestMixin(AbsApiMixin):
             ret = run_saga(self.req_context, sagax, payloads, apis)
             return {"test": "good"}, 200
 
-    def create_api1(self, api):
-        print("create_api1")
+    def create_api1(self, api, result, payload):
+        print("create_api1=" + str(api) + " result=" + str(result))
         api.set_api_url("upcid", self.upc)
-        return api
+        ret = api.get(payload)
+        return {'result_key': ret}
 
-    def create_api2(self, api):
-        print("create_api2")
+    def create_api2(self, api, result, payload):
+        print("create_api2=" + str(api) + " result=" + str(result))
+        api.set_api_url("upcid", self.upc)
+        ret = api.get(payload)
+        return {'result_key': ret}
+
+    def create_api3(self, api, result, payload):
+        print("create_api3=" + str(api) + " result=" + str(result))
+        api.set_api_url("upcid", self.upc)
+        ret = api.get(payload)
+        return {'result_key': ret}
 
 
 """
