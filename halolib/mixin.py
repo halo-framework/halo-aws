@@ -181,10 +181,11 @@ import json
 from .logs import log_json
 from .apis import ApiTest
 from .exceptions import ApiError
-from .saga import load_saga, run_saga
+from .saga import load_saga, run_saga, SagaRollBack
 class TestMixin(AbsApiMixin):
     def process_api(self, ctx, typer, request, vars):
         self.upc = "123"
+        self.typer = typer
         if typer == typer.get:
             logger.debug("start get")
             api = ApiTest(self.req_context)
@@ -199,17 +200,21 @@ class TestMixin(AbsApiMixin):
             #    print("NoReturnApiException="+e.message)
             # log_json(self.req_context, LogLevels.DEBUG._name_, "we did it", Util.get_req_params(request))
             return {"test": "good"}, 200
-        if typer == typer.post:
-            logger.debug("start post")
-            with open("C:\\dev\\projects\\halo\\test98\\saga.json") as f:
+
+        if typer == typer.post or typer == typer.put:
+            logger.debug("start " + str(typer))
+            with open("C:\\dev\\projects\\halo\halo_lib\\saga.json") as f:
                 jsonx = json.load(f)
             sagax = load_saga(jsonx)
             payloads = {"BookHotel": {"abc": "def"}, "BookFlight": {"abc": "def"}, "BookRental": {"abc": "def"},
                         "CancelHotel": {"abc": "def"}, "CancelFlight": {"abc": "def"}, "CancelRental": {"abc": "def"}}
             apis = {"BookHotel": self.create_api1, "BookFlight": self.create_api2, "BookRental": self.create_api3,
                     "CancelHotel": self.create_api4, "CancelFlight": self.create_api5, "CancelRental": self.create_api6}
-            ret = run_saga(self.req_context, sagax, payloads, apis)
-            return {"test": "good"}, 200
+            try:
+                ret = run_saga(self.req_context, sagax, payloads, apis)
+                return {"test": "good"}, 200
+            except SagaRollBack as e:
+                return {"test": "bad"}, 500
 
     def create_api1(self, api, results, payload):
         print("create_api1=" + str(api) + " result=" + str(results))
@@ -224,7 +229,9 @@ class TestMixin(AbsApiMixin):
     def create_api3(self, api, results, payload):
         print("create_api3=" + str(api) + " result=" + str(results))
         api.set_api_url("upcid", self.upc)
-        return api.post(payload)
+        if self.typer == self.typer.post:
+            return api.post(payload)
+        return api.get(payload)
 
     def create_api4(self, api, results, payload):
         print("create_api4=" + str(api) + " result=" + str(results))

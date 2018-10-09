@@ -1,6 +1,6 @@
 from .apis import ApiMngr
 from .exceptions import ApiError
-from .exceptions import HaloError
+from .exceptions import HaloException, HaloError
 
 """
 We'll need a transaction log for the saga
@@ -9,6 +9,21 @@ Because the compensating requests can also fail  we need to be able to retry the
 we implements backward recovery only.
 For forward recovery you also need to ensure the requests are imdempotent.
 """
+
+
+class SagaException(HaloException):
+    """
+    Raised when an action failed and no compensation was found.
+    """
+    pass
+
+
+class SagaRollBack(HaloException):
+    """
+    Raised when an action failed and the compensations complited.
+    """
+    pass
+
 class SagaError(HaloError):
     """
     Raised when an action failed and at least one compensation also failed.
@@ -62,7 +77,7 @@ class Action(object):
             for error_code in comp["error"]:
                 if error_code == "States.ALL" or error_code == error:
                     return comp["next"]
-        raise SagaError("no compensation for : " + self.__name)
+        raise SagaException("no compensation for : " + self.__name)
 
     def next(self):
         return self.__next
@@ -96,6 +111,7 @@ class Saga(object):
         name = self.start
         results = {}
         kwargs = {'results': results}
+        rollback = None
         for action_index in range(len(self.actions)):
             try:
                 print("execute=" + name)
@@ -112,15 +128,21 @@ class Saga(object):
                     break
             except ApiError as e:
                 print("ApiError=" + str(e))
+                rollback = e
                 name = self.__get_action(name).compensate(e.status_code)
             except BaseException as e:
                 print("e=" + str(e))
-                # compensation_exceptions = self.__run_compensations(action_index)
-                # raise SagaError(e, compensation_exceptions)
+                compensation_exceptions = self.__run_compensations(action_index)
+                raise SagaError(e, compensation_exceptions)
 
 
             if type(kwargs) is not dict:
                 raise TypeError('action return type should be dict or None but is {}'.format(type(kwargs)))
+
+        if rollback:
+            raise SagaRollBack(rollback)
+
+        return results
 
     def __get_action(self, name):
         """
@@ -131,19 +153,6 @@ class Saga(object):
         """
         return self.actions[name]
 
-    def __run_compensations(self, last_action_index):
-        """
-        :param last_action_index: int
-        :return: None
-        """
-        print("run_compensations")
-        compensation_exceptions = []
-        for compensation_index in range(last_action_index, -1, -1):
-            try:
-                self.__get_action(compensation_index).compensate()
-            except BaseException as ex:
-                compensation_exceptions.append(ex)
-        return compensation_exceptions
 
 
 class SagaBuilder(object):
@@ -208,14 +217,16 @@ def load_saga(jsonx):
                     next = jsonx["States"][state]["End"]
                 saga.action(state, action, comps, next, result_path)
         return saga.build(start)
-    except SagaError as e:
+    except BaseException as e:
         print(e)  # wraps the BaseException('some error happened')
-        raise HaloError("can not build saga")
+        raise HaloError("can not build saga", e)
 
 
 def run_saga(req_context, saga, payloads, apis):
     try:
-        saga.execute(req_context, payloads, apis)
-    except SagaError as e:
+        return saga.execute(req_context, payloads, apis)
+    except SagaRollBack as e:
+        raise e
+    except BaseException as e:
         print(e)  # wraps the BaseException('some error happened')
-        raise HaloError("can not execute saga")
+        raise HaloError("can not execute saga", e)

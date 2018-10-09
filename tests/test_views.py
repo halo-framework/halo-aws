@@ -40,17 +40,6 @@ class TestUserDetailTestCase(APITestCase):
         eq_(response.status_code, status.HTTP_200_OK)
         eq_(json.loads(response.content), {"test": "good"})
 
-    def test_post_request_returns_a_given_code(self):
-        payload = {'first_name': 'new_first_name'}
-        response = self.client.post(self.url, payload)
-        eq_(response.status_code, status.HTTP_200_OK)
-
-    def test_put_request_updates_a_code(self):
-        payload = {'first_name': 'new_first_name'}
-        response = self.client.put(self.url, payload)
-        eq_(response.status_code, status.HTTP_200_OK)
-        # print("response " + str(response))
-        # eq_(response.data, 'new_first_name')
 
     def test_api_request_returns_a_given_string(self):
         from halolib.apis import ApiTest
@@ -141,5 +130,9 @@ class TestUserDetailTestCase(APITestCase):
         eq_(len(sagax.actions), 6)
 
     def test_run_saga(self):
-        response = self.client.post(self.url)
+        response = self.client.put(self.url)
         eq_(response.status_code, status.HTTP_200_OK)
+
+    def test_rollback_saga(self):
+        response = self.client.post(self.url)
+        eq_(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
