@@ -86,6 +86,21 @@ class Action(object):
         return self.__result_path
 
 
+class SagaLog(object):
+    startSaga = "startSaga"
+    endSaga = "endSaga"
+    abortSaga = "abortSaga"
+    errorSaga = "errorSaga"
+    rollbackSaga = "rollbackSaga"
+    commitSaga = "commitSaga"
+
+    startTx = "startTx"
+    endTx = "endTx"
+    failTx = "failTx"
+
+    def log(self, stage, name):
+        print("SagaLog: " + stage + " " + name)
+
 class Saga(object):
     """
     Executes a series of Actions.
@@ -96,52 +111,62 @@ class Saga(object):
     compensations have been executed.
     """
 
-    def __init__(self, actions, start):
+    def __init__(self, name, actions, start):
         """
         :param actions: list[Action]
         """
+        self.name = name
         self.actions = actions
         self.start = start
+        self.slog = SagaLog()
 
     def execute(self, req_context, payloads, apis):
         """
         Execute this Saga.
         :return: None
         """
-        name = self.start
+
+        self.slog.log(SagaLog.startSaga, self.name)
+        tname = self.start
         results = {}
         kwargs = {'results': results}
         rollback = None
         for action_index in range(len(self.actions)):
             try:
-                print("execute=" + name)
+                print("execute=" + tname)
                 kwargs['req_context'] = req_context
-                kwargs['payload'] = payloads[name]
-                kwargs['exec_api'] = apis[name]
-                ret = self.__get_action(name).act(**kwargs) or {}
+                kwargs['payload'] = payloads[tname]
+                kwargs['exec_api'] = apis[tname]
+                self.slog.log(SagaLog.startTx, tname)
+                ret = self.__get_action(tname).act(**kwargs) or {}
+                self.slog.log(SagaLog.endTx, tname)
                 results.update(ret)
                 kwargs = {'results': results}
                 print("kwargs=" + str(kwargs))
-                name = self.__get_action(name).next()
-                if name is True:
+                tname = self.__get_action(tname).next()
+                if tname is True:
                     print("finished")
                     break
             except ApiError as e:
+                self.slog.log(SagaLog.failTx, tname)
+                self.slog.log(SagaLog.abortSaga, self.name)
                 print("ApiError=" + str(e))
                 rollback = e
-                name = self.__get_action(name).compensate(e.status_code)
+                tname = self.__get_action(tname).compensate(e.status_code)
             except BaseException as e:
                 print("e=" + str(e))
-                compensation_exceptions = self.__run_compensations(action_index)
-                raise SagaError(e, compensation_exceptions)
+                self.slog.log(SagaLog.errorSaga, self.name)
+                raise SagaError(e)
 
 
             if type(kwargs) is not dict:
                 raise TypeError('action return type should be dict or None but is {}'.format(type(kwargs)))
 
         if rollback:
+            self.slog.log(SagaLog.rollbackSaga, self.name)
             raise SagaRollBack(rollback)
 
+        self.slog.log(SagaLog.commitSaga, self.name)
         return results
 
     def __get_action(self, name):
@@ -160,12 +185,13 @@ class SagaBuilder(object):
     Build a Saga.
     """
 
-    def __init__(self):
+    def __init__(self, name):
+        self.name = name
         self.actions = {}
 
     @staticmethod
-    def create():
-        return SagaBuilder()
+    def create(name):
+        return SagaBuilder(name)
 
     def action(self, name, action_func, compensation, next, result_path):
         """
@@ -184,7 +210,7 @@ class SagaBuilder(object):
         Returns a new Saga ready to execute all actions passed to the builder.
         :return: Saga
         """
-        return Saga(self.actions, start)
+        return Saga(self.name, self.actions, start)
 
 
 def load_saga(jsonx):
@@ -193,7 +219,7 @@ def load_saga(jsonx):
             start = jsonx["StartAt"]
         else:
             raise HaloError("can not build saga. No StartAt")
-        saga = SagaBuilder.create()
+        saga = SagaBuilder.create("saga1")
         for state in jsonx["States"]:
             print(str(state))
             if jsonx["States"][state]["Type"] == "Task":
@@ -222,7 +248,7 @@ def load_saga(jsonx):
         raise HaloError("can not build saga", e)
 
 
-def run_saga(req_context, saga, payloads, apis):
+def run_saga1(req_context, saga, payloads, apis):
     try:
         return saga.execute(req_context, payloads, apis)
     except SagaRollBack as e:

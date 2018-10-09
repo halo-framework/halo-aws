@@ -9,6 +9,7 @@ halolib\exceptions.py
 halolib\logs.py
 halolib\mixin.py
 halolib\models.py
+halolib\saga.py
 halolib\ses.py
 halolib\ssm.py
 halolib\urls.py

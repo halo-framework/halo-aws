@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 def exec_client(req_context, method, url, api_type, data=None, headers=None):
-    msg = "Max Try"
+    msg = "Max Try for url: " + str(url)
     for i in range(0, settings.HTTP_MAX_RETRY):
         try:
             logger.debug("try: " + str(i), extra=log_json(req_context))

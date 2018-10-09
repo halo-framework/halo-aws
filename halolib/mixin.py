@@ -184,7 +184,7 @@ import json
 from .logs import log_json
 from .apis import ApiTest
 from .exceptions import ApiError
-from .saga import load_saga, run_saga, SagaRollBack
+from .saga import load_saga, SagaRollBack
 class TestMixin(AbsApiMixin):
     def process_api(self, ctx, typer, request, vars):
         self.upc = "123"
@@ -214,7 +214,7 @@ class TestMixin(AbsApiMixin):
             apis = {"BookHotel": self.create_api1, "BookFlight": self.create_api2, "BookRental": self.create_api3,
                     "CancelHotel": self.create_api4, "CancelFlight": self.create_api5, "CancelRental": self.create_api6}
             try:
-                ret = run_saga(self.req_context, sagax, payloads, apis)
+                ret = sagax.execute(self.req_context, payloads, apis)
                 return {"test": "good"}, 200
             except SagaRollBack as e:
                 return {"test": "bad"}, 500
