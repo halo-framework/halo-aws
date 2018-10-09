@@ -8,9 +8,13 @@ import re
 import uuid
 
 # django
-from django.conf import settings
+# from django.conf import settings
 # DRF
 from rest_framework.response import Response
+
+from .const import settingsx
+
+settings = settingsx()
 
 """
 [DEBUG]	2018-07-04T14:43:13.413Z	943ecbc5-7f98-11e8-b37a-5f5dcef64369	APIG: 946fe9db-d4bd-42ec-b0b8-33c701d8f2e2 - environ: 

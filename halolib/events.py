@@ -8,14 +8,17 @@ from abc import ABCMeta, abstractmethod
 # aws
 import boto3
 from botocore.exceptions import ClientError
-# common
-# django
-from django.conf import settings
 
 # DRF
 from halolib.exceptions import HaloException
 from halolib.logs import log_json
 from halolib.util import Util
+from .const import settingsx
+
+# common
+# django
+# from django.conf import settings
+settings = settingsx()
 
 logger = logging.getLogger(__name__)
 

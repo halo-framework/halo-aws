@@ -7,7 +7,7 @@ from abc import ABCMeta
 # aws
 # common
 # django
-from django.conf import settings
+# from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponse
 from django.template import loader
@@ -16,8 +16,11 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from .const import HTTPChoice
+from .const import settingsx
 from .exceptions import AuthException
 from .util import Util
+
+settings = settingsx()
 
 # Create your mixin here.
 

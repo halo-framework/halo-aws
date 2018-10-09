@@ -9,7 +9,7 @@ from abc import ABCMeta
 
 import jwt
 # django
-from django.conf import settings
+# from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 # DRF
@@ -19,9 +19,12 @@ from rest_framework.views import APIView
 
 # halolib
 from .const import HTTPChoice
+from .const import settingsx
 from .exceptions import MaxTryException, HaloError, HaloException
 from .logs import log_json
 from .util import Util
+
+settings = settingsx()
 
 # aws
 # other

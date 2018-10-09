@@ -3,9 +3,11 @@ from __future__ import print_function
 import datetime
 import logging
 
-from django.conf import settings
-
 from halolib.logs import log_json
+from .const import settingsx
+
+# from django.conf import settings
+settings = settingsx()
 
 # java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -port 8600
 # java -D"java.library.path"=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -port 8600

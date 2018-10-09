@@ -9,10 +9,13 @@ import time
 
 import boto3
 from botocore.exceptions import ClientError
-from django.conf import settings
 
+from .const import settingsx
 from .exceptions import HaloError, CacheKeyError, CacheExpireError
 from .logs import log_json
+
+# from django.conf import settings
+settings = settingsx()
 
 current_milli_time = lambda: int(round(time.time() * 1000))
 
