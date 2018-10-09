@@ -211,41 +211,35 @@ class TestMixin(AbsApiMixin):
             ret = run_saga(self.req_context, sagax, payloads, apis)
             return {"test": "good"}, 200
 
-    def create_api1(self, api, result, payload):
-        print("create_api1=" + str(api) + " result=" + str(result))
+    def create_api1(self, api, results, payload):
+        print("create_api1=" + str(api) + " result=" + str(results))
         api.set_api_url("upcid", self.upc)
-        ret = api.get(payload)
-        return {'result_key': ret}
+        return api.get(payload)
 
-    def create_api2(self, api, result, payload):
-        print("create_api2=" + str(api) + " result=" + str(result))
+    def create_api2(self, api, results, payload):
+        print("create_api2=" + str(api) + " result=" + str(results))
         api.set_api_url("upcid", self.upc)
-        ret = api.get(payload)
-        return {'result_key': ret}
+        return api.get(payload)
 
-    def create_api3(self, api, result, payload):
-        print("create_api3=" + str(api) + " result=" + str(result))
+    def create_api3(self, api, results, payload):
+        print("create_api3=" + str(api) + " result=" + str(results))
         api.set_api_url("upcid", self.upc)
-        ret = api.post(payload)
-        return {'result_key': ret}
+        return api.post(payload)
 
-    def create_api4(self, api, result, payload):
-        print("create_api4=" + str(api) + " result=" + str(result))
+    def create_api4(self, api, results, payload):
+        print("create_api4=" + str(api) + " result=" + str(results))
         api.set_api_url("upcid", self.upc)
-        ret = api.get(payload)
-        return {'result_key': ret}
+        return api.get(payload)
 
-    def create_api5(self, api, result, payload):
-        print("create_api5=" + str(api) + " result=" + str(result))
+    def create_api5(self, api, results, payload):
+        print("create_api5=" + str(api) + " result=" + str(results))
         api.set_api_url("upcid", self.upc)
-        ret = api.get(payload)
-        return {'result_key': ret}
+        return api.get(payload)
 
-    def create_api6(self, api, result, payload):
-        print("create_api6=" + str(api) + " result=" + str(result))
+    def create_api6(self, api, results, payload):
+        print("create_api6=" + str(api) + " result=" + str(results))
         api.set_api_url("upcid", self.upc)
-        ret = api.get(payload)
-        return {'result_key': ret}
+        return api.get(payload)
 
 
 """

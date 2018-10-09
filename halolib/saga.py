@@ -28,17 +28,18 @@ class Action(object):
     Groups an action with its corresponding compensation. For internal use.
     """
 
-    def __init__(self, name, action, compensation, next):
+    def __init__(self, name, action_func, compensation, next, result_path):
         """
 
         :param action: Callable a function executed as the action
         :param compensation: Callable a function that reverses the effects of action
         """
         self.__kwargs = None
-        self.__action = action
+        self.__action = action_func
         self.__compensation = compensation
         self.__name = name
         self.__next = next
+        self.__result_path = result_path
 
     def act(self, **kwargs):
         """
@@ -61,10 +62,13 @@ class Action(object):
             for error_code in comp["error"]:
                 if error_code == "States.ALL" or error_code == error:
                     return comp["next"]
-        raise SagaError("no compenation for : " + self.__name)
+        raise SagaError("no compensation for : " + self.__name)
 
     def next(self):
         return self.__next
+
+    def result_path(self):
+        return self.__result_path
 
 
 class Saga(object):
@@ -89,15 +93,18 @@ class Saga(object):
         Execute this Saga.
         :return: None
         """
-        kwargs = {'result_key': None}
         name = self.start
+        results = {}
+        kwargs = {'results': results}
         for action_index in range(len(self.actions)):
             try:
                 print("execute=" + name)
                 kwargs['req_context'] = req_context
                 kwargs['payload'] = payloads[name]
                 kwargs['exec_api'] = apis[name]
-                kwargs = self.__get_action(name).act(**kwargs) or {}
+                ret = self.__get_action(name).act(**kwargs) or {}
+                results.update(ret)
+                kwargs = {'results': results}
                 print("kwargs=" + str(kwargs))
                 name = self.__get_action(name).next()
                 if name is True:
@@ -151,7 +158,7 @@ class SagaBuilder(object):
     def create():
         return SagaBuilder()
 
-    def action(self, name, action, compensation, next):
+    def action(self, name, action_func, compensation, next, result_path):
         """
         Add an action and a corresponding compensation.
 
@@ -159,8 +166,8 @@ class SagaBuilder(object):
         :param compensation: Callable an action that reverses the effects of action
         :return: SagaBuilder
         """
-        actionx = Action(name, action, compensation, next)
-        self.actions[name] = actionx
+        action = Action(name, action_func, compensation, next, result_path)
+        self.actions[name] = action
         return self
 
     def build(self, start):
@@ -185,10 +192,11 @@ def load_saga(jsonx):
                 print("api_name=" + api_name)
                 api_instance_name = ApiMngr.get_api(api_name)
                 print("api_instance_name=" + str(api_instance_name))
-                # result_key = 'result'#jsonx["States"][state]["ResultPath"]
+                result_path = jsonx["States"][state]["ResultPath"]
                 # action = lambda req_context, payload, api=api_instance_name: ApiMngr(req_context).get_api_instance(api).post(payload)
-                action = lambda req_context, payload, exec_api, result_key, api=api_instance_name: exec_api(
-                    ApiMngr(req_context).get_api_instance(api), result_key, payload)
+                do_run = lambda key, x: {key: x}
+                action = lambda req_context, payload, exec_api, results, result_path=result_path, api=api_instance_name: \
+                    do_run(result_path, exec_api(ApiMngr(req_context).get_api_instance(api), results, payload))
                 comps = []
                 if "Catch" in jsonx["States"][state]:
                     for item in jsonx["States"][state]["Catch"]:
@@ -198,7 +206,7 @@ def load_saga(jsonx):
                     next = jsonx["States"][state]["Next"]
                 else:
                     next = jsonx["States"][state]["End"]
-                saga.action(state, action, comps, next)
+                saga.action(state, action, comps, next, result_path)
         return saga.build(start)
     except SagaError as e:
         print(e)  # wraps the BaseException('some error happened')
