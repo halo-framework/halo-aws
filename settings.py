@@ -357,24 +357,40 @@ SSM_CONFIG = None
 if ENV_NAME == LOC:
     # from halolib.ssm import get_config as get_config
     try:
-        from .halolib.ssm import get_config as get_config
+        from .halolib.ssm import get_config, set_param_config
     except:
-        from halolib.ssm import get_config as get_config
+        from halolib.ssm import get_config, set_param_config
 
-    # SSM_CONFIG = get_config()
+    set_param_config("test", '{"test":"good"}')
 
-    # SSM_CONFIG.get_param("abc")
+    SSM_CONFIG = get_config()
+
+    SSM_CONFIG.get_param("test")
 
 SSM_APP_CONFIG = None
 if ENV_NAME == LOC:
+
     # from halolib.ssm import get_config as get_config
     try:
-        from .halolib.ssm import get_app_config as get_app_config
+        from .halolib.ssm import get_app_config, set_app_param_config
     except:
-        from halolib.ssm import get_app_config as get_app_config
+        from halolib.ssm import get_app_config, set_app_param_config
 
-    # SSM_APP_CONFIG = get_app_config()
+    set_app_param_config()
 
-    #SSM_APP_CONFIG.get_param("def")
+    SSM_APP_CONFIG = get_app_config()
+
+    # api_config:{'About': {'url': 'http://127.0.0.1:7000/about/', 'type': 'api'}, 'Task': {'url': 'http://127.0.0.1:7000/task/$upcid/', 'type': 'api'}, 'Curr': {'url': 'http://127.0.0.1:7000/curr/', 'type': 'api'}, 'Top': {'url': 'http://127.0.0.1:7000/top/', 'type': 'api'}, 'Rupc': {'url': 'http://127.0.0.1:7000/upc/$upcid/', 'type': 'api'}, 'Upc': {'url': 'http://127.0.0.1:7000/upc/$upcid/', 'type': 'api'}, 'Contact': {'url': 'http://127.0.0.1:7000/contact/', 'type': 'api'}, 'Fail': {'url': 'http://127.0.0.1:7000/fail/', 'type': 'api'}, 'Rtask': {'url': 'http://127.0.0.1:7000/task/$upcid/', 'type': 'api'}, 'Page': {'url': 'http://127.0.0.1:7000/page/$upcid/', 'type': 'api'}, 'Sim': {'url': 'http://127.0.0.1:7000/sim/', 'type': 'api'}, 'Google': {'url': 'http://www.google.com', 'type': 'service'}}
+    for item in SSM_APP_CONFIG.cache.items:
+        if item not in [FUNC_NAME, 'DEFAULT']:
+            url = SSM_APP_CONFIG.get_param(item)["url"]
+            print(item + ":" + url)
+            for key in API_CONFIG:
+                current = API_CONFIG[key]
+                new_url = current["url"]
+                if "service://" + item in new_url:
+                    API_CONFIG[key]["url"] = new_url.replace("service://" + item, url)
+    print(str(API_CONFIG))
+
 
 print('The settings file has been loaded.')

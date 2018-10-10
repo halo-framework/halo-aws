@@ -27,8 +27,10 @@ env = os.environ['HALO_STAGE']
 app_config_path = os.environ['HALO_CONFIG_PATH']
 app_name = os.environ['HALO_APP_NAME']
 full_config_path = '/' + app_name + '/' + env + '/' + app_config_path
-short_config_path = '/' + app_name + '/' + env
+short_config_path = '/' + app_name + '/' + env + '/service'
 
+
+# ALWAYS use json value in parameter store!!!
 
 class Cache(object):
     expiration = 0
@@ -98,6 +100,7 @@ def load_config(ssm_parameter_path):
             WithDecryption=True
         )
 
+        print(str(ssm_parameter_path) + "=" + str(param_details))
         # Loop through the returned parameters and populate the ConfigParser
         if 'Parameters' in param_details and len(param_details.get('Parameters')) > 0:
             for param in param_details.get('Parameters'):
@@ -112,9 +115,57 @@ def load_config(ssm_parameter_path):
     except ClientError as e:
         logger.error("Encountered an error loading config from SSM.",
                      extra=log_json(req_context={}, params={"path": ssm_parameter_path}, err=e))
+    except Exception as e:
+        logger.error("Encountered an error loading config from SSM.",
+                     extra=log_json(req_context={}, params={"path": ssm_parameter_path}, err=e))
     finally:
         return configuration
 
+
+def set_param_config(key, value):
+    ssm_parameter_path = full_config_path + '/' + key
+    return set_config(ssm_parameter_path, value)
+
+
+def set_app_param_config():
+    ssm_parameter_path = short_config_path + '/' + app_config_path
+    url = "https://ffgbfg.fkmfgkfmv.amazonaws.com/" + env
+    value = '{"url":"' + url + '"}'
+    return set_config(ssm_parameter_path, value)
+
+
+def set_config(ssm_parameter_path, value):
+    """
+    Load configparser from config stored in SSM Parameter Store
+    :param ssm_parameter_path: Path to app config in SSM Parameter Store
+    :return: ConfigParser holding loaded config
+    """
+    try:
+        # set parameters for this app
+
+        json.loads(value)
+        ret = client.put_parameter(
+            Name=ssm_parameter_path,
+            Value=value,
+            Type='String',
+            Overwrite=True
+        )
+
+        logger.debug(str(full_config_path) + "=" + str(ret))
+        return True
+    except ClientError as e:
+        print(str(e))
+        logger.error("Encountered a client error setting config from SSM.",
+                     extra=log_json(req_context={}, params={"path": ssm_parameter_path}, err=e))
+    except json.decoder.JSONDecodeError as e:
+        print(str(e))
+        logger.error("Encountered a json error setting config from SSM.",
+                     extra=log_json(req_context={}, params={"path": ssm_parameter_path}, err=e))
+    except Exception as e:
+        print(str(e))
+        logger.error("Encountered an error setting config from SSM.",
+                     extra=log_json(req_context={}, params={"path": ssm_parameter_path}, err=e))
+    return False
 
 def get_cache(path):
     config = load_config(path)
@@ -123,7 +174,7 @@ def get_cache(path):
 
 def get_config():
     # Initialize app if it doesn't yet exist
-    logger.debug("Loading config and creating new MyConfig...")
+    logger.debug("Loading config and creating new MyConfig..." + full_config_path)
     cache = get_cache(full_config_path)
     myconfig = MyConfig(cache, full_config_path)
     logger.debug("MyConfig is " + str(cache.items._sections))
@@ -131,7 +182,7 @@ def get_config():
 
 def get_app_config():
     # Initialize app if it doesn't yet exist
-    logger.debug("Loading app config and creating new AppConfig...")
+    logger.debug("Loading app config and creating new AppConfig..." + short_config_path)
     cache = get_cache(short_config_path)
     appconfig = MyConfig(cache, short_config_path)
     logger.debug("AppConfig is " + str(cache.items._sections))

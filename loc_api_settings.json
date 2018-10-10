@@ -40,8 +40,8 @@
     "type": "api"
   },
   "Sim": {
-    "url": "http://127.0.0.1:7000/sim/",
-    "type": "api"
+    "url": "service://webback1/sim/",
+    "type": "service"
   },
   "Google": {
     "url": "http://www.google.com",
