@@ -11,7 +11,8 @@ import boto3
 from botocore.exceptions import ClientError
 
 from .exceptions import HaloError, CacheKeyError, CacheExpireError
-from .logs import log_json
+
+# from .logs import log_json
 
 # from django.conf import settings
 
@@ -29,6 +30,7 @@ short_config_path = '/' + app_name + '/' + env + '/service'
 
 
 def get_client(region_name):
+    logger.debug("get_client")
     global client
     if not client:
         client = boto3.client('ssm', region_name=region_name)
@@ -106,7 +108,7 @@ def load_config(region_name, ssm_parameter_path):
             WithDecryption=True
         )
 
-        print(str(ssm_parameter_path) + "=" + str(param_details))
+        logger.debug(str(ssm_parameter_path) + "=" + str(param_details))
         # Loop through the returned parameters and populate the ConfigParser
         if 'Parameters' in param_details and len(param_details.get('Parameters')) > 0:
             for param in param_details.get('Parameters'):
@@ -119,11 +121,9 @@ def load_config(region_name, ssm_parameter_path):
                 configuration.read_dict(config_dict)
 
     except ClientError as e:
-        logger.error("Encountered an error loading config from SSM.",
-                     extra=log_json(req_context={}, params={"path": ssm_parameter_path}, err=e))
+        logger.error("Encountered a client error loading config from SSM:" + str(e))
     except Exception as e:
-        logger.error("Encountered an error loading config from SSM.",
-                     extra=log_json(req_context={}, params={"path": ssm_parameter_path}, err=e))
+        logger.error("Encountered an error loading config from SSM:" + str(e))
     finally:
         return configuration
 
@@ -161,20 +161,18 @@ def set_config(region_name, ssm_parameter_path, value):
         return True
     except ClientError as e:
         print(str(e))
-        logger.error("Encountered a client error setting config from SSM.",
-                     extra=log_json(req_context={}, params={"path": ssm_parameter_path}, err=e))
+        logger.error("Encountered a client error setting config from SSM:" + str(e))
     except json.decoder.JSONDecodeError as e:
         print(str(e))
-        logger.error("Encountered a json error setting config from SSM.",
-                     extra=log_json(req_context={}, params={"path": ssm_parameter_path}, err=e))
+        logger.error("Encountered a json error setting config from SSM" + str(e))
     except Exception as e:
         print(str(e))
-        logger.error("Encountered an error setting config from SSM.",
-                     extra=log_json(req_context={}, params={"path": ssm_parameter_path}, err=e))
+        logger.error("Encountered an error setting config from SSM:" + str(e))
     return False
 
 
 def get_cache(region_name, path):
+    logger.debug("get_cache")
     config = load_config(region_name, path)
     cache = load_cache(config)
     return cache
