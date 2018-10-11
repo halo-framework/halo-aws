@@ -15,19 +15,27 @@ from .exceptions import HaloError, CacheKeyError, CacheExpireError
 from .logs import log_json
 
 # from django.conf import settings
-settings = settingsx()
 
 current_milli_time = lambda: int(round(time.time() * 1000))
 
 logger = logging.getLogger(__name__)
 
 # Initialize boto3 client at global scope for connection reuse
-client = boto3.client('ssm', region_name=settings.AWS_REGION)
+client = None
 env = os.environ['HALO_STAGE']
 app_config_path = os.environ['HALO_CONFIG_PATH']
 app_name = os.environ['HALO_APP_NAME']
 full_config_path = '/' + app_name + '/' + env + '/' + app_config_path
 short_config_path = '/' + app_name + '/' + env + '/service'
+
+
+def get_client():
+    global client
+    if not client:
+        settings = settingsx()
+        client = boto3.client('ssm', region_name=settings.AWS_REGION)
+    return client
+
 
 
 # ALWAYS use json value in parameter store!!!
@@ -94,7 +102,7 @@ def load_config(ssm_parameter_path):
     configuration = configparser.ConfigParser()
     try:
         # Get all parameters for this app
-        param_details = client.get_parameters_by_path(
+        param_details = get_client().get_parameters_by_path(
             Path=ssm_parameter_path,
             Recursive=False,
             WithDecryption=True
@@ -144,7 +152,7 @@ def set_config(ssm_parameter_path, value):
         # set parameters for this app
 
         json.loads(value)
-        ret = client.put_parameter(
+        ret = get_client().put_parameter(
             Name=ssm_parameter_path,
             Value=value,
             Type='String',
