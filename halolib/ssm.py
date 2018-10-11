@@ -10,7 +10,6 @@ import time
 import boto3
 from botocore.exceptions import ClientError
 
-from .const import settingsx
 from .exceptions import HaloError, CacheKeyError, CacheExpireError
 from .logs import log_json
 
@@ -29,11 +28,10 @@ full_config_path = '/' + app_name + '/' + env + '/' + app_config_path
 short_config_path = '/' + app_name + '/' + env + '/service'
 
 
-def get_client():
+def get_client(region_name):
     global client
     if not client:
-        settings = settingsx()
-        client = boto3.client('ssm', region_name=settings.AWS_REGION)
+        client = boto3.client('ssm', region_name=region_name)
     return client
 
 
@@ -93,7 +91,7 @@ class MyConfig:
         raise CacheExpireError("cache expired")
 
 
-def load_config(ssm_parameter_path):
+def load_config(region_name, ssm_parameter_path):
     """
     Load configparser from config stored in SSM Parameter Store
     :param ssm_parameter_path: Path to app config in SSM Parameter Store
@@ -102,7 +100,7 @@ def load_config(ssm_parameter_path):
     configuration = configparser.ConfigParser()
     try:
         # Get all parameters for this app
-        param_details = get_client().get_parameters_by_path(
+        param_details = get_client(region_name).get_parameters_by_path(
             Path=ssm_parameter_path,
             Recursive=False,
             WithDecryption=True
@@ -130,19 +128,19 @@ def load_config(ssm_parameter_path):
         return configuration
 
 
-def set_param_config(key, value):
+def set_param_config(region_name, key, value):
     ssm_parameter_path = full_config_path + '/' + key
-    return set_config(ssm_parameter_path, value)
+    return set_config(region_name, ssm_parameter_path, value)
 
 
-def set_app_param_config():
+def set_app_param_config(region_name):
     ssm_parameter_path = short_config_path + '/' + app_config_path
     url = "https://ffgbfg.fkmfgkfmv.amazonaws.com/" + env
     value = '{"url":"' + url + '"}'
-    return set_config(ssm_parameter_path, value)
+    return set_config(region_name, ssm_parameter_path, value)
 
 
-def set_config(ssm_parameter_path, value):
+def set_config(region_name, ssm_parameter_path, value):
     """
     Load configparser from config stored in SSM Parameter Store
     :param ssm_parameter_path: Path to app config in SSM Parameter Store
@@ -152,7 +150,7 @@ def set_config(ssm_parameter_path, value):
         # set parameters for this app
 
         json.loads(value)
-        ret = get_client().put_parameter(
+        ret = get_client(region_name).put_parameter(
             Name=ssm_parameter_path,
             Value=value,
             Type='String',
@@ -175,23 +173,26 @@ def set_config(ssm_parameter_path, value):
                      extra=log_json(req_context={}, params={"path": ssm_parameter_path}, err=e))
     return False
 
-def get_cache(path):
-    config = load_config(path)
+
+def get_cache(region_name, path):
+    config = load_config(region_name, path)
     cache = load_cache(config)
     return cache
 
-def get_config():
+
+def get_config(region_name):
     # Initialize app if it doesn't yet exist
     logger.debug("Loading config and creating new MyConfig..." + full_config_path)
-    cache = get_cache(full_config_path)
+    cache = get_cache(region_name, full_config_path)
     myconfig = MyConfig(cache, full_config_path)
     logger.debug("MyConfig is " + str(cache.items._sections))
     return myconfig
 
-def get_app_config():
+
+def get_app_config(region_name):
     # Initialize app if it doesn't yet exist
     logger.debug("Loading app config and creating new AppConfig..." + short_config_path)
-    cache = get_cache(short_config_path)
+    cache = get_cache(region_name, short_config_path)
     appconfig = MyConfig(cache, short_config_path)
     logger.debug("AppConfig is " + str(cache.items._sections))
     return appconfig

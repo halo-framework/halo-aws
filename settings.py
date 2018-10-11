@@ -361,11 +361,9 @@ if ENV_NAME == LOC:
     except:
         from halolib.ssm import get_config, set_param_config
 
-    set_param_config("test", '{"test":"good"}')
-
-    SSM_CONFIG = get_config()
-
-    SSM_CONFIG.get_param("test")
+    SSM_CONFIG = get_config(AWS_REGION)
+    set_param_config(AWS_REGION, "test", '{"test":"good"}')
+    # SSM_CONFIG.get_param("test")
 
 SSM_APP_CONFIG = None
 if ENV_NAME == LOC:
@@ -376,9 +374,9 @@ if ENV_NAME == LOC:
     except:
         from halolib.ssm import get_app_config, set_app_param_config
 
-    set_app_param_config()
+    set_app_param_config(AWS_REGION)
 
-    SSM_APP_CONFIG = get_app_config()
+    SSM_APP_CONFIG = get_app_config(AWS_REGION)
 
     # api_config:{'About': {'url': 'http://127.0.0.1:7000/about/', 'type': 'api'}, 'Task': {'url': 'http://127.0.0.1:7000/task/$upcid/', 'type': 'api'}, 'Curr': {'url': 'http://127.0.0.1:7000/curr/', 'type': 'api'}, 'Top': {'url': 'http://127.0.0.1:7000/top/', 'type': 'api'}, 'Rupc': {'url': 'http://127.0.0.1:7000/upc/$upcid/', 'type': 'api'}, 'Upc': {'url': 'http://127.0.0.1:7000/upc/$upcid/', 'type': 'api'}, 'Contact': {'url': 'http://127.0.0.1:7000/contact/', 'type': 'api'}, 'Fail': {'url': 'http://127.0.0.1:7000/fail/', 'type': 'api'}, 'Rtask': {'url': 'http://127.0.0.1:7000/task/$upcid/', 'type': 'api'}, 'Page': {'url': 'http://127.0.0.1:7000/page/$upcid/', 'type': 'api'}, 'Sim': {'url': 'http://127.0.0.1:7000/sim/', 'type': 'api'}, 'Google': {'url': 'http://www.google.com', 'type': 'service'}}
     for item in SSM_APP_CONFIG.cache.items:
