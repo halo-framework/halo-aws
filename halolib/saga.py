@@ -1,6 +1,10 @@
+import logging
+
 from .apis import ApiMngr
 from .exceptions import ApiError
 from .exceptions import HaloException, HaloError
+
+logger = logging.getLogger(__name__)
 
 """
 We'll need a transaction log for the saga
@@ -98,8 +102,12 @@ class SagaLog(object):
     endTx = "endTx"
     failTx = "failTx"
 
-    def log(self, stage, name):
-        print("SagaLog: " + stage + " " + name)
+    def log(self, req_context, saga_stage, name, log_db=False):
+        if log_db:
+            # @TODO finish db log for saga
+            # db_logeer(saga_stage + " " + name)
+            print("db log")
+        logger.info("SagaLog: " + saga_stage + " " + name)
 
 class Saga(object):
     """
@@ -126,7 +134,7 @@ class Saga(object):
         :return: None
         """
 
-        self.slog.log(SagaLog.startSaga, self.name)
+        self.slog.log(req_context, SagaLog.startSaga, self.name)
         tname = self.start
         results = {}
         kwargs = {'results': results}
@@ -137,9 +145,9 @@ class Saga(object):
                 kwargs['req_context'] = req_context
                 kwargs['payload'] = payloads[tname]
                 kwargs['exec_api'] = apis[tname]
-                self.slog.log(SagaLog.startTx, tname)
+                self.slog.log(req_context, SagaLog.startTx, tname)
                 ret = self.__get_action(tname).act(**kwargs) or {}
-                self.slog.log(SagaLog.endTx, tname)
+                self.slog.log(req_context, SagaLog.endTx, tname)
                 results.update(ret)
                 kwargs = {'results': results}
                 print("kwargs=" + str(kwargs))
@@ -148,14 +156,14 @@ class Saga(object):
                     print("finished")
                     break
             except ApiError as e:
-                self.slog.log(SagaLog.failTx, tname)
-                self.slog.log(SagaLog.abortSaga, self.name)
+                self.slog.log(req_context, SagaLog.failTx, tname)
+                self.slog.log(req_context, SagaLog.abortSaga, self.name)
                 print("ApiError=" + str(e))
                 rollback = e
                 tname = self.__get_action(tname).compensate(e.status_code)
             except BaseException as e:
                 print("e=" + str(e))
-                self.slog.log(SagaLog.errorSaga, self.name)
+                self.slog.log(req_context, SagaLog.errorSaga, self.name)
                 raise SagaError(e)
 
 
@@ -163,10 +171,10 @@ class Saga(object):
                 raise TypeError('action return type should be dict or None but is {}'.format(type(kwargs)))
 
         if rollback:
-            self.slog.log(SagaLog.rollbackSaga, self.name)
+            self.slog.log(req_context, SagaLog.rollbackSaga, self.name)
             raise SagaRollBack(rollback)
 
-        self.slog.log(SagaLog.commitSaga, self.name)
+        self.slog.log(req_context, SagaLog.commitSaga, self.name)
         return results
 
     def __get_action(self, name):
@@ -213,13 +221,13 @@ class SagaBuilder(object):
         return Saga(self.name, self.actions, start)
 
 
-def load_saga(jsonx):
+def load_saga(name, jsonx):
     try:
         if "StartAt" in jsonx:
             start = jsonx["StartAt"]
         else:
             raise HaloError("can not build saga. No StartAt")
-        saga = SagaBuilder.create("saga1")
+        saga = SagaBuilder.create(name)
         for state in jsonx["States"]:
             print(str(state))
             if jsonx["States"][state]["Type"] == "Task":
@@ -247,12 +255,3 @@ def load_saga(jsonx):
         print(e)  # wraps the BaseException('some error happened')
         raise HaloError("can not build saga", e)
 
-
-def run_saga1(req_context, saga, payloads, apis):
-    try:
-        return saga.execute(req_context, payloads, apis)
-    except SagaRollBack as e:
-        raise e
-    except BaseException as e:
-        print(e)  # wraps the BaseException('some error happened')
-        raise HaloError("can not execute saga", e)

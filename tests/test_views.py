@@ -126,7 +126,7 @@ class TestUserDetailTestCase(APITestCase):
         from halolib import saga
         with open("C:\\dev\\projects\\halo\halo_lib\\saga.json") as f:
             jsonx = json.load(f)
-        sagax = saga.load_saga(jsonx)
+        sagax = saga.load_saga("test", jsonx)
         eq_(len(sagax.actions), 6)
 
     def test_run_saga(self):
