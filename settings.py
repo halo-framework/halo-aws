@@ -59,6 +59,7 @@ DEBUG = env.bool('DEBUG', default=False)
 print("DEBUG=" + str(DEBUG))
 
 SERVER = env('SERVER_NAME')
+HALO_HOST = None
 ALLOWED_HOSTS = ['*','127.0.0.1',SERVER]
 
 ADMINS = (

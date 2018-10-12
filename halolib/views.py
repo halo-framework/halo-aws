@@ -9,7 +9,7 @@ from abc import ABCMeta
 
 import jwt
 # django
-# from django.conf import settings
+from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 # DRF
@@ -19,12 +19,10 @@ from rest_framework.views import APIView
 
 # halolib
 from .const import HTTPChoice
-from .const import settingsx
 from .exceptions import MaxTryException, HaloError, HaloException
 from .logs import log_json
+from .ssm import set_app_param_config
 from .util import Util
-
-settings = settingsx()
 
 # aws
 # other
@@ -84,6 +82,10 @@ class AbsBaseLink(APIView):
         logger.debug("headers", extra=log_json(self.req_context, Util.get_headers(request)))
 
         logger.debug("environ", extra=log_json(self.req_context, os.environ))
+
+        if settings.HALO_HOST is None and True:  # 'HTTP_REFERER' in request.META:
+            settings.HALO_HOST = "123"  # request.META['HTTP_REFERER']
+            set_app_param_config(settings.AWS_REGION, settings.HALO_HOST)
 
         self.get_user_locale(request)
         logger.debug('process LANGUAGE:  ' + str(self.user_lang) + " LOCALE: " + str(self.user_locale),

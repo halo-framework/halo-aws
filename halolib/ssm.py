@@ -133,10 +133,10 @@ def set_param_config(region_name, key, value):
     return set_config(region_name, ssm_parameter_path, value)
 
 
-def set_app_param_config(region_name):
+def set_app_param_config(region_name, host=None):
     ssm_parameter_path = short_config_path + '/' + app_config_path
-    url = "https://ffgbfg.fkmfgkfmv.amazonaws.com/" + env
-    value = '{"url":"' + url + '"}'
+    url = host
+    value = '{"url":"' + str(url) + '"}'
     return set_config(region_name, ssm_parameter_path, value)
 
 
