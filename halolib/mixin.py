@@ -107,8 +107,8 @@ class PerfMixin(AbsBaseMixin):
             if item not in [settings.FUNC_NAME, 'DEFAULT']:
                 url = settings.SSM_APP_CONFIG.get_param(item)["url"]
                 print(item + ":" + url)
-                urls[item:url]
-                requests.get(url)
+                ret = requests.get(url + "/perf")
+                urls[item] = {"url": url, "ret": str(ret)}
                 for key in settings.API_CONFIG:
                     current = settings.API_CONFIG[key]
                     new_url = current["url"]
