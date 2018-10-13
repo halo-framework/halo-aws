@@ -23,10 +23,11 @@ logger = logging.getLogger(__name__)
 # Initialize boto3 client at global scope for connection reuse
 client = None
 env = os.environ['HALO_STAGE']
+type = os.environ['HALO_TYPE']
 app_config_path = os.environ['HALO_CONFIG_PATH']
 app_name = os.environ['HALO_APP_NAME']
 full_config_path = '/' + app_name + '/' + env + '/' + app_config_path
-short_config_path = '/' + app_name + '/' + env + '/service'
+short_config_path = '/' + app_name + '/' + type + '/service'
 
 
 def get_client(region_name):

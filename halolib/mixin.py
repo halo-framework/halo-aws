@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import datetime
 # python
 import logging
 from abc import ABCMeta
@@ -7,7 +8,7 @@ from abc import ABCMeta
 # aws
 # common
 # django
-# from django.conf import settings
+from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponse
 from django.template import loader
@@ -16,11 +17,8 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from .const import HTTPChoice
-from .const import settingsx
 from .exceptions import AuthException
 from .util import Util
-
-settings = settingsx()
 
 # Create your mixin here.
 
@@ -31,6 +29,7 @@ settings = settingsx()
 
 logger = logging.getLogger(__name__)
 
+dbaccess = None
 
 class AbsBaseMixin(object):
     __metaclass__ = ABCMeta
@@ -90,6 +89,39 @@ class AbsBaseMixin(object):
         # @TODO check authentication and do masking
         return True, None
 
+
+class PrefMixin(AbsBaseMixin):
+    now = None
+
+    def get(self, request):
+        self.now = datetime.datetime.now()
+        return self.do_process(request, HTTPChoice.get, {})
+
+    def process_get(self, request, vars):
+        logger.debug('perf: ')
+        print(str(settings.SSM_APP_CONFIG.cache.items))
+        for item in settings.SSM_APP_CONFIG.cache.items:
+            print("item=" + str(item))
+            if item not in [settings.FUNC_NAME, 'DEFAULT']:
+                url = settings.SSM_APP_CONFIG.get_param(item)["url"]
+                print(item + ":" + url)
+                for key in settings.API_CONFIG:
+                    current = settings.API_CONFIG[key]
+                    new_url = current["url"]
+                    if "service://" + item in new_url:
+                        settings.API_CONFIG[key]["url"] = new_url.replace("service://" + item, url)
+        print(str(settings.API_CONFIG))
+        db = request.GET.get('db', None)
+        ret = ''
+        if db is not None:
+            ret = self.process_db(request, vars)
+        total = datetime.datetime.now() - self.now
+        return HttpResponse('performance page: timing for process: ' + str(total) + " " + ret + " " + settings.VERSION)
+
+    def process_db(self, request, vars):
+        logger.debug('db perf: ')
+        total = datetime.datetime.now() - self.now
+        return 'db access: ' + str(total)
 
 class AbsApiMixin(AbsBaseMixin):
     __metaclass__ = ABCMeta

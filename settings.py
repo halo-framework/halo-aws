@@ -33,6 +33,7 @@ DEV = "dev"
 TST = "tst"
 PRD = "prd"
 ENV_TYPE = LOC
+os.environ["HALO_TYPE"] = ENV_TYPE
 
 ENV_NAME = LOC  # env.str('ENV_NAME')
 os.environ["HALO_STAGE"] = ENV_NAME  # done in settings json file
