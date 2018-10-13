@@ -90,7 +90,7 @@ class AbsBaseMixin(object):
         return True, None
 
 
-class PrefMixin(AbsBaseMixin):
+class PerfMixin(AbsBaseMixin):
     now = None
 
     def get(self, request):

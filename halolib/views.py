@@ -314,12 +314,12 @@ class AbsBaseLink(APIView):
 
 ##################################### test ##########################
 
-from .mixin import TestMixin, PrefMixin
+from .mixin import TestMixin, PerfMixin
 
 
 class TestLink(TestMixin, AbsBaseLink):
     permission_classes = (permissions.AllowAny,)
 
 
-class PrefLink(PrefMixin, AbsBaseLink):
+class PrefLink(PerfMixin, AbsBaseLink):
     permission_classes = (permissions.AllowAny,)
