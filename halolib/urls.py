@@ -8,6 +8,6 @@ urlpatterns = [
     #url(r'^upc/(?P<upc>\w+)/$', UpcLink.as_view(), name='upc'),
     #url(r'^task/(?P<upc>\w+)/$', TaskLink.as_view(), name='task'),
     url(r'^$', TestLink.as_view(), name='task'),
-    url(r'^pref$', PrefLink.as_view(), name='pref'),
+    url(r'^perf$', PerfLink.as_view(), name='perf'),
 ]
 

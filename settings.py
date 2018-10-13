@@ -53,6 +53,38 @@ if 'AWS_LAMBDA_FUNCTION_NAME' in os.environ:
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = env('SECRET_KEY')
 
+###
+# Given a version number MAJOR.MINOR.PATCH, increment the:
+#
+# MAJOR version when you make incompatible  changes,
+# MINOR version when you add functionality in a backwards-compatible manner, and
+# PATCH version when you make backwards-compatible bug fixes.
+###
+
+title = 'webfront'
+author = 'Author'
+copyright = 'Copyright 2017-2018 ' + author
+major = '1'
+minor = '1'
+patch = '52'
+version = major + '.' + minor + '.' + patch
+# year.month.day.optional_revision  i.e 2016.05.03 for today
+rev = 1
+build = '2018.10.10.' + str(rev)
+generate = '2018.10.13.19:06:07'
+print("generate=" + generate)
+
+
+def get_version():
+    """
+    Return package version as listed in  env file
+    """
+    return version + "/" + build + ' (' + ENV_NAME + ')'
+
+
+VERSION = get_version()
+print(VERSION)
+
 APPEND_SLASH = True
 
 # SECURITY WARNING: don't run with debug turned on in production!

@@ -311,15 +311,17 @@ class AbsBaseLink(APIView):
         return '&jwt=' + self.get_jwt(request).decode()
 
 
+from .mixin import PerfMixin
+
+
+class PerfLink(PerfMixin, AbsBaseLink):
+    permission_classes = (permissions.AllowAny,)
 
 ##################################### test ##########################
 
-from .mixin import TestMixin, PerfMixin
+from .mixin import TestMixin
 
 
 class TestLink(TestMixin, AbsBaseLink):
     permission_classes = (permissions.AllowAny,)
 
-
-class PrefLink(PerfMixin, AbsBaseLink):
-    permission_classes = (permissions.AllowAny,)

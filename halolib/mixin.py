@@ -1,10 +1,11 @@
 from __future__ import print_function
 
-import datetime
 # python
+import datetime
 import logging
 from abc import ABCMeta
 
+import requests
 # aws
 # common
 # django
@@ -100,11 +101,14 @@ class PerfMixin(AbsBaseMixin):
     def process_get(self, request, vars):
         logger.debug('perf: ')
         print(str(settings.SSM_APP_CONFIG.cache.items))
+        urls = {}
         for item in settings.SSM_APP_CONFIG.cache.items:
             print("item=" + str(item))
             if item not in [settings.FUNC_NAME, 'DEFAULT']:
                 url = settings.SSM_APP_CONFIG.get_param(item)["url"]
                 print(item + ":" + url)
+                urls[item:url]
+                requests.get(url)
                 for key in settings.API_CONFIG:
                     current = settings.API_CONFIG[key]
                     new_url = current["url"]
@@ -116,7 +120,8 @@ class PerfMixin(AbsBaseMixin):
         if db is not None:
             ret = self.process_db(request, vars)
         total = datetime.datetime.now() - self.now
-        return HttpResponse('performance page: timing for process: ' + str(total) + " " + ret + " " + settings.VERSION)
+        return HttpResponse('performance page: timing for process: ' + str(total) + " " + str(
+            urls) + " " + ret + " " + settings.VERSION)
 
     def process_db(self, request, vars):
         logger.debug('db perf: ')
