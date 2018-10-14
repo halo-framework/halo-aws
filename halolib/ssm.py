@@ -165,13 +165,10 @@ def set_config(region_name, ssm_parameter_path, value):
         logger.debug(str(full_config_path) + "=" + str(ret))
         return True
     except ClientError as e:
-        print(str(e))
         logger.error("Encountered a client error setting config from SSM:" + str(e))
     except json.decoder.JSONDecodeError as e:
-        print(str(e))
         logger.error("Encountered a json error setting config from SSM" + str(e))
     except Exception as e:
-        print(str(e))
         logger.error("Encountered an error setting config from SSM:" + str(e))
     return False
 

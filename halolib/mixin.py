@@ -99,14 +99,13 @@ class PerfMixin(AbsBaseMixin):
         return self.do_process(request, HTTPChoice.get, {})
 
     def process_get(self, request, vars):
-        logger.debug('perf: ')
-        print(str(settings.SSM_APP_CONFIG.cache.items))
+        logger.debug('perf: ' + str(settings.SSM_APP_CONFIG.cache.items))
         urls = {}
         for item in settings.SSM_APP_CONFIG.cache.items:
-            print("item=" + str(item))
+            logger.debug("item=" + str(item))
             if item not in [settings.FUNC_NAME, 'DEFAULT']:
                 url = settings.SSM_APP_CONFIG.get_param(item)["url"]
-                print(item + ":" + url)
+                logger.debug(item + ":" + url)
                 if settings.FRONT_WEB:
                     ret = requests.get(url + "/perf")
                     urls[item] = {"url": url, "ret": str(ret)}
@@ -115,7 +114,7 @@ class PerfMixin(AbsBaseMixin):
                     new_url = current["url"]
                     if "service://" + item in new_url:
                         settings.API_CONFIG[key]["url"] = new_url.replace("service://" + item, url)
-        print(str(settings.API_CONFIG))
+        logger.debug(str(settings.API_CONFIG))
         db = request.GET.get('db', None)
         ret = ''
         if db is not None:

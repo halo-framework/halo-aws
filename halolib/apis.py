@@ -153,7 +153,7 @@ class AbsBaseApi(object):
         return self.process('GET', self.url, headers=headers)
 
     def post(self, data, headers=None):
-        print("payload=" + str(data))
+        logger.debug("payload=" + str(data))
         if headers is None:
             headers = headers
         return self.process('POST', self.url, data=data, headers=headers)
@@ -185,22 +185,22 @@ class AbsBaseApi(object):
 class ApiMngr(object):
 
     def __init__(self, req_context):
-        print("ApiMngr=" + str(req_context))
+        logger.debug("ApiMngr=" + str(req_context))
         self.req_context = req_context
 
     @staticmethod
     def get_api(name):
-        print("get_api=" + name)
+        logger.debug("get_api=" + name)
         if name in API_LIST:
             return API_LIST[name]
         return None
 
     def get_api_instance(self, class_name, **kwargs):
-        print("get_api_insance=" + class_name)
+        logger.debug("get_api_insance=" + class_name)
         module = importlib.import_module(__name__)
         class_ = getattr(module, class_name)
         instance = class_(self.req_context)
-        print("class=" + str(instance))
+        logger.debug("class=" + str(instance))
         return instance
 
 ##################################### lambda #########################
