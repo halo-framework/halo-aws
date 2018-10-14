@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 client = None
 env = os.environ['HALO_STAGE']
 type = os.environ['HALO_TYPE']
-app_config_path = os.environ['HALO_CONFIG_PATH']
+app_config_path = os.environ['HALO_FUNC_NAME']
 app_name = os.environ['HALO_APP_NAME']
 full_config_path = '/' + app_name + '/' + env + '/' + app_config_path
 short_config_path = '/' + app_name + '/' + type + '/service'
@@ -136,8 +136,12 @@ def set_param_config(region_name, key, value):
 
 def set_app_param_config(region_name, host=None):
     ssm_parameter_path = short_config_path + '/' + app_config_path
-    url = host
+    if host:
+        url = "https://" + host + "/" + env
+    else:
+        url = host
     value = '{"url":"' + str(url) + '"}'
+    print("ssm:" + value)
     return set_config(region_name, ssm_parameter_path, value)
 
 

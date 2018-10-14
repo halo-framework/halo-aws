@@ -83,8 +83,8 @@ class AbsBaseLink(APIView):
 
         logger.debug("environ", extra=log_json(self.req_context, os.environ))
 
-        if settings.HALO_HOST is None and 'HTTP_REFERER' in request.META:
-            settings.HALO_HOST = request.META['HTTP_REFERER']
+        if settings.HALO_HOST is None and 'HTTP_HOST' in request.META:
+            settings.HALO_HOST = request.META['HTTP_HOST']
             set_app_param_config(settings.AWS_REGION, settings.HALO_HOST)
 
         self.get_user_locale(request)
