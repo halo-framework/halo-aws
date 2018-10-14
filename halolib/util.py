@@ -204,7 +204,9 @@ class Util:
     @staticmethod
     def get_system_debug_enabled():
         # check if env var for sampled debug logs is on and activate for percentage in settings (5%)
-        if 'DEBUG_LOG' in os.environ and os.environ['DEBUG_LOG'] == 'true':
+        logger.debug("get_system_debug_enabled=" + settings.SSM_CONFIG.get_param('DEBUG_LOG')["val"])
+        if ('DEBUG_LOG' in os.environ and os.environ['DEBUG_LOG'] == 'true') or (
+                settings.SSM_CONFIG.get_param('DEBUG_LOG')["val"] == 'true'):
             rand = random.random()
             if settings.LOG_SAMPLE_RATE > rand:
                 return 'true'

@@ -72,13 +72,14 @@ def load_cache(config, expiryMs=DEFAULT_EXPIRY):
 
 
 class MyConfig:
-    def __init__(self, cache, path):
+    def __init__(self, cache, path, region_name):
         """
         Construct new MyApp with configuration
         :param config: application configuration
         """
         self.cache = cache
         self.path = path
+        self.region_name = region_name
 
     def get_param(self, key):
         now = current_milli_time()
@@ -88,7 +89,7 @@ class MyConfig:
             else:
                 raise CacheKeyError("no key in cache:" + key)
         else:
-            self.cache = get_cache(self.path)
+            self.cache = get_cache(self.region_name, self.path)
             if key in self.cache.items:
                 return self.cache.items[key]
         raise CacheExpireError("cache expired")
@@ -123,6 +124,8 @@ def load_config(region_name, ssm_parameter_path):
 
     except ClientError as e:
         logger.error("Encountered a client error loading config from SSM:" + str(e))
+    except json.decoder.JSONDecodeError as e:
+        logger.error("Encountered a json error loading config from SSM:" + str(e))
     except Exception as e:
         logger.error("Encountered an error loading config from SSM:" + str(e))
     finally:
@@ -141,7 +144,7 @@ def set_app_param_config(region_name, host=None):
     else:
         url = host
     value = '{"url":"' + str(url) + '"}'
-    print("ssm:" + value)
+    logger.debug("ssm:" + value)
     return set_config(region_name, ssm_parameter_path, value)
 
 
@@ -184,7 +187,7 @@ def get_config(region_name):
     # Initialize app if it doesn't yet exist
     logger.debug("Loading config and creating new MyConfig..." + full_config_path)
     cache = get_cache(region_name, full_config_path)
-    myconfig = MyConfig(cache, full_config_path)
+    myconfig = MyConfig(cache, full_config_path, region_name)
     logger.debug("MyConfig is " + str(cache.items._sections))
     return myconfig
 
@@ -193,6 +196,6 @@ def get_app_config(region_name):
     # Initialize app if it doesn't yet exist
     logger.debug("Loading app config and creating new AppConfig..." + short_config_path)
     cache = get_cache(region_name, short_config_path)
-    appconfig = MyConfig(cache, short_config_path)
+    appconfig = MyConfig(cache, short_config_path, region_name)
     logger.debug("AppConfig is " + str(cache.items._sections))
     return appconfig

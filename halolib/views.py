@@ -70,13 +70,8 @@ class AbsBaseLink(APIView):
 
         if Util.isDebugEnabled(self.req_context, request):
             orig_log_level = logger.getEffectiveLevel()
-            if len(logger.handlers) > 0:
-                console_handler = logger.handlers[0]
-                console_handler.setLevel(logging.DEBUG)
-                logger.debug("DebugEnabled - in debug mode",
-                             extra=log_json(self.req_context, Util.get_req_params(request)))
-            else:
-                logger.error("DebugEnabled - can not do debug mode - no handlers",
+            logger.setLevel(logging.DEBUG)
+            logger.debug("DebugEnabled - in debug mode",
                              extra=log_json(self.req_context, Util.get_req_params(request)))
 
         logger.debug("headers", extra=log_json(self.req_context, Util.get_headers(request)))
@@ -167,10 +162,8 @@ class AbsBaseLink(APIView):
     def process_finally(self, request, orig_log_level):
         if Util.isDebugEnabled(self.req_context, request):
             if logger.getEffectiveLevel() != orig_log_level:
-                if len(logger.handlers) > 0:
-                    console_handler = logger.handlers[0]
-                    console_handler.setLevel(orig_log_level)
-                    logger.info("process_finally - back to orig:" + str(orig_log_level),
+                logger.setLevel(orig_log_level)
+                logger.info("process_finally - back to orig:" + str(orig_log_level),
                                 extra=log_json(self.req_context))
 
     def split_locale_from_request(self, request):

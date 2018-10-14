@@ -295,51 +295,68 @@ LOGGING = {
     #        'class': 'logging.FileHandler',
     #        'filename': '/path/to/django/debug.log',
     #    },
+        #    'console': {
+        #        'level': 'ERROR',
+        #        'filters': ['require_debug_false'],
+        #        'class': 'logging.StreamHandler',
+        #        'formatter': 'main_formatter',
+        #    },
         'console': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
             'formatter': 'main_formatter',
         },
-
+        'console_debug_false': {
+            'level': 'DEBUG',
+            'filters': ['require_debug_false'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'main_formatter',
+        },
+        'django.server': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'main_formatter',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler'
+        }
     },
     'loggers': {
-        'django':                 {
-            'handlers': ['console'],
-            'level': 'ERROR',
+        'django.server': {
+            'handlers': ['django.server'],
+            'level': 'INFO',
             'propagate': True,
         },
-        'root':                   {
-            'handlers': ['console'],
-            'level': "ERROR",
-        },
         'halolib.halolib.views': {
-            'level': 'DEBUG',
-            'handlers': ['console']
+            'level': 'INFO',
+            'handlers': ['console', 'console_debug_false', 'mail_admins']
         },
         'halolib.halolib.apis': {
-            'level': 'DEBUG',
-            'handlers': ['console']
+            'level': 'INFO',
+            'handlers': ['console', 'console_debug_false', 'mail_admins']
         },
         'halolib.halolib.events': {
-            'level': 'DEBUG',
-            'handlers': ['console']
+            'level': 'INFO',
+            'handlers': ['console', 'console_debug_false', 'mail_admins']
         },
         'halolib.halolib.mixin': {
-            'level': 'DEBUG',
-            'handlers': ['console']
+            'level': 'INFO',
+            'handlers': ['console', 'console_debug_false', 'mail_admins']
         },
         'halolib.halolib.models': {
-            'level': 'DEBUG',
-            'handlers': ['console']
+            'level': 'INFO',
+            'handlers': ['console', 'console_debug_false', 'mail_admins']
         },
         'halolib.halolib.util': {
-            'level': 'DEBUG',
-            'handlers': ['console']
+            'level': 'INFO',
+            'handlers': ['console', 'console_debug_false', 'mail_admins']
         },
         'halolib.halolib.ssm': {
-            'level': 'DEBUG',
-            'handlers': ['console']
+            'level': 'INFO',
+            'handlers': ['console', 'console_debug_false', 'mail_admins']
         },
     },
 }
@@ -396,7 +413,7 @@ if ENV_NAME == LOC:
         from halolib.ssm import get_config, set_param_config
 
     SSM_CONFIG = get_config(AWS_REGION)
-    set_param_config(AWS_REGION, "test", '{"test":"good"}')
+    # set_param_config(AWS_REGION, 'DEBUG_LOG', '{"val":"false"}')
     # SSM_CONFIG.get_param("test")
 
 SSM_APP_CONFIG = None
