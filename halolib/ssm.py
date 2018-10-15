@@ -137,7 +137,7 @@ def set_param_config(region_name, key, value):
     return set_config(region_name, ssm_parameter_path, value)
 
 
-def set_app_param_config(region_name, host=None):
+def set_app_param_config(region_name, host):
     ssm_parameter_path = short_config_path + '/' + app_config_path
     if host:
         url = "https://" + host + "/" + env
