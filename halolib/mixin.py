@@ -104,11 +104,18 @@ class PerfMixin(AbsBaseMixin):
         for item in settings.SSM_APP_CONFIG.cache.items:
             logger.debug("item=" + str(item))
             if item not in [settings.FUNC_NAME, 'DEFAULT']:
-                url = settings.SSM_APP_CONFIG.get_param(item)["url"]
-                logger.debug(item + ":" + url)
+                rec = settings.SSM_APP_CONFIG.get_param(item)
+                if "url" in rec:
+                    url = rec["url"]
+                else:
+                    logger.error("service " + item + " in API_CONFIG is set to None in cache/store")
+                    continue
+                logger.debug("got url for " + item + ":" + url)
                 if settings.FRONT_WEB is True:
                     ret = requests.get(url + "/perf")
-                    urls[item] = {"url": url, "ret": str(ret)}
+                    urls[item] = {"url": url, "ret": str(ret.content)}
+                else:
+                    urls[item] = {"url": url, "ret": ''}
                 for key in settings.API_CONFIG:
                     current = settings.API_CONFIG[key]
                     new_url = current["url"]
