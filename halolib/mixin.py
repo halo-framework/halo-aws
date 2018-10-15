@@ -100,6 +100,7 @@ class PerfMixin(AbsBaseMixin):
 
     def process_get(self, request, vars):
         logger.debug('perf: ' + str(settings.SSM_APP_CONFIG.cache.items))
+        db = request.GET.get('db', None)
         urls = {}
         for item in settings.SSM_APP_CONFIG.cache.items:
             logger.debug("item=" + str(item))
@@ -112,7 +113,11 @@ class PerfMixin(AbsBaseMixin):
                     continue
                 logger.debug("got url for " + item + ":" + url)
                 if settings.FRONT_WEB is True:
-                    ret = requests.get(url + "/perf")
+                    if db is not None:
+                        s = '?db=' + db
+                    else:
+                        s = ''
+                    ret = requests.get(url + "/perf" + s)
                     urls[item] = {"url": url, "ret": str(ret.content)}
                 else:
                     urls[item] = {"url": url, "ret": ''}
@@ -122,7 +127,6 @@ class PerfMixin(AbsBaseMixin):
                     if "service://" + item in new_url:
                         settings.API_CONFIG[key]["url"] = new_url.replace("service://" + item, url)
         logger.debug(str(settings.API_CONFIG))
-        db = request.GET.get('db', None)
         ret = ''
         if db is not None:
             ret = self.process_db(request, vars)
