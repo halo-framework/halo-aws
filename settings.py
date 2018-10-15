@@ -283,7 +283,7 @@ LOGGING = {
             'datefmt': "%Y-%m-%d %H:%M:%S",
             'class': "pythonjsonlogger.jsonlogger.JsonFormatter",
         },
-        'main_formatter1': {
+        'main_formatter_old': {
             'format': '%(levelname)s:%(name)s: %(message)s '
                       '(%(asctime)s; %(filename)s:%(lineno)d)',
             'datefmt': "%Y-%m-%d %H:%M:%S",

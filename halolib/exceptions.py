@@ -51,9 +51,13 @@ class DbError(HaloError):
     pass
 
 
-class CacheKeyError(HaloError):
+class CacheError(HaloError):
     pass
 
 
-class CacheExpireError(HaloError):
+class CacheKeyError(CacheError):
+    pass
+
+
+class CacheExpireError(CacheError):
     pass

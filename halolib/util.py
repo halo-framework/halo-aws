@@ -13,6 +13,7 @@ import uuid
 from rest_framework.response import Response
 
 from .const import settingsx
+from .exceptions import CacheError
 
 settings = settingsx()
 
@@ -202,11 +203,21 @@ class Util:
         return 'false'
 
     @staticmethod
+    def get_debug_param():
+        # check if env var for sampled debug logs is on and activate for percentage in settings (5%)
+        dbg = 'false'
+        try:
+            DEBUG_LOG = settings.SSM_CONFIG.get_param('DEBUG_LOG')
+            dbg = DEBUG_LOG["val"]
+            logger.debug("get_debug_param=" + dbg)
+        except CacheError as e:
+            pass
+        return dbg
+
+    @staticmethod
     def get_system_debug_enabled():
         # check if env var for sampled debug logs is on and activate for percentage in settings (5%)
-        logger.debug("get_system_debug_enabled=" + settings.SSM_CONFIG.get_param('DEBUG_LOG')["val"])
-        if ('DEBUG_LOG' in os.environ and os.environ['DEBUG_LOG'] == 'true') or (
-                settings.SSM_CONFIG.get_param('DEBUG_LOG')["val"] == 'true'):
+        if ('DEBUG_LOG' in os.environ and os.environ['DEBUG_LOG'] == 'true') or (Util.get_debug_param() == 'true'):
             rand = random.random()
             if settings.LOG_SAMPLE_RATE > rand:
                 return 'true'
