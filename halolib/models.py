@@ -3,6 +3,9 @@ from __future__ import print_function
 import datetime
 import logging
 
+from pynamodb.attributes import UnicodeAttribute
+from pynamodb.models import Model
+
 from halolib.logs import log_json
 from .const import settingsx
 
@@ -44,3 +47,15 @@ class AbsDbMixin(object):
             return newfunc
         else:
             return attr
+
+
+class AbsModel(Model):
+    halo_request_id = UnicodeAttribute(range_key=True)
+
+    def save(self, halo_request_id, condition=None, conditional_operator=None, **expected_values):
+        if condition is None:
+            condition = AbsModel.halo_request_id.does_not_exist()
+        else:
+            condition = condition & (not AbsModel.halo_request_id.does_not_exist())
+        expected_values.update(halo_request_id=halo_request_id)
+        return super(AbsModel, self).save(condition, conditional_operator, **expected_values)
