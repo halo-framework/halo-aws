@@ -50,12 +50,38 @@ class AbsDbMixin(object):
 
 
 class AbsModel(Model):
-    halo_request_id = UnicodeAttribute(range_key=True)
+    halo_request_id = UnicodeAttribute(null=False)
+
+    @classmethod
+    def get_pre(cls):
+        hash_key_name = super(AbsModel, cls)._hash_key_attribute().attr_name
+        range_key_name = None
+        attr = super(AbsModel, cls)._range_key_attribute()
+        if attr:
+            range_key_name = attr.attr_name
+        print("\nhash_key_name=" + str(hash_key_name))
+        print("\nrange_key_name=" + str(range_key_name))
+        return hash_key_name, range_key_name
+
+    def get_pre_val(self):
+        hash_key_name, range_key_name = self.get_pre()
+        hash_key_val = super(AbsModel, self).__getattribute__(hash_key_name)
+        range_key_val = None
+        if range_key_name:
+            range_key_val = super(AbsModel, self).__getattribute__(range_key_name)
+        print("\nhash_key_name=" + hash_key_name + "=" + str(hash_key_val))
+        if range_key_val:
+            print("\nrange_key_val=" + range_key_name + "=" + str(range_key_val))
+        return hash_key_val, range_key_val
 
     def save(self, halo_request_id, condition=None, conditional_operator=None, **expected_values):
         if condition is None:
             condition = AbsModel.halo_request_id.does_not_exist()
         else:
-            condition = condition & (not AbsModel.halo_request_id.does_not_exist())
-        expected_values.update(halo_request_id=halo_request_id)
+            condition = condition & (AbsModel.halo_request_id.does_not_exist())
+        hash_key_val, range_key_val = self.get_pre_val()
+        request_id = halo_request_id + "-" + hash_key_val
+        if range_key_val:
+            request_id = request_id + "-" + range_key_val
+        self.halo_request_id = request_id
         return super(AbsModel, self).save(condition, conditional_operator, **expected_values)
