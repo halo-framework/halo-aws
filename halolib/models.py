@@ -1,11 +1,14 @@
 from __future__ import print_function
 
 import datetime
+import hashlib
 import logging
+from abc import ABCMeta
 
 from pynamodb.attributes import UnicodeAttribute
 from pynamodb.models import Model
 
+from halolib.exceptions import DbIdemError
 from halolib.logs import log_json
 from .const import settingsx
 
@@ -24,6 +27,7 @@ page_size = settings.PAGE_SIZE
 
 
 class AbsDbMixin(object):
+    __metaclass__ = ABCMeta
     # intercept db calls
 
     req_context = None
@@ -50,6 +54,8 @@ class AbsDbMixin(object):
 
 
 class AbsModel(Model):
+    __metaclass__ = ABCMeta
+
     halo_request_id = UnicodeAttribute(null=False)
 
     @classmethod
@@ -74,16 +80,23 @@ class AbsModel(Model):
             logger.debug("\nrange_key_val=" + range_key_name + "=" + str(range_key_val))
         return hash_key_val, range_key_val
 
+    def get_idempotent_id(self, halo_request_id):  # return fixed size id of 128 bit hash value
+        if halo_request_id is None or halo_request_id == "":
+            raise DbIdemError("empty request id")
+        hash_key_val, range_key_val = self.get_pre_val()
+        request_id = halo_request_id + "-" + str(hash_key_val)
+        if range_key_val:
+            request_id = request_id + "-" + str(range_key_val)
+        idempotent_id = hashlib.md5(halo_request_id.encode() + request_id.encode()).hexdigest()
+        return idempotent_id
+
+
     def save(self, halo_request_id, condition=None, conditional_operator=None, **expected_values):
         if condition is None:
             condition = AbsModel.halo_request_id.does_not_exist()
         else:
             condition = condition & (AbsModel.halo_request_id.does_not_exist())
-        hash_key_val, range_key_val = self.get_pre_val()
-        request_id = halo_request_id + "-" + str(hash_key_val)
-        if range_key_val:
-            request_id = request_id + "-" + str(range_key_val)
-        self.halo_request_id = request_id
+        self.halo_request_id = self.get_idempotent_id(halo_request_id)
         return super(AbsModel, self).save(condition, conditional_operator, **expected_values)
 
     def update(self, halo_request_id, attributes=None, actions=None, condition=None, conditional_operator=None,
@@ -92,9 +105,5 @@ class AbsModel(Model):
             condition = AbsModel.halo_request_id.does_not_exist()
         else:
             condition = condition & (AbsModel.halo_request_id.does_not_exist())
-        hash_key_val, range_key_val = self.get_pre_val()
-        request_id = halo_request_id + "-" + str(hash_key_val)
-        if range_key_val:
-            request_id = request_id + "-" + str(range_key_val)
-        self.halo_request_id = request_id
+        self.halo_request_id = self.get_idempotent_id(halo_request_id)
         return super(AbsModel, self).update(attributes, actions, condition, conditional_operator, **expected_values)

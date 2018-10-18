@@ -51,6 +51,10 @@ class DbError(HaloError):
     pass
 
 
+class DbIdemError(DbError):
+    pass
+
+
 class CacheError(HaloError):
     pass
 

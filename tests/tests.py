@@ -12,6 +12,13 @@ fake = Faker()
 
 import django
 
+from halolib.util import Util
+from halolib.apis import ApiTest
+from halolib.exceptions import ApiError
+from halolib.logs import log_json
+from halolib import saga
+from halolib.models import AbsModel
+
 # from django.conf import settings
 # settings.configure(default_settings=settings, DEBUG=True)
 django.setup()
@@ -24,6 +31,7 @@ class TestUserDetailTestCase(APITestCase):
 
     def setUp(self):
         self.url = 'http://127.0.0.1:8000/?abc=def'
+        self.perf_url = 'http://127.0.0.1:8000/perf'
 
     def mock_request(self, type, header={}):
         from django.test.client import RequestFactory
@@ -40,10 +48,7 @@ class TestUserDetailTestCase(APITestCase):
         eq_(response.status_code, status.HTTP_200_OK)
         eq_(json.loads(response.content), {"test": "good"})
 
-
     def test_api_request_returns_a_given_string(self):
-        from halolib.apis import ApiTest
-        from halolib.util import Util
         request = self.mock_request('GET')
         api = ApiTest(Util.get_req_context(request))
         response = api.get()
@@ -51,9 +56,6 @@ class TestUserDetailTestCase(APITestCase):
         eq_(response.status_code, status.HTTP_200_OK)
 
     def test_api_request_returns_a_fail(self):
-        from halolib.exceptions import ApiError
-        from halolib.apis import ApiTest
-        from halolib.util import Util
         request = self.mock_request('GET')
         api = ApiTest(Util.get_req_context(request))
         api.url = api.url + "/lgkmlgkhm??l,mhb&&,g,hj "
@@ -76,7 +78,6 @@ class TestUserDetailTestCase(APITestCase):
         eq_(response, 'sent event')
 
     def test_system_debug_enabled(self):
-        from halolib.util import Util
         os.environ['DEBUG_LOG'] = 'true'
         flag = 'false'
         for i in range(0, 60):
@@ -87,15 +88,12 @@ class TestUserDetailTestCase(APITestCase):
         eq_(flag, 'true')
 
     def test_debug_enabled(self):
-        from halolib.util import Util
         header = {'HTTP_DEBUG_LOG_ENABLED': 'true'}
         req = self.mock_request('GET', header)
         ret = Util.get_req_context(req)
         eq_(ret["debug-log-enabled"], 'true')
 
     def test_json_log(self):
-        from halolib.logs import log_json
-        from halolib.util import Util
         import traceback
         header = {'HTTP_DEBUG_LOG_ENABLED': 'true'}
         req = self.mock_request('GET', header)
@@ -110,20 +108,66 @@ class TestUserDetailTestCase(APITestCase):
 
     def test_get_request_with_debug(self):
         header = {'HTTP_DEBUG_LOG_ENABLED': 'true'}
-        response = self.client.get(self.url, **header)
-        eq_(response.status_code, status.HTTP_200_OK)
-        eq_(json.loads(response.content), {"test": "good"})
+        req = self.mock_request('GET', header)
+        ret = Util.get_debug_enabled(req)
+        eq_(ret, 'true')
 
     def test_debug_event(self):
-        from halolib.util import Util
         event = {'debug-log-enabled': 'true'}
         ret = Util.get_correlation_from_event(event)
         eq_(Util.event_req_context["debug-log-enabled"], 'true')
         ret = Util.get_correlation_from_event(event)
         eq_(ret["debug-log-enabled"], 'true')
 
+    def test_pref_mixin(self):
+        response = self.client.get(self.perf_url)
+        eq_(response.status_code, status.HTTP_200_OK)
+
+    def test_model_get_pre(self):
+        from pynamodb.attributes import UTCDateTimeAttribute, UnicodeAttribute
+        class TestModel(AbsModel):
+            class Meta:
+                table_name = 'tbl-upc-53-loc'
+                host = "http://localhost:8600"
+
+            created_on = UTCDateTimeAttribute(null=False)
+            pkey = UnicodeAttribute(hash_key=True)
+
+        m = TestModel()
+        a, b = m.get_pre()
+        eq_(a, "pkey")
+
+    def test_model_get_pre_val(self):
+        from pynamodb.attributes import UTCDateTimeAttribute, UnicodeAttribute
+        class TestModel(AbsModel):
+            class Meta:
+                table_name = 'tbl-upc-53-loc'
+                host = "http://localhost:8600"
+
+            created_on = UTCDateTimeAttribute(null=False)
+            pkey = UnicodeAttribute(hash_key=True)
+
+        m = TestModel()
+        m.pkey = "123"
+        a, b = m.get_pre_val()
+        eq_(a, "123")
+
+    def test_model_idem(self):
+        from pynamodb.attributes import UTCDateTimeAttribute, UnicodeAttribute
+        class TestModel(AbsModel):
+            class Meta:
+                table_name = 'tbl-upc-53-loc'
+                host = "http://localhost:8600"
+
+            created_on = UTCDateTimeAttribute(null=False)
+            pkey = UnicodeAttribute(hash_key=True)
+
+        m = TestModel()
+        m.pkey = "456"
+        ret = m.get_idempotent_id("123")
+        eq_(ret, "8b077e79d995ac82ea9217c7b34c8b57")
+
     def test_load_saga(self):
-        from halolib import saga
         with open("C:\\dev\\projects\\halo\halo_lib\\saga.json") as f:
             jsonx = json.load(f)
         sagax = saga.load_saga("test", jsonx)
@@ -136,3 +180,8 @@ class TestUserDetailTestCase(APITestCase):
     def test_rollback_saga(self):
         response = self.client.post(self.url)
         eq_(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def test_ssm(self):  # @TODO
+        from halolib.ssm import get_app_config
+        ret = get_app_config("us-east-1")
+        eq_(ret.get_param("halolib")["url"], 'https://127.0.0.1:8000/loc')
