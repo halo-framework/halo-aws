@@ -168,7 +168,7 @@ class TestUserDetailTestCase(APITestCase):
         eq_(ret, "8b077e79d995ac82ea9217c7b34c8b57")
 
     def test_load_saga(self):
-        with open("C:\\dev\\projects\\halo\halo_lib\\saga.json") as f:
+        with open("saga.json") as f:
             jsonx = json.load(f)
         sagax = saga.load_saga("test", jsonx)
         eq_(len(sagax.actions), 6)
