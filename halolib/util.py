@@ -8,7 +8,6 @@ import re
 import uuid
 
 # django
-# from django.conf import settings
 # DRF
 from rest_framework.response import Response
 

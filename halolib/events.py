@@ -17,7 +17,6 @@ from .const import settingsx
 
 # common
 # django
-# from django.conf import settings
 settings = settingsx()
 
 logger = logging.getLogger(__name__)

@@ -8,7 +8,6 @@ from botocore.exceptions import ClientError
 from halolib.logs import log_json
 from .const import settingsx
 
-# from django.conf import settings
 settings = settingsx()
 
 # Replace sender@example.com with your "From" address.

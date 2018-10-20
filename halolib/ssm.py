@@ -14,7 +14,6 @@ from .exceptions import HaloError, CacheKeyError, CacheExpireError
 
 # from .logs import log_json
 
-# from django.conf import settings
 
 current_milli_time = lambda: int(round(time.time() * 1000))
 

@@ -16,7 +16,6 @@ from .logs import log_json
 # aws
 # common
 # django
-# from django.conf import settings
 settings = settingsx()
 
 # DRF

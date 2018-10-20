@@ -12,7 +12,6 @@ from halolib.exceptions import DbIdemError
 from halolib.logs import log_json
 from .const import settingsx
 
-# from django.conf import settings
 settings = settingsx()
 
 # java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -port 8600
