@@ -13,7 +13,7 @@ from botocore.exceptions import ClientError
 from halolib.exceptions import HaloException
 from halolib.logs import log_json
 from halolib.util import Util
-from .const import settingsx
+from .settingsx import settingsx
 
 # common
 # django

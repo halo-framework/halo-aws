@@ -9,9 +9,9 @@ from abc import ABCMeta
 
 import requests
 
-from .const import settingsx
 from .exceptions import MaxTryHttpException, ApiError
 from .logs import log_json
+from .settingsx import settingsx
 
 # aws
 # common

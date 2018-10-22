@@ -6,7 +6,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 from halolib.logs import log_json
-from .const import settingsx
+from .settingsx import settingsx
 
 settings = settingsx()
 

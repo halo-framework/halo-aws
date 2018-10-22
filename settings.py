@@ -88,7 +88,7 @@ print(VERSION)
 APPEND_SLASH = True
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool('DEBUG', default=False)
+DEBUG = env.bool('DEBUG', default=True)
 print("DEBUG=" + str(DEBUG))
 
 SERVER = env('SERVER_NAME')
@@ -302,7 +302,7 @@ LOGGING = {
         #        'formatter': 'main_formatter',
         #    },
         'console': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
             'formatter': 'main_formatter',
@@ -408,7 +408,7 @@ SSM_CONFIG = None
 if ENV_NAME == LOC:
     # from halolib.ssm import get_config as get_config
     try:
-        from .halolib.ssm import get_config, set_param_config
+        from halolib.halolib.ssm import get_config, set_param_config
     except:
         from halolib.ssm import get_config, set_param_config
 
@@ -421,7 +421,7 @@ if ENV_NAME == LOC:
 
     # from halolib.ssm import get_config as get_config
     try:
-        from .halolib.ssm import get_app_config, set_app_param_config
+        from halolib.halolib.ssm import get_app_config, set_app_param_config
     except:
         from halolib.ssm import get_app_config, set_app_param_config
 

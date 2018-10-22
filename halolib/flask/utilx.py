@@ -9,10 +9,10 @@ import uuid
 
 # django
 # DRF
-from rest_framework.response import Response
+from flask import Response
 
-from .exceptions import CacheError
-from .settingsx import settingsx
+from ..exceptions import CacheError
+from ..settingsx import settingsx
 
 settings = settingsx()
 
@@ -57,6 +57,7 @@ u'HTTP_ACCEPT_ENCODING': 'gzip, deflate, br'}
 
 logger = logging.getLogger(__name__)
 
+
 def strx(str1):
     if str1:
         try:
@@ -81,7 +82,7 @@ class Util:
 
         MOBILE_AGENT_RE = re.compile(r".*(iphone|mobile|androidtouch)", re.IGNORECASE)
 
-        if MOBILE_AGENT_RE.match(request.META['HTTP_USER_AGENT']):
+        if MOBILE_AGENT_RE.match(request.headers['HTTP_USER_AGENT']):
             return True
         else:
             return False
@@ -94,8 +95,8 @@ class Util:
             r".*(Aviator | ChromePlus | coc_ | Dragon | Edge | Flock | Iron | Kinza | Maxthon | MxNitro | Nichrome | OPR | Perk | Rockmelt | Seznam | Sleipnir | Spark | UBrowser | Vivaldi | WebExplorer | YaBrowser)",
             re.IGNORECASE)
 
-        if CHROME_AGENT_RE.match(request.META['HTTP_USER_AGENT']):
-            if NON_CHROME_AGENT_RE.match(request.META['HTTP_USER_AGENT']):
+        if CHROME_AGENT_RE.match(request.headers['HTTP_USER_AGENT']):
+            if NON_CHROME_AGENT_RE.match(request.headers['HTTP_USER_AGENT']):
                 return False
             else:
                 return True
@@ -114,10 +115,10 @@ class Util:
         # AWS_LAMBDA_FUNCTION_NAME
         # 'lambda.context'
         # x-amzn-RequestId
-        if 'lambda.context' in request.META:
-            return request.META['lambda.context']
-        elif 'context' in request.META:
-            return request.META['context']
+        if 'lambda.context' in request.headers:
+            return request.headers['lambda.context']
+        elif 'context' in request.headers:
+            return request.headers['context']
         else:
             return None
 
@@ -173,16 +174,16 @@ class Util:
 
     @staticmethod
     def get_correlation_id(request):
-        if "HTTP_X_CORRELATION_ID" in request.META:
-            x_correlation_id = request.META["HTTP_X_CORRELATION_ID"]
+        if "HTTP_X_CORRELATION_ID" in request.headers:
+            x_correlation_id = request.headers["HTTP_X_CORRELATION_ID"]
         else:
             x_correlation_id = Util.get_aws_request_id(request)
         return x_correlation_id
 
     @staticmethod
     def get_user_agent(request):
-        if "HTTP_X_USER_AGENT" in request.META:
-            user_agent = request.META["HTTP_X_USER_AGENT"]
+        if "HTTP_X_USER_AGENT" in request.headers:
+            user_agent = request.headers["HTTP_X_USER_AGENT"]
         else:
             user_agent = Util.get_func_name() + ':' + request.path + ':' + request.method + ':' + settings.INSTANCE_ID
         return user_agent
@@ -190,12 +191,12 @@ class Util:
     @staticmethod
     def get_debug_enabled(request):
         # check if the specific call is debug enabled
-        if "HTTP_DEBUG_LOG_ENABLED" in request.META:
-            dlog = request.META["HTTP_DEBUG_LOG_ENABLED"]
+        if "HTTP_DEBUG_LOG_ENABLED" in request.headers:
+            dlog = request.headers["HTTP_DEBUG_LOG_ENABLED"]
             if dlog == 'true':
                 return 'true'
         # check if system wide enabled - done on edge
-        if "HTTP_X_CORRELATION_ID" not in request.META:
+        if "HTTP_X_CORRELATION_ID" not in request.headers:
             dlog = Util.get_system_debug_enabled()
             if dlog == 'true':
                 return 'true'
@@ -239,9 +240,9 @@ class Util:
         regex_content_type = re.compile(r'^CONTENT_TYPE$')
         regex_content_length = re.compile(r'^CONTENT_LENGTH$')
         request_headers = {}
-        for header in request.META:
+        for header in request.headers:
             if regex_http_.match(header) or regex_content_type.match(header) or regex_content_length.match(header):
-                request_headers[header] = request.META[header]
+                request_headers[header] = request.headers[header]
         return request_headers
 
     @staticmethod
@@ -320,22 +321,22 @@ class Util:
     @staticmethod
     def get_return_code_tag(request):
         tag = "tag"
-        if "x-code-tag-id" in request.META:
-            tag = request.META["x-code-tag-id"]
+        if "x-code-tag-id" in request.headers:
+            tag = request.headers["x-code-tag-id"]
         return tag
 
     @staticmethod
     def get_client_ip(request):  # front - when browser calls us
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        x_forwarded_for = request.headers.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
             ip = x_forwarded_for.split(',')[0]
         else:
-            ip = request.META.get('REMOTE_ADDR')
+            ip = request.headers.get('REMOTE_ADDR')
         return ip
 
     @staticmethod
     def get_server_client_ip(request):  # not front - when service calls us
-        return request.META.get('HTTP_REFERER')
+        return request.headers.get('HTTP_REFERER')
 
     """"
     Success
@@ -371,7 +372,7 @@ class Util:
     def get_req_params(request):
         qd = {}
         if request.method == 'GET':
-            qd = request.GET.dict()
+            qd = request.args
         elif request.method == 'POST':
-            qd = request.POST.dict()
+            qd = request.args
         return qd

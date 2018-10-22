@@ -10,7 +10,7 @@ from pynamodb.models import Model
 
 from halolib.exceptions import DbIdemError
 from halolib.logs import log_json
-from .const import settingsx
+from .settingsx import settingsx
 
 settings = settingsx()
 
