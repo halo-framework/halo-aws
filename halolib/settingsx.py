@@ -1,21 +1,28 @@
 from __future__ import print_function
 
+flx = None
 try:
     from django.conf import settings
-
     flx = False
-    # from flask import current_app as app
-    # settings = app.config
 except:
+    pass
+try:
     from flask import current_app as app
-
-    settings = app.config
     flx = True
+except:
+    pass
 
 
 class settingsx(object):
     def __getattribute__(self, name):
-        if not flx:
+        global flx
+        if flx == False:
+            from django.conf import settings
             return settings.__getattr__(name)
-        attr = settings.get(name)
-        return attr
+        try:
+            settings = app.config
+            attr = settings.get(name)
+            return attr
+        except RuntimeError:
+            print("settingsx=" + name)
+            return None

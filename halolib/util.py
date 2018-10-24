@@ -9,7 +9,10 @@ import uuid
 
 # django
 # DRF
-from rest_framework.response import Response
+try:
+    from rest_framework.response import Response
+except:
+    from flask import Response
 
 from .exceptions import CacheError
 from .settingsx import settingsx

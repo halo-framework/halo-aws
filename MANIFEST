@@ -11,7 +11,12 @@ halolib\mixin.py
 halolib\models.py
 halolib\saga.py
 halolib\ses.py
+halolib\settingsx.py
 halolib\ssm.py
 halolib\urls.py
 halolib\util.py
 halolib\views.py
+halolib\flask\__init__.py
+halolib\flask\mixinx.py
+halolib\flask\utilx.py
+halolib\flask\viewsx.py
