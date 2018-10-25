@@ -15,11 +15,11 @@ from flask import request
 from flask.views import MethodView
 from flask_api import status
 
+from .logsx import log_json
 # halolib
 from .utilx import Util
 from ..const import HTTPChoice
 from ..exceptions import MaxTryException, HaloError, HaloException
-from ..logs import log_json
 from ..settingsx import settingsx
 
 settings = settingsx()

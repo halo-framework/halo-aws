@@ -17,6 +17,7 @@ halolib\urls.py
 halolib\util.py
 halolib\views.py
 halolib\flask\__init__.py
+halolib\flask\apisx.py
 halolib\flask\eventsx.py
 halolib\flask\logsx.py
 halolib\flask\mixinx.py
