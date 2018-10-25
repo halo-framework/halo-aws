@@ -12,7 +12,11 @@ from botocore.exceptions import ClientError
 # DRF
 from halolib.exceptions import HaloException
 from halolib.logs import log_json
-from halolib.util import Util
+
+try:
+    from .util import Util
+except:
+    from .flask.utilx import Util
 from .settingsx import settingsx
 
 # common

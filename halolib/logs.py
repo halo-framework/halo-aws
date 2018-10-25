@@ -1,7 +1,9 @@
 from __future__ import print_function
 
-from .util import Util
-
+try:
+    from .util import Util
+except:
+    from .flask.utilx import Util
 
 def append_error(params, err):
     dict_items = params.copy()

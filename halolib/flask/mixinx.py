@@ -219,8 +219,8 @@ class AbsApiMixinX(AbsBaseMixinX):
 
 ##################################### test #########################
 import json
-from .logsx import log_json
-from .apisx import ApiTest
+from ..logs import log_json
+from ..apis import ApiTest
 from ..exceptions import ApiError
 from ..saga import load_saga, SagaRollBack
 

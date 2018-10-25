@@ -370,7 +370,7 @@ class Util:
     def get_req_params(request):
         qd = {}
         if request.method == 'GET':
-            qd = request.GET.dict()
+            qd = request.args
         elif request.method == 'POST':
-            qd = request.POST.dict()
+            qd = request.args
         return qd
