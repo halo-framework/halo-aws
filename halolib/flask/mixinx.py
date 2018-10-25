@@ -12,10 +12,10 @@ import requests
 from flask import Response as HttpResponse
 from flask_api import status
 
+from .utilx import Util
 from ..const import HTTPChoice
 from ..exceptions import AuthException
 from ..settingsx import settingsx
-from ..util import Util
 
 settings = settingsx()
 
