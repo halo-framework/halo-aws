@@ -15,9 +15,8 @@ from flask import request
 from flask.views import MethodView
 from flask_api import status
 
-#
-from .utilx import Util
 # halolib
+from .utilx import Util
 from ..const import HTTPChoice
 from ..exceptions import MaxTryException, HaloError, HaloException
 from ..logs import log_json
@@ -70,7 +69,7 @@ class AbsBaseLinkX(MethodView):
             logger.debug("DebugEnabled - in debug mode",
                          extra=log_json(self.req_context, Util.get_req_params(request)))
 
-        # logger.debug("headers", extra=log_json(self.req_context, Util.get_headers(request)))
+        logger.debug("headers", extra=log_json(self.req_context, Util.get_headers(request)))
 
         logger.debug("environ", extra=log_json(self.req_context, os.environ))
 

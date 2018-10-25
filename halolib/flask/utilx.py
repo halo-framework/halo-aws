@@ -7,8 +7,6 @@ import random
 import re
 import uuid
 
-# django
-# DRF
 from flask import Response
 
 from ..exceptions import CacheError
@@ -56,7 +54,6 @@ u'HTTP_ACCEPT_ENCODING': 'gzip, deflate, br'}
 """
 
 logger = logging.getLogger(__name__)
-
 
 def strx(str1):
     if str1:
@@ -240,9 +237,10 @@ class Util:
         regex_content_type = re.compile(r'^CONTENT_TYPE$')
         regex_content_length = re.compile(r'^CONTENT_LENGTH$')
         request_headers = {}
-        for header in request.headers:
+        for header, value in request.headers:
+            logger.debug("header=" + str(header))
             if regex_http_.match(header) or regex_content_type.match(header) or regex_content_length.match(header):
-                request_headers[header] = request.headers[header]
+                request_headers[header] = value  # request.headers[header]
         return request_headers
 
     @staticmethod
@@ -372,7 +370,7 @@ class Util:
     def get_req_params(request):
         qd = {}
         if request.method == 'GET':
-            qd = request.args
+            qd = request.GET.dict()
         elif request.method == 'POST':
-            qd = request.args
+            qd = request.POST.dict()
         return qd
