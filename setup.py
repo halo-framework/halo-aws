@@ -6,7 +6,7 @@ from distutils.core import setup
 
 setup(
     name='halolib',
-    version='0.13.1',
+    version='0.13.2',
     packages=['halolib', 'halolib.flask'],
     url='',
     license='',

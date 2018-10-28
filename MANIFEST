@@ -8,6 +8,7 @@ halolib\events.py
 halolib\exceptions.py
 halolib\logs.py
 halolib\mixin.py
+halolib\mixin_err_msg.py
 halolib\models.py
 halolib\saga.py
 halolib\ses.py
