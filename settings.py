@@ -27,6 +27,16 @@ print('The .env file has been loaded. env: '+env.str('ENV_NAME'))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
+ENV = env.str('FLASK_ENV', default='production')
+DEBUG = ENV == 'development'
+SQLALCHEMY_DATABASE_URI = env.str('DATABASE_URL')
+SECRET_KEY = env.str('SECRET_KEY')
+BCRYPT_LOG_ROUNDS = env.int('BCRYPT_LOG_ROUNDS', default=13)
+DEBUG_TB_ENABLED = DEBUG
+DEBUG_TB_INTERCEPT_REDIRECTS = False
+CACHE_TYPE = 'simple'  # Can be "memcached", "redis", etc.
+SQLALCHEMY_TRACK_MODIFICATIONS = False
+WEBPACK_MANIFEST_PATH = 'webpack/manifest.json'
 
 LOC = "loc"
 DEV = "dev"
@@ -88,7 +98,7 @@ print(VERSION)
 APPEND_SLASH = True
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool('DEBUG', default=True)
+DEBUG = True  # env.bool('DEBUG', default=True)
 print("DEBUG=" + str(DEBUG))
 
 SERVER = env('SERVER_NAME')
@@ -384,6 +394,8 @@ import uuid
 INSTANCE_ID = uuid.uuid4().__str__()[0:4]
 
 LOG_SAMPLE_RATE = 0.05  # 5%
+
+ERR_MSG_CLASS = 'halolib.halolib.mixin_err_msg'
 
 #######################################################################################3
 

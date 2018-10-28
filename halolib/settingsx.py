@@ -5,12 +5,12 @@ try:
     from django.conf import settings
     flx = False
 except:
-    pass
-try:
-    from flask import current_app as app
-    flx = True
-except:
-    pass
+    try:
+        from flask import current_app as app
+
+        flx = True
+    except:
+        pass
 
 
 class settingsx(object):
@@ -23,6 +23,6 @@ class settingsx(object):
             settings = app.config
             attr = settings.get(name)
             return attr
-        except RuntimeError:
-            print("settingsx=" + name)
+        except RuntimeError as e:
+            print("settingsx=" + name + " error:" + str(e))
             return None

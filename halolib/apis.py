@@ -124,27 +124,23 @@ class AbsBaseApi(object):
         except requests.ConnectionError as e:
             msg = str(e)
             logger.debug("error: " + msg, extra=log_json(self.req_context))
-            ret = ApiError(msg)
-            ret.status_code = -1
-            raise ret
+            raise e
         except requests.HTTPError as e:
             msg = str(e)
             logger.debug("error: " + msg, extra=log_json(self.req_context))
-            ret = ApiError(msg)
-            ret.status_code = -2
-            raise ret
+            raise e
         except requests.Timeout as e:
             msg = str(e)
             logger.debug("error: " + msg, extra=log_json(self.req_context))
-            ret = ApiError(msg)
-            ret.status_code = -3
-            raise ret
+            raise e
         except requests.RequestException as e:
             msg = str(e)
             logger.debug("error: " + msg, extra=log_json(self.req_context))
-            ret = ApiError(msg)
-            ret.status_code = -4
-            raise ret
+            raise e
+        except Exception as e:
+            msg = str(e)
+            logger.debug("error: " + msg, extra=log_json(self.req_context))
+            raise ApiError(e)
 
     def get(self, headers=None):
         if headers is None:

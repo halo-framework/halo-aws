@@ -82,13 +82,10 @@ class AbsBaseMixinX(object):
 class PerfMixinX(AbsBaseMixinX):
     now = None
 
-    def get(self, request):
-        self.now = datetime.datetime.now()
-        return self.do_process(request, HTTPChoice.get, {})
-
     def process_get(self, request, vars):
         logger.debug('perf: ' + str(settings.SSM_APP_CONFIG.cache.items))
-        db = request.GET.get('db', None)
+        self.now = datetime.datetime.now()
+        db = request.args.get('db', None)
         urls = {}
         for item in settings.SSM_APP_CONFIG.cache.items:
             logger.debug("item=" + str(item))
@@ -167,7 +164,7 @@ class AbsApiMixinX(AbsBaseMixinX):
         json, ret_status = self.process_api(ctx, HTTPChoice.get, request, vars)
         if ret_status == status.HTTP_200_OK:
             jsonx = self.process_out_auth(request, vars, json)
-            return HttpResponse(jsonx, status=ret_status)
+            return Util.json_data_response(jsonx, ret_status)  # HttpResponse(jsonx, status=ret_status)
         return HttpResponse(status=ret_status)
 
     def process_post(self, request, vars):
@@ -178,7 +175,7 @@ class AbsApiMixinX(AbsBaseMixinX):
         json, ret_status = self.process_api(ctx, HTTPChoice.post, request, vars)
         if ret_status == status.HTTP_201_CREATED:
             jsonx = self.process_out_auth(request, vars, json)
-            return HttpResponse(jsonx, status=ret_status)
+            return Util.json_data_response(jsonx, ret_status)  #HttpResponse(jsonx, status=ret_status)
         return HttpResponse(status=ret_status)
 
     def process_put(self, request, vars):
@@ -189,7 +186,7 @@ class AbsApiMixinX(AbsBaseMixinX):
         json, ret_status = self.process_api(ctx, HTTPChoice.put, request, vars)
         if ret_status == status.HTTP_202_ACCEPTED:
             jsonx = self.process_out_auth(request, vars, json)
-            return HttpResponse(jsonx, status=ret_status)
+            return Util.json_data_response(jsonx, ret_status)  #HttpResponse(jsonx, status=ret_status)
         return HttpResponse(status=ret_status)
 
     def process_patch(self, request, vars):
@@ -200,7 +197,7 @@ class AbsApiMixinX(AbsBaseMixinX):
         json, ret_status = self.process_api(ctx, HTTPChoice.patch, request, vars)
         if ret_status == status.HTTP_202_ACCEPTED:
             jsonx = self.process_out_auth(request, vars, json)
-            return HttpResponse(jsonx, status=ret_status)
+            return Util.json_data_response(jsonx, ret_status)  #HttpResponse(jsonx, status=ret_status)
         return HttpResponse(status=ret_status)
 
     def process_delete(self, request, vars):
@@ -210,7 +207,7 @@ class AbsApiMixinX(AbsBaseMixinX):
             return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
         json, ret_status = self.process_api(ctx, HTTPChoice.delete, request, vars)
         if ret_status == status.HTTP_200_OK:
-            return HttpResponse(status=ret_status)
+            return Util.json_data_response(json, ret_status)  #HttpResponse(status=ret_status)
         return HttpResponse(status=ret_status)
 
     def process_api(self, ctx, typer, request, vars):

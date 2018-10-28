@@ -19,7 +19,6 @@ from rest_framework.views import APIView
 
 # halolib
 from .const import HTTPChoice
-from .exceptions import MaxTryException, HaloError, HaloException
 from .logs import log_json
 from .ssm import set_app_param_config
 from .util import Util
@@ -45,15 +44,6 @@ class AbsBaseLink(APIView):
     # permission_classes = (permissions.IsAdminUser,permissions.IsAuthenticatedOrReadOnly)
     permission_classes = (permissions.AllowAny,)
 
-    the_html = ''
-    the_tag = ''
-    other_html = ''
-    other_tag = ''
-
-    user_languages = []
-    user_locale = settings.LOCALE_CODE
-    user_lang = settings.LANGUAGE_CODE
-
     def __init__(self, **kwargs):
         super(AbsBaseLink, self).__init__(**kwargs)
 
@@ -61,11 +51,11 @@ class AbsBaseLink(APIView):
 
         now = datetime.datetime.now()
 
-        self.user_langs = request.META.get('HTTP_ACCEPT_LANGUAGE', ['en-US', ])
         self.req_context = Util.get_req_context(request)
         self.correlate_id = self.req_context["x-correlation-id"]
         self.user_agent = self.req_context["x-user-agent"]
         error_message = None
+        error = None
         orig_log_level = 0
 
         if Util.isDebugEnabled(self.req_context, request):
@@ -82,62 +72,12 @@ class AbsBaseLink(APIView):
             settings.HALO_HOST = request.META['HTTP_HOST']
             set_app_param_config(settings.AWS_REGION, settings.HALO_HOST)
 
-        self.get_user_locale(request)
-        logger.debug('process LANGUAGE:  ' + str(self.user_lang) + " LOCALE: " + str(self.user_locale),
-                     extra=log_json(self.req_context))
-
         try:
             ret = self.process(request,typer,vars)
             total = datetime.datetime.now() - now
             logger.info("performance_data", extra=log_json(self.req_context,
                                                            {"type": "LAMBDA", "milliseconds": int(total.total_seconds() * 1000)}))
             return ret
-
-        except MaxTryException as e:  # if api not responding
-            error_message = str(e)
-            e.stack = traceback.format_exc()
-            logger.error(error_message, extra=log_json(self.req_context, Util.get_req_params(request), e))
-
-        except HaloError as e:  # if api not responding
-            error_message = str(e)
-            e.stack = traceback.format_exc()
-            logger.error(error_message, extra=log_json(self.req_context, Util.get_req_params(request), e))
-
-        except HaloException as e:  # if api not responding
-            error_message = str(e)
-            e.stack = traceback.format_exc()
-            logger.error(error_message, extra=log_json(self.req_context, Util.get_req_params(request), e))
-
-        except IOError as e:
-            error_message = str(e)
-            e.stack = traceback.format_exc()
-            logger.error(error_message, extra=log_json(self.req_context, Util.get_req_params(request), e))
-
-        except ValueError as e:
-            error_message = str(e)
-            e.stack = traceback.format_exc()
-            logger.error(error_message, extra=log_json(self.req_context, Util.get_req_params(request), e))
-
-        except ImportError as e:
-            error_message = str(e)
-            e.stack = traceback.format_exc()
-            logger.error(error_message, extra=log_json(self.req_context, Util.get_req_params(request), e))
-
-        except EOFError as e:
-            error_message = str(e)
-            e.stack = traceback.format_exc()
-            logger.error(error_message, extra=log_json(self.req_context, Util.get_req_params(request), e))
-
-        except KeyboardInterrupt as e:
-            # logger.debug(self.logprefix + 'You cancelled the operation.')
-            error_message = str(e)
-            e.stack = traceback.format_exc()
-            logger.error(error_message, extra=log_json(self.req_context, Util.get_req_params(request), e))
-
-        except AttributeError as e:
-            error_message = str(e)
-            e.stack = traceback.format_exc()
-            logger.error(error_message, extra=log_json(self.req_context, Util.get_req_params(request), e))
 
         except Exception as e:
             error_message = str(e)
@@ -157,7 +97,10 @@ class AbsBaseLink(APIView):
 
         if settings.FRONT_WEB:
             return HttpResponseRedirect("/" + str(status.HTTP_400_BAD_REQUEST))
-        return HttpResponse({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
+        # return HttpResponse({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
+        return HttpResponse(Util.json_error_response(self.req_context, settings.ERR_MSG_CLASS, error),
+                            status=status.HTTP_400_BAD_REQUEST, mimetype='application/json')
+
 
     def process_finally(self, request, orig_log_level):
         if Util.isDebugEnabled(self.req_context, request):
@@ -165,52 +108,6 @@ class AbsBaseLink(APIView):
                 logger.setLevel(orig_log_level)
                 logger.info("process_finally - back to orig:" + str(orig_log_level),
                                 extra=log_json(self.req_context))
-
-    def split_locale_from_request(self, request):
-        locale = ''
-        if request.META.get("QUERY_STRING", ""):
-            path = request.META['QUERY_STRING']
-            key = "_="
-            if key in path:
-                if "&" in path:
-                    list = path.split("&")
-                    for l in list:
-                        param = l
-                        if key in param:
-                            vals = param.split("=")
-                            if len(vals) > 1:
-                                locale = vals[1]
-                else:
-                    vals = path.split("=")
-                    if len(vals) > 1:
-                        locale = vals[1]
-        logger.debug('split_locale_from_request:  ' + str(locale), extra=log_json(self.req_context))
-        return locale
-
-        # es,ar;q=0.9,he-IL;q=0.8,he;q=0.7,en-US;q=0.6,en;q=0.5,es-ES;q=0.4
-    def get_user_locale(self, request):
-        locale = self.split_locale_from_request(request)
-        if (not locale) or (locale == ''):
-            if 'HTTP_ACCEPT_LANGUAGE' in request.META:
-                self.user_languages = request.META.get('HTTP_ACCEPT_LANGUAGE', self.user_locale+",")
-                logger.debug('user_languages:  ' + str(self.user_languages), extra=log_json(self.req_context))
-                arr = self.user_languages.split(",")
-                for l in arr:
-                    if "-" in l:
-                        if ";" not in l:
-                            self.user_locale = l
-                        else:
-                            self.user_locale = l.split(";")[0]
-                        break
-                    else:
-                        continue
-        else:
-            self.user_locale = locale
-        logger.debug('process LOCALE_CODE:  ' + str(self.user_locale), extra=log_json(self.req_context))
-        if settings.GET_LANGUAGE:
-            #translation.activate(self.user_locale)
-            self.user_lang = self.user_locale.split("-")[0]#translation.get_language().split("-")[0]
-        logger.debug('process LANGUAGE_CODE:  ' + str(self.user_lang), extra=log_json(self.req_context))
 
 
     def get(self, request, format=None):

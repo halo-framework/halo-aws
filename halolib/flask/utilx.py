@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+import importlib
+import json
 # python
 import logging
 import os
@@ -359,12 +361,16 @@ class Util:
     """
 
     @staticmethod
-    def json_data_response(data):
-        return Response({"data": data})
+    def json_data_response(data, status_code=200):
+        return Response(json.dumps({"data": data}), status=status_code)
 
     @staticmethod
-    def json_error_response(code, msg, requestId):
-        return Response({"error": {"code": code, "message": msg, "requestId": requestId}})
+    def json_error_response(req_context, clazz, e):  # code, msg, requestId):
+        module = importlib.import_module(clazz)
+        my_class = getattr(module, 'ErrorMessages')
+        msgs = my_class()
+        code, msg = msgs.get_code(e)
+        return json.dumps({"error": {"code": code, "message": msg, "trace_id": req_context["x-correlation-id"]}})
 
     @staticmethod
     def get_req_params(request):
