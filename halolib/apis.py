@@ -13,9 +13,11 @@ from .exceptions import MaxTryHttpException, ApiError
 from .logs import log_json
 from .settingsx import settingsx
 
-# aws
-# common
-# django
+try:
+    from .util import Util
+except:
+    from .flask.utilx import Util
+
 settings = settingsx()
 
 # DRF
@@ -28,15 +30,13 @@ headers = {
 logger = logging.getLogger(__name__)
 
 
-
-def exec_client(req_context, method, url, api_type, data=None, headers=None):
+def exec_client(req_context, method, url, api_type, timeout, data=None, headers=None):
     msg = "Max Try for url: " + str(url)
     for i in range(0, settings.HTTP_MAX_RETRY):
         try:
             logger.debug("try: " + str(i), extra=log_json(req_context))
             ret = requests.request(method, url, data=data, headers=headers,
-                                   timeout=(
-                                   settings.SERVICE_CONNECT_TIMEOUT_IN_MS, settings.SERVICE_READ_TIMEOUT_IN_MS))
+                                   timeout=timeout)
             logger.debug("status_code=" + str(ret.status_code), extra=log_json(req_context))
             if ret.status_code >= 500:
                 if i > 0:
@@ -110,11 +110,11 @@ class AbsBaseApi(object):
         self.url = strx
         return self.url
 
-    def process(self, method, url, data=None, headers=None):
+    def process(self, method, url, timeout, data=None, headers=None):
         try:
             logger.debug("method: " + str(method) + " url: " + str(url), extra=log_json(self.req_context))
             now = datetime.datetime.now()
-            ret = exec_client(self.req_context, method, url, self.api_type, data=data, headers=headers)
+            ret = exec_client(self.req_context, method, url, self.api_type, timeout, data=data, headers=headers)
             total = datetime.datetime.now() - now
             logger.info("performance_data", extra=log_json(self.req_context,
                                                            {"type": "API", "milliseconds": int(total.total_seconds() * 1000),
@@ -124,49 +124,57 @@ class AbsBaseApi(object):
         except requests.ConnectionError as e:
             msg = str(e)
             logger.debug("error: " + msg, extra=log_json(self.req_context))
-            raise e
+            er = ApiError(e)
+            er.status_code = 500
+            raise er
         except requests.HTTPError as e:
             msg = str(e)
             logger.debug("error: " + msg, extra=log_json(self.req_context))
-            raise e
+            er = ApiError(e)
+            er.status_code = 500
+            raise er
         except requests.Timeout as e:
             msg = str(e)
             logger.debug("error: " + msg, extra=log_json(self.req_context))
-            raise e
+            er = ApiError(e)
+            er.status_code = 500
+            raise er
         except requests.RequestException as e:
             msg = str(e)
             logger.debug("error: " + msg, extra=log_json(self.req_context))
-            raise e
-        except Exception as e:
+            er = ApiError(e)
+            er.status_code = 500
+            raise er
+        except ApiError as e:
             msg = str(e)
             logger.debug("error: " + msg, extra=log_json(self.req_context))
-            raise ApiError(e)
+            raise e
 
-    def get(self, headers=None):
+    def get(self, timeout, headers=None):
         if headers is None:
             headers = headers
-        return self.process('GET', self.url, headers=headers)
+        return self.process('GET', self.url, timeout, headers=headers)
 
-    def post(self, data, headers=None):
+    def post(self, data, timeout, headers=None):
         logger.debug("payload=" + str(data))
         if headers is None:
             headers = headers
-        return self.process('POST', self.url, data=data, headers=headers)
+        return self.process('POST', self.url, timeout, data=data, headers=headers)
 
-    def put(self, data, headers=None):
+    def put(self, data, timeout, headers=None):
         if headers is None:
             headers = headers
-        return self.process('PUT', self.url, data=data, headers=headers)
+        return self.process('PUT', self.url, timeout, data=data, headers=headers)
 
-    def patch(self, data, headers=None):
+    def patch(self, data, timeout, headers=None):
         if headers is None:
             headers = headers
-        return self.process('PATCH', self.url, data=data, headers=headers)
+        return self.process('PATCH', self.url, timeout, data=data, headers=headers)
 
-    def delete(self, headers=None):
+    def delete(self, timeout, headers=None):
         if headers is None:
             headers = headers
-        return self.process('DELETE', self.url, headers=headers)
+        return self.process('DELETE', self.url, timeout, headers=headers)
 
     def fwd_process(self, typer, request, vars, headers):
         verb = typer.value
@@ -174,7 +182,7 @@ class AbsBaseApi(object):
             data = None
         else:
             data = request.data
-        return self.process(verb, self.url, data=data, headers=headers)
+        return self.process(verb, self.url, Util.get_timeout(request), data=data, headers=headers)
 
 
 class ApiMngr(object):

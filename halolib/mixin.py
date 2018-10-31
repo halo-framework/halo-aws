@@ -242,8 +242,9 @@ class TestMixin(AbsApiMixin):
             api = ApiTest(self.req_context)
             # api.set_api_url("upcid", upc)
             # api.set_api_query(request)
+            timeout = Util.get_timeout(request)
             try:
-                ret = api.get()
+                ret = api.get(timeout)
             except ApiError as e:
                 logger.debug("we did it", extra=log_json(self.req_context, Util.get_req_params(request), e))
                 return {"test": "bad"}, 400
@@ -262,42 +263,68 @@ class TestMixin(AbsApiMixin):
             apis = {"BookHotel": self.create_api1, "BookFlight": self.create_api2, "BookRental": self.create_api3,
                     "CancelHotel": self.create_api4, "CancelFlight": self.create_api5, "CancelRental": self.create_api6}
             try:
+                self.context = Util.get_lambda_context(request)
                 ret = sagax.execute(self.req_context, payloads, apis)
                 return {"test": "good"}, 200
             except SagaRollBack as e:
+                print("xyz=" + str(e))
                 return {"test": "bad"}, 500
 
     def create_api1(self, api, results, payload):
         print("create_api1=" + str(api) + " result=" + str(results))
         api.set_api_url("upcid", self.upc)
-        return api.get(payload)
+        if self.context:
+            timeout = Util.get_timeout_milli(self.context)
+        else:
+            timeout = 100
+        return api.get(timeout)
 
     def create_api2(self, api, results, payload):
         print("create_api2=" + str(api) + " result=" + str(results))
         api.set_api_url("upcid", self.upc)
-        return api.get(payload)
+        if self.context:
+            timeout = Util.get_timeout_milli(self.context)
+        else:
+            timeout = 100
+        return api.get(timeout)
 
     def create_api3(self, api, results, payload):
         print("create_api3=" + str(api) + " result=" + str(results))
         api.set_api_url("upcid", self.upc)
+        if self.context:
+            timeout = Util.get_timeout_milli(self.context)
+        else:
+            timeout = 100
         if self.typer == self.typer.post:
-            return api.post(payload)
-        return api.get(payload)
+            return api.post(payload, timeout)
+        return api.get(timeout)
 
     def create_api4(self, api, results, payload):
         print("create_api4=" + str(api) + " result=" + str(results))
         api.set_api_url("upcid", self.upc)
-        return api.get(payload)
+        if self.context:
+            timeout = Util.get_timeout_milli(self.context)
+        else:
+            timeout = 100
+        return api.get(timeout)
 
     def create_api5(self, api, results, payload):
         print("create_api5=" + str(api) + " result=" + str(results))
         api.set_api_url("upcid", self.upc)
-        return api.get(payload)
+        if self.context:
+            timeout = Util.get_timeout_milli(self.context)
+        else:
+            timeout = 100
+        return api.get(timeout)
 
     def create_api6(self, api, results, payload):
         print("create_api6=" + str(api) + " result=" + str(results))
         api.set_api_url("upcid", self.upc)
-        return api.get(payload)
+        if self.context:
+            timeout = Util.get_timeout_milli(self.context)
+        else:
+            timeout = 100
+        return api.get(timeout)
 
 
 """

@@ -231,8 +231,9 @@ class TestMixinX(AbsApiMixinX):
             api = ApiTest(self.req_context)
             # api.set_api_url("upcid", upc)
             # api.set_api_query(request)
+            timeout = Util.get_timeout(request)
             try:
-                ret = api.get()
+                ret = api.get(timeout)
             except ApiError as e:
                 logger.debug("we did it", extra=log_json(self.req_context, Util.get_req_params(request), e))
                 return {"test1": "bad"}, 400

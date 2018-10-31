@@ -7,6 +7,9 @@ from .exceptions import HaloException, HaloError
 logger = logging.getLogger(__name__)
 
 """
+
+https://github.com/flowpl/saga_py
+
 We'll need a transaction log for the saga
 this is our coordinator for the saga Functions
 Because the compensating requests can also fail  we need to be able to retry them until success, which means they have to be idempotent.
@@ -159,12 +162,16 @@ class Saga(object):
                 self.slog.log(req_context, SagaLog.failTx, tname)
                 self.slog.log(req_context, SagaLog.abortSaga, self.name)
                 logger.debug("ApiError=" + str(e))
-                rollback = e
-                tname = self.__get_action(tname).compensate(e.status_code)
+                if rollback is None:
+                    rollback = e
+                    tname = self.__get_action(tname).compensate(e.status_code)
+                else:
+                    raise SagaError(rollback, [e])
             except BaseException as e:
+                self.slog.log(req_context, SagaLog.failTx, tname)
                 logger.debug("e=" + str(e))
                 self.slog.log(req_context, SagaLog.errorSaga, self.name)
-                raise SagaError(e)
+                raise SagaError(e, [])
 
 
             if type(kwargs) is not dict:

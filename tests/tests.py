@@ -51,7 +51,8 @@ class TestUserDetailTestCase(APITestCase):
     def test_api_request_returns_a_given_string(self):
         request = self.mock_request('GET')
         api = ApiTest(Util.get_req_context(request))
-        response = api.get()
+        timeout = Util.get_timeout(request)
+        response = api.get(timeout)
         print("google response " + str(response.content))
         eq_(response.status_code, status.HTTP_200_OK)
 
@@ -59,8 +60,9 @@ class TestUserDetailTestCase(APITestCase):
         request = self.mock_request('GET')
         api = ApiTest(Util.get_req_context(request))
         api.url = api.url + "/lgkmlgkhm??l,mhb&&,g,hj "
+        timeout = Util.get_timeout(request)
         try:
-            response = api.get()
+            response = api.get(timeout)
         except ApiError as e:
             eq_(e.status_code, status.HTTP_404_NOT_FOUND)
 

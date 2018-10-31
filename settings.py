@@ -375,9 +375,13 @@ USER_HEADERS = 'Mozilla/5.0'
 
 MIXIN_HANDLER = 'loader1service.api.mixin.mixin_handler'
 
-SERVICE_READ_TIMEOUT_IN_MS = 3  # in seconds
+SERVICE_READ_TIMEOUT_IN_MS = 3  # in seconds = 3000
 
 SERVICE_CONNECT_TIMEOUT_IN_MS = 3  # in seconds
+
+RECOVER_TIME_MILLI = 500
+
+MINIMUM_SERVICE_TIMEOUT_IN_MS = 100
 
 HTTP_MAX_RETRY = 4
 
@@ -395,7 +399,7 @@ INSTANCE_ID = uuid.uuid4().__str__()[0:4]
 
 LOG_SAMPLE_RATE = 0.05  # 5%
 
-ERR_MSG_CLASS = 'halolib.halolib.mixin_err_msg'
+ERR_MSG_CLASS = 'halolib.mixin_err_msg'
 
 #######################################################################################3
 

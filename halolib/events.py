@@ -19,8 +19,6 @@ except:
     from .flask.utilx import Util
 from .settingsx import settingsx
 
-# common
-# django
 settings = settingsx()
 
 logger = logging.getLogger(__name__)

@@ -99,7 +99,7 @@ class AbsBaseLink(APIView):
             return HttpResponseRedirect("/" + str(status.HTTP_400_BAD_REQUEST))
         # return HttpResponse({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
         return HttpResponse(Util.json_error_response(self.req_context, settings.ERR_MSG_CLASS, error),
-                            status=status.HTTP_400_BAD_REQUEST, mimetype='application/json')
+                            status=status.HTTP_400_BAD_REQUEST, content_type='application/json')
 
 
     def process_finally(self, request, orig_log_level):

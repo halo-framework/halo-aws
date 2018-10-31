@@ -43,6 +43,10 @@ class MaxTryRpcException(MaxTryException):
     pass
 
 
+class ApiTimeOutExpired(ApiException):
+    pass
+
+
 class ApiError(HaloError):
     pass
 
