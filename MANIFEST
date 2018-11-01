@@ -2,6 +2,7 @@
 setup.py
 halolib\__init__.py
 halolib\apis.py
+halolib\base_util.py
 halolib\cache.py
 halolib\const.py
 halolib\events.py
