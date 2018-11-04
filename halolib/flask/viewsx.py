@@ -109,23 +109,23 @@ class AbsBaseLinkX(MethodView):
                 logger.info("process_finally - back to orig:" + str(orig_log_level),
                             extra=log_json(self.req_context))
 
-    def get(self):
+    def get(self, format=None):
         vars = {}
         return self.do_process(request, HTTPChoice.get, vars, format)
 
-    def post(self):
+    def post(self, format=None):
         vars = {}
         return self.do_process(request, HTTPChoice.post, vars, format)
 
-    def put(self):
+    def put(self, format=None):
         vars = {}
         return self.do_process(request, HTTPChoice.put, vars, format)
 
-    def patch(self):
+    def patch(self, format=None):
         vars = {}
         return self.do_process(request, HTTPChoice.patch, vars, format)
 
-    def delete(self):
+    def delete(self, format=None):
         vars = {}
         return self.do_process(request, HTTPChoice.delete, vars, format)
 

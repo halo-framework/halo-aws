@@ -89,9 +89,8 @@ class AbsBaseApi(object):
         self.url = strx
         return self.url
 
-    def set_api_query(self, request):
+    def set_api_query(self, query):
         strx = self.url
-        query = request.META['QUERY_STRING']
         if "?" in self.url:
             strx = strx + "&" + query
         else:
