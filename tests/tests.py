@@ -154,7 +154,7 @@ class TestUserDetailTestCase(APITestCase):
         a, b = m.get_pre_val()
         eq_(a, "123")
 
-    def test_model_idem(self):
+    def test_model_idem_id(self):
         from pynamodb.attributes import UTCDateTimeAttribute, UnicodeAttribute
         class TestModel(AbsModel):
             class Meta:
@@ -168,6 +168,33 @@ class TestUserDetailTestCase(APITestCase):
         m.pkey = "456"
         ret = m.get_idempotent_id("123")
         eq_(ret, "8b077e79d995ac82ea9217c7b34c8b57")
+
+    def test_model_idem_db(self):
+        from pynamodb.attributes import UTCDateTimeAttribute, UnicodeAttribute
+        from pynamodb.exceptions import PutError
+        import datetime
+        import uuid
+        class TestModel(AbsModel):
+            class Meta:
+                table_name = 'tbl-upc-53-tst'
+                host = "http://localhost:8600"
+
+            created_on = UTCDateTimeAttribute(null=False)
+            pkey = UnicodeAttribute(hash_key=True)
+
+        if not TestModel.exists():
+            TestModel.create_table(read_capacity_units=1, write_capacity_units=1)
+        m = TestModel()
+        m.pkey = str(uuid.uuid4())
+        m.created_on = datetime.datetime.utcnow()
+        uu_id = str(uuid.uuid4())
+        ret = m.save(uu_id)
+        try:
+            ret1 = m.save(uu_id)
+        except PutError as e:
+            print(str(e))
+            ret1 = ret
+        eq_(ret, ret1)
 
     def test_load_saga(self):
         with open("saga.json") as f:
