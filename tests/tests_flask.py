@@ -4,13 +4,12 @@ import json
 import os
 
 from faker import Faker
+from flask_api import status
 from nose.tools import eq_
-from rest_framework import status
-from rest_framework.test import APITestCase
 
 fake = Faker()
 
-import django
+import flask
 
 from halolib.util import Util
 from halolib.apis import ApiTest
@@ -21,7 +20,7 @@ from halolib.models import AbsModel
 
 # from django.conf import settings
 # settings.configure(default_settings=settings, DEBUG=True)
-django.setup()
+flask.setup()
 
 
 class TestUserDetailTestCase(APITestCase):
@@ -187,10 +186,10 @@ class TestUserDetailTestCase(APITestCase):
         m = TestModel()
         m.pkey = str(uuid.uuid4())
         m.created_on = datetime.datetime.utcnow()
-        uu_id = str(uuid.uuid4())
-        ret = m.save(uu_id)
+        request_id = str(uuid.uuid4())
+        ret = m.save(request_id)
         try:
-            ret1 = m.save(uu_id)
+            ret1 = m.save(request_id)
         except PutError as e:
             print(str(e))
             ret1 = ret
