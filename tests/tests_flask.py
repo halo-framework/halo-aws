@@ -4,26 +4,27 @@ import json
 import os
 
 from faker import Faker
-from flask_api import status
+from flask import request
+from flask_api import status, FlaskAPI
 from nose.tools import eq_
 
 fake = Faker()
 
-import flask
-
-from halolib.util import Util
+from halolib.flask.utilx import Util
 from halolib.apis import ApiTest
 from halolib.exceptions import ApiError
 from halolib.logs import log_json
 from halolib import saga
 from halolib.models import AbsModel
-
-# from django.conf import settings
+import unittest
 # settings.configure(default_settings=settings, DEBUG=True)
-flask.setup()
+app = FlaskAPI(__name__)
+app.config.from_object('settings')
 
 
-class TestUserDetailTestCase(APITestCase):
+# app.run(debug=False, use_reloader=False,host='0.0.0.0')
+
+class TestUserDetailTestCase(unittest.TestCase):
     """
     Tests /users detail operations.
     """
@@ -32,86 +33,80 @@ class TestUserDetailTestCase(APITestCase):
         self.url = 'http://127.0.0.1:8000/?abc=def'
         self.perf_url = 'http://127.0.0.1:8000/perf'
 
-    def mock_request(self, type, header={}):
-        from django.test.client import RequestFactory
-        rf = RequestFactory()
-        if type == 'GET':
-            get_request = rf.get('/hello/', **header)
-            return get_request
-        else:
-            post_request = rf.post('/submit/', {'foo': 'bar'}, **header)
-            return post_request
 
     def test_get_request_returns_a_given_string(self):
-        response = self.client.get(self.url)
+        tester = app.test_client()
+        response = tester.get(self.url)
         eq_(response.status_code, status.HTTP_200_OK)
         eq_(json.loads(response.content), {"test": "good"})
 
     def test_api_request_returns_a_given_string(self):
-        request = self.mock_request('GET')
-        api = ApiTest(Util.get_req_context(request))
-        timeout = Util.get_timeout(request)
-        response = api.get(timeout)
-        print("google response " + str(response.content))
-        eq_(response.status_code, status.HTTP_200_OK)
+        with app.test_request_context(method='GET', path='/?a=b'):
+            api = ApiTest(Util.get_req_context(request))
+            timeout = Util.get_timeout(request)
+            response = api.get(timeout)
+            print("google response " + str(response.content))
+            eq_(response.status_code, status.HTTP_200_OK)
 
     def test_api_request_returns_a_fail(self):
-        request = self.mock_request('GET')
-        api = ApiTest(Util.get_req_context(request))
-        api.url = api.url + "/lgkmlgkhm??l,mhb&&,g,hj "
-        timeout = Util.get_timeout(request)
-        try:
-            response = api.get(timeout)
-        except ApiError as e:
-            eq_(e.status_code, status.HTTP_404_NOT_FOUND)
+        with app.test_request_context(method='GET', path='/?a=b'):
+            api = ApiTest(Util.get_req_context(request))
+            api.url = api.url + "/lgkmlgkhm??l,mhb&&,g,hj "
+            timeout = Util.get_timeout(request)
+            try:
+                response = api.get(timeout)
+            except ApiError as e:
+                eq_(e.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_send_event(self):
-        from halolib.events import AbsBaseEvent
-        class Event1Event(AbsBaseEvent):
-            target_service = 'func1'
-            key_name = 'def'
-            key_val = '456'
+        with app.test_request_context(method='GET', path='/?a=b'):
+            from halolib.events import AbsBaseEvent
+            class Event1Event(AbsBaseEvent):
+                target_service = 'func1'
+                key_name = 'def'
+                key_val = '456'
 
-        event = Event1Event()
-        dict = {"name": "david"}
-        response = event.send_event(dict)
-        print("event response " + str(response))
-        eq_(response, 'sent event')
+            event = Event1Event()
+            dict = {"name": "david"}
+            response = event.send_event(dict)
+            print("event response " + str(response))
+            eq_(response, 'sent event')
 
     def test_system_debug_enabled(self):
-        os.environ['DEBUG_LOG'] = 'true'
-        flag = 'false'
-        for i in range(0, 60):
-            ret = Util.get_system_debug_enabled()
-            print(ret)
-            if ret == 'true':
-                flag = ret
-        eq_(flag, 'true')
+        with app.test_request_context(method='GET', path='/?a=b'):
+            os.environ['DEBUG_LOG'] = 'true'
+            flag = 'false'
+            for i in range(0, 80):
+                ret = Util.get_system_debug_enabled()
+                print(ret)
+                if ret == 'true':
+                    flag = ret
+            eq_(flag, 'true')
 
     def test_debug_enabled(self):
         header = {'HTTP_DEBUG_LOG_ENABLED': 'true'}
-        req = self.mock_request('GET', header)
-        ret = Util.get_req_context(req)
-        eq_(ret["debug-log-enabled"], 'true')
+        with app.test_request_context(method='GET', path='/?a=b', headers=header):
+            ret = Util.get_req_context(request)
+            eq_(ret["debug-log-enabled"], 'true')
 
     def test_json_log(self):
         import traceback
         header = {'HTTP_DEBUG_LOG_ENABLED': 'true'}
-        req = self.mock_request('GET', header)
-        req_context = Util.get_req_context(req)
-        try:
-            raise Exception("test it")
-        except Exception as e:
-            e.stack = traceback.format_exc()
-            ret = log_json(req_context, {"abc": "def"}, err=e)
-            print(str(ret))
-            eq_(ret["debug-log-enabled"], 'true')
+        with app.test_request_context(method='GET', path='/?a=b', headers=header):
+            req_context = Util.get_req_context(request)
+            try:
+                raise Exception("test it")
+            except Exception as e:
+                e.stack = traceback.format_exc()
+                ret = log_json(req_context, {"abc": "def"}, err=e)
+                print(str(ret))
+                eq_(ret["debug-log-enabled"], 'true')
 
     def test_get_request_with_debug(self):
         header = {'HTTP_DEBUG_LOG_ENABLED': 'true'}
-        req = self.mock_request('GET', header)
-        ret = Util.get_debug_enabled(req)
-        eq_(ret, 'true')
+        with app.test_request_context(method='GET', path='/?a=b', headers=header):
+            ret = Util.get_debug_enabled(request)
+            eq_(ret, 'true')
 
     def test_debug_event(self):
         event = {'debug-log-enabled': 'true'}
@@ -121,7 +116,8 @@ class TestUserDetailTestCase(APITestCase):
         eq_(ret["debug-log-enabled"], 'true')
 
     def test_pref_mixin(self):
-        response = self.client.get(self.perf_url)
+        tester = app.test_client()
+        response = tester.get(self.perf_url)
         eq_(response.status_code, status.HTTP_200_OK)
 
     def test_model_get_pre(self):
@@ -202,11 +198,13 @@ class TestUserDetailTestCase(APITestCase):
         eq_(len(sagax.actions), 6)
 
     def test_run_saga(self):
-        response = self.client.put(self.url)
+        tester = app.test_client()
+        response = tester.get(self.url)
         eq_(response.status_code, status.HTTP_200_OK)
 
     def test_rollback_saga(self):
-        response = self.client.post(self.url)
+        tester = app.test_client()
+        response = tester.get(self.url)
         eq_(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def test_ssm(self):  # @TODO

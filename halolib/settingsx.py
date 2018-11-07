@@ -7,7 +7,6 @@ try:
 except:
     try:
         from flask import current_app as app
-
         flx = True
     except:
         pass

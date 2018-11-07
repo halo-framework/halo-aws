@@ -48,7 +48,7 @@ os.environ["HALO_TYPE"] = ENV_TYPE
 ENV_NAME = LOC  # env.str('ENV_NAME')
 os.environ["HALO_STAGE"] = ENV_NAME  # done in settings json file
 
-FUNC_NAME = env.str('FUNC_NAME')
+FUNC_NAME = env.str('FUNC_NAME', 'halolib')
 os.environ['HALO_FUNC_NAME'] = FUNC_NAME  # done in settings json file
 os.environ['HALO_APP_NAME'] = 'app'  #done in settings json file
 
