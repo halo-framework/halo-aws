@@ -16,6 +16,11 @@ logger = logging.getLogger(__name__)
 
 
 def strx(str1):
+    """
+
+    :param str1:
+    :return:
+    """
     if str1:
         try:
             return str1.encode('utf-8').strip()
@@ -29,7 +34,11 @@ class Util(BaseUtil):
 
     @staticmethod
     def get_chrome_browser(request):
+        """
 
+        :param request:
+        :return:
+        """
         CHROME_AGENT_RE = re.compile(r".*(Chrome)", re.IGNORECASE)
         NON_CHROME_AGENT_RE = re.compile(
             r".*(Aviator | ChromePlus | coc_ | Dragon | Edge | Flock | Iron | Kinza | Maxthon | MxNitro | Nichrome | OPR | Perk | Rockmelt | Seznam | Sleipnir | Spark | UBrowser | Vivaldi | WebExplorer | YaBrowser)",
@@ -45,7 +54,10 @@ class Util(BaseUtil):
 
     @staticmethod
     def mobile(request):
-        """Return True if the request comes from a mobile device."""
+        """Return True if the request comes from a mobile device.
+        :param request:
+        :return:
+        """
 
         MOBILE_AGENT_RE = re.compile(r".*(iphone|mobile|androidtouch)", re.IGNORECASE)
 
@@ -56,6 +68,11 @@ class Util(BaseUtil):
 
     @staticmethod
     def get_lambda_context(request):
+        """
+
+        :param request:
+        :return:
+        """
         # AWS_REGION
         # AWS_LAMBDA_FUNCTION_NAME
         # 'lambda.context'
@@ -69,6 +86,11 @@ class Util(BaseUtil):
 
     @classmethod
     def get_correlation_id(cls, request):
+        """
+
+        :param request:
+        :return:
+        """
         if "HTTP_X_CORRELATION_ID" in request.headers:
             x_correlation_id = request.headers["HTTP_X_CORRELATION_ID"]
         else:
@@ -77,6 +99,11 @@ class Util(BaseUtil):
 
     @classmethod
     def get_user_agent(cls, request):
+        """
+
+        :param request:
+        :return:
+        """
         if "HTTP_X_USER_AGENT" in request.headers:
             user_agent = request.headers["HTTP_X_USER_AGENT"]
         else:
@@ -85,6 +112,11 @@ class Util(BaseUtil):
 
     @classmethod
     def get_debug_enabled(cls, request):
+        """
+
+        :param request:
+        :return:
+        """
         # check if the specific call is debug enabled
         if "HTTP_DEBUG_LOG_ENABLED" in request.headers:
             dlog = request.headers["HTTP_DEBUG_LOG_ENABLED"]
@@ -99,6 +131,11 @@ class Util(BaseUtil):
 
     @staticmethod
     def get_headers(request):
+        """
+
+        :param request:
+        :return:
+        """
         regex_http_ = re.compile(r'^HTTP_.+$')
         regex_content_type = re.compile(r'^CONTENT_TYPE$')
         regex_content_length = re.compile(r'^CONTENT_LENGTH$')
@@ -111,6 +148,11 @@ class Util(BaseUtil):
 
     @staticmethod
     def get_return_code_tag(request):
+        """
+
+        :param request:
+        :return:
+        """
         tag = "tag"
         if "x-code-tag-id" in request.headers:
             tag = request.headers["x-code-tag-id"]
@@ -118,6 +160,11 @@ class Util(BaseUtil):
 
     @staticmethod
     def get_client_ip(request):  # front - when browser calls us
+        """
+
+        :param request:
+        :return:
+        """
         x_forwarded_for = request.headers.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
             ip = x_forwarded_for.split(',')[0]
@@ -127,6 +174,11 @@ class Util(BaseUtil):
 
     @staticmethod
     def get_server_client_ip(request):  # not front - when service calls us
+        """
+
+        :param request:
+        :return:
+        """
         return request.headers.get('HTTP_REFERER')
 
 
@@ -155,10 +207,21 @@ class Util(BaseUtil):
 
     @staticmethod
     def json_data_response(data, status_code=200):
+        """
+
+        :param data:
+        :param status_code:
+        :return:
+        """
         return Response(json.dumps({"data": data}), status=status_code)
 
     @staticmethod
     def get_req_params(request):
+        """
+
+        :param request:
+        :return:
+        """
         qd = {}
         if request.method == 'GET':
             qd = request.args

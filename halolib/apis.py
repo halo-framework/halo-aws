@@ -31,6 +31,17 @@ logger = logging.getLogger(__name__)
 
 
 def exec_client(req_context, method, url, api_type, timeout, data=None, headers=None):
+    """
+
+    :param req_context:
+    :param method:
+    :param url:
+    :param api_type:
+    :param timeout:
+    :param data:
+    :param headers:
+    :return:
+    """
     msg = "Max Try for url: " + str(url)
     for i in range(0, settings.HTTP_MAX_RETRY):
         try:
@@ -78,11 +89,21 @@ class AbsBaseApi(object):
         self.url, self.api_type = self.get_url_str()
 
     def get_url_str(self):
+        """
+
+        :return:
+        """
         api_config = settings.API_CONFIG
         logger.debug("api_config: " + str(api_config), extra=log_json(self.req_context))
         return api_config[self.name]["url"], api_config[self.name]["type"]
 
     def set_api_url(self, key, val):
+        """
+
+        :param key:
+        :param val:
+        :return:
+        """
         strx = self.url
         strx = strx.replace("$" + str(key), str(val))
         logger.debug("url replace var: " + strx, extra=log_json(self.req_context))
@@ -90,6 +111,11 @@ class AbsBaseApi(object):
         return self.url
 
     def set_api_query(self, query):
+        """
+
+        :param query:
+        :return:
+        """
         strx = self.url
         if "?" in self.url:
             strx = strx + "&" + query
@@ -100,6 +126,11 @@ class AbsBaseApi(object):
         return self.url
 
     def set_api_params(self, params):
+        """
+
+        :param params:
+        :return:
+        """
         strx = self.url
         if "?" in self.url:
             strx = strx + "&" + params
@@ -110,6 +141,15 @@ class AbsBaseApi(object):
         return self.url
 
     def process(self, method, url, timeout, data=None, headers=None):
+        """
+
+        :param method:
+        :param url:
+        :param timeout:
+        :param data:
+        :param headers:
+        :return:
+        """
         try:
             logger.debug("method: " + str(method) + " url: " + str(url), extra=log_json(self.req_context))
             now = datetime.datetime.now()
@@ -150,32 +190,73 @@ class AbsBaseApi(object):
             raise e
 
     def get(self, timeout, headers=None):
+        """
+
+        :param timeout:
+        :param headers:
+        :return:
+        """
         if headers is None:
             headers = headers
         return self.process('GET', self.url, timeout, headers=headers)
 
     def post(self, data, timeout, headers=None):
+        """
+
+        :param data:
+        :param timeout:
+        :param headers:
+        :return:
+        """
         logger.debug("payload=" + str(data))
         if headers is None:
             headers = headers
         return self.process('POST', self.url, timeout, data=data, headers=headers)
 
     def put(self, data, timeout, headers=None):
+        """
+
+        :param data:
+        :param timeout:
+        :param headers:
+        :return:
+        """
         if headers is None:
             headers = headers
         return self.process('PUT', self.url, timeout, data=data, headers=headers)
 
     def patch(self, data, timeout, headers=None):
+        """
+
+        :param data:
+        :param timeout:
+        :param headers:
+        :return:
+        """
         if headers is None:
             headers = headers
         return self.process('PATCH', self.url, timeout, data=data, headers=headers)
 
     def delete(self, timeout, headers=None):
+        """
+
+        :param timeout:
+        :param headers:
+        :return:
+        """
         if headers is None:
             headers = headers
         return self.process('DELETE', self.url, timeout, headers=headers)
 
     def fwd_process(self, typer, request, vars, headers):
+        """
+
+        :param typer:
+        :param request:
+        :param vars:
+        :param headers:
+        :return:
+        """
         verb = typer.value
         if verb == 'GET' or 'DELETE':
             data = None
@@ -192,12 +273,23 @@ class ApiMngr(object):
 
     @staticmethod
     def get_api(name):
+        """
+
+        :param name:
+        :return:
+        """
         logger.debug("get_api=" + name)
         if name in API_LIST:
             return API_LIST[name]
         return None
 
     def get_api_instance(self, class_name, **kwargs):
+        """
+
+        :param class_name:
+        :param kwargs:
+        :return:
+        """
         logger.debug("get_api_insance=" + class_name)
         module = importlib.import_module(__name__)
         class_ = getattr(module, class_name)

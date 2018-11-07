@@ -30,6 +30,11 @@ short_config_path = '/' + app_name + '/' + type + '/service'
 
 
 def get_client(region_name):
+    """
+
+    :param region_name:
+    :return:
+    """
     logger.debug("get_client")
     global client
     if not client:
@@ -49,6 +54,12 @@ DEFAULT_EXPIRY = 3 * 60 * 1000;  # default expiry is 3 mins
 
 
 def load_cache(config, expiryMs=DEFAULT_EXPIRY):
+    """
+
+    :param config:
+    :param expiryMs:
+    :return:
+    """
     if config is None:
         raise HaloError('you need to provide a non-empty config')
 
@@ -81,6 +92,11 @@ class MyConfig:
         self.region_name = region_name
 
     def get_param(self, key):
+        """
+
+        :param key:
+        :return:
+        """
         now = current_milli_time()
         if now <= self.cache.expiration:
             if key in self.cache.items:
@@ -132,11 +148,24 @@ def load_config(region_name, ssm_parameter_path):
 
 
 def set_param_config(region_name, key, value):
+    """
+
+    :param region_name:
+    :param key:
+    :param value:
+    :return:
+    """
     ssm_parameter_path = full_config_path + '/' + key
     return set_config(region_name, ssm_parameter_path, value)
 
 
 def set_app_param_config(region_name, host):
+    """
+
+    :param region_name:
+    :param host:
+    :return:
+    """
     ssm_parameter_path = short_config_path + '/' + app_config_path
     if host:
         url = "https://" + host + "/" + env
@@ -176,6 +205,12 @@ def set_config(region_name, ssm_parameter_path, value):
 
 
 def get_cache(region_name, path):
+    """
+
+    :param region_name:
+    :param path:
+    :return:
+    """
     logger.debug("get_cache")
     config = load_config(region_name, path)
     cache = load_cache(config)
@@ -183,6 +218,11 @@ def get_cache(region_name, path):
 
 
 def get_config(region_name):
+    """
+
+    :param region_name:
+    :return:
+    """
     # Initialize app if it doesn't yet exist
     logger.debug("Loading config and creating new MyConfig..." + full_config_path)
     cache = get_cache(region_name, full_config_path)
@@ -192,6 +232,11 @@ def get_config(region_name):
 
 
 def get_app_config(region_name):
+    """
+
+    :param region_name:
+    :return:
+    """
     # Initialize app if it doesn't yet exist
     logger.debug("Loading app config and creating new AppConfig..." + short_config_path)
     cache = get_cache(region_name, short_config_path)

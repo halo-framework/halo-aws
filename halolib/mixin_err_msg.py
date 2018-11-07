@@ -22,6 +22,11 @@ class ErrorMessages(object):
 
     @staticmethod
     def get_code(ex):
+        """
+
+        :param ex:
+        :return:
+        """
         e = type(ex).__name__
         logger.debug("e=" + e)
         if e in ErrorMessages.hashx:

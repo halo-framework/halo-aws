@@ -41,9 +41,19 @@ class AbsBaseMixin(object):
         self.name = self.get_name()
 
     def get_the_template(self, request, name):
+        """
+
+        :param request:
+        :param name:
+        :return:
+        """
         return loader.get_template(name)
 
     def get_root_url(self):
+        """
+
+        :return:
+        """
         if not settings.STAGE_URL:
             root = '/'
         else:
@@ -51,11 +61,21 @@ class AbsBaseMixin(object):
         return root
 
     def get_name(self):
+        """
+
+        :return:
+        """
         name = self.__class__.__name__
         new_name = name.replace('Link', '')
         return new_name
 
     def process_get(self, request, vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         try:
             t = self.get_the_template(request, self.name + '.html')
             root = self.get_root_url()
@@ -71,22 +91,60 @@ class AbsBaseMixin(object):
         return HttpResponse(html)
 
     def process_post(self, request, vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         return HttpResponse('this is a post on view ' + self.name)
 
     def process_put(self, request, vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         return HttpResponse('this is a put on view ' + self.name)
 
     def process_patch(self, request, vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         return HttpResponse('this is a patch on view ' + self.name)
 
     def process_delete(self, request, vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         return HttpResponse('this is a delete on view ' + self.name)
 
     def check_author(self, request, vars, json):
+        """
+
+        :param request:
+        :param vars:
+        :param json:
+        :return:
+        """
         # @TODO check authorization and do masking
         return True, json, None
 
     def check_authen(self, typer, request, vars):
+        """
+
+        :param typer:
+        :param request:
+        :param vars:
+        :return:
+        """
         # @TODO check authentication and do masking
         return True, None
 
@@ -95,10 +153,21 @@ class PerfMixin(AbsBaseMixin):
     now = None
 
     def get(self, request):
+        """
+
+        :param request:
+        :return:
+        """
         self.now = datetime.datetime.now()
         return self.do_process(request, HTTPChoice.get, {})
 
     def process_get(self, request, vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         logger.debug('perf: ' + str(settings.SSM_APP_CONFIG.cache.items))
         db = request.GET.get('db', None)
         urls = {}
@@ -135,6 +204,12 @@ class PerfMixin(AbsBaseMixin):
             urls) + " " + ret + " " + settings.VERSION)
 
     def process_db(self, request, vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         logger.debug('db perf: ')
         total = datetime.datetime.now() - self.now
         return 'db access: ' + str(total)

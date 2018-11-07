@@ -45,7 +45,14 @@ class AbsBaseLinkX(MethodView):
         super(AbsBaseLinkX, self).__init__(**kwargs)
 
     def do_process(self, request, typer, vars, format=None):
+        """
 
+        :param request:
+        :param typer:
+        :param vars:
+        :param format:
+        :return:
+        """
         now = datetime.datetime.now()
 
         self.req_context = Util.get_req_context(request)
@@ -103,6 +110,11 @@ class AbsBaseLinkX(MethodView):
                             status=status.HTTP_400_BAD_REQUEST, mimetype='application/json')
 
     def process_finally(self, request, orig_log_level):
+        """
+
+        :param request:
+        :param orig_log_level:
+        """
         if Util.isDebugEnabled(self.req_context, request):
             if logger.getEffectiveLevel() != orig_log_level:
                 logger.setLevel(orig_log_level)
@@ -110,22 +122,47 @@ class AbsBaseLinkX(MethodView):
                             extra=log_json(self.req_context))
 
     def get(self, format=None):
+        """
+
+        :param format:
+        :return:
+        """
         vars = {}
         return self.do_process(request, HTTPChoice.get, vars, format)
 
     def post(self, format=None):
+        """
+
+        :param format:
+        :return:
+        """
         vars = {}
         return self.do_process(request, HTTPChoice.post, vars, format)
 
     def put(self, format=None):
+        """
+
+        :param format:
+        :return:
+        """
         vars = {}
         return self.do_process(request, HTTPChoice.put, vars, format)
 
     def patch(self, format=None):
+        """
+
+        :param format:
+        :return:
+        """
         vars = {}
         return self.do_process(request, HTTPChoice.patch, vars, format)
 
     def delete(self, format=None):
+        """
+
+        :param format:
+        :return:
+        """
         vars = {}
         return self.do_process(request, HTTPChoice.delete, vars, format)
 
@@ -152,43 +189,76 @@ class AbsBaseLinkX(MethodView):
         return HttpResponse('this is a ' + str(typer) + ' on ' + self.get_view_name())
 
     def process_get(self, request, vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         return HttpResponse('this is process get on ' + self.get_view_name())
 
     def process_post(self, request, vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         return HttpResponse('this is process post on ' + self.get_view_name())
 
     def process_put(self, request, vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         return HttpResponse('this is process put on ' + self.get_view_name())
 
     def process_patch(self, request, vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         return HttpResponse('this is process patch on ' + self.get_view_name())
 
     def process_delete(self, request, vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         return HttpResponse('this is process delete on ' + self.get_view_name())
 
-    """def get_the_template(self, request,html):
-        return loader.get_template(html)
-
-    def get_template(self, request):
-        if Util.mobile(request):
-            t = loader.get_template(self.the_html)
-            the_mobile_web = self.the_tag
-        else:
-            t = loader.get_template(self.other_html)
-            the_mobile_web = self.other_tag
-        return t, the_mobile_web"""
-
     def get_client_ip(self, request):
+        """
+
+        :param request:
+        :return:
+        """
         ip = request.headers.get('REMOTE_ADDR')
         logger.debug("get_client_ip: " + str(ip), extra=log_json(self.req_context))
         return ip
 
     def get_jwt(self, request):
+        """
+
+        :param request:
+        :return:
+        """
         ip = self.get_client_ip(request)
         encoded_token = jwt.encode({'ip': ip}, settings.SECRET_JWT_KEY, algorithm='HS256')
         return encoded_token
 
     def check_jwt(self, request):  # return true if token matches
+        """
+
+        :param request:
+        :return:
+        """
         ip = self.get_client_ip(request)
         encoded_token = request.GET.get('jwt', None)
         if not encoded_token:
@@ -197,6 +267,11 @@ class AbsBaseLinkX(MethodView):
         return ip == decoded_token['ip']
 
     def get_jwt_str(self, request):
+        """
+
+        :param request:
+        :return:
+        """
         return '&jwt=' + self.get_jwt(request).decode()
 
 

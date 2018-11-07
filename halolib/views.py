@@ -48,7 +48,14 @@ class AbsBaseLink(APIView):
         super(AbsBaseLink, self).__init__(**kwargs)
 
     def do_process(self, request, typer, vars, format=None):
+        """
 
+        :param request:
+        :param typer:
+        :param vars:
+        :param format:
+        :return:
+        """
         now = datetime.datetime.now()
 
         self.req_context = Util.get_req_context(request)
@@ -103,6 +110,11 @@ class AbsBaseLink(APIView):
 
 
     def process_finally(self, request, orig_log_level):
+        """
+
+        :param request:
+        :param orig_log_level:
+        """
         if Util.isDebugEnabled(self.req_context, request):
             if logger.getEffectiveLevel() != orig_log_level:
                 logger.setLevel(orig_log_level)
@@ -111,28 +123,62 @@ class AbsBaseLink(APIView):
 
 
     def get(self, request, format=None):
+        """
+
+        :param request:
+        :param format:
+        :return:
+        """
         vars = {}
         return self.do_process(request, HTTPChoice.get, vars, format)
 
     def post(self, request, format=None):
+        """
+
+        :param request:
+        :param format:
+        :return:
+        """
         vars = {}
         return self.do_process(request, HTTPChoice.post, vars, format)
 
     def put(self, request, format=None):
+        """
+
+        :param request:
+        :param format:
+        :return:
+        """
         vars = {}
         return self.do_process(request, HTTPChoice.put, vars, format)
 
     def patch(self, request, format=None):
+        """
+
+        :param request:
+        :param format:
+        :return:
+        """
         vars = {}
         return self.do_process(request, HTTPChoice.patch, vars, format)
 
     def delete(self, request, format=None):
+        """
+
+        :param request:
+        :param format:
+        :return:
+        """
         vars = {}
         return self.do_process(request, HTTPChoice.delete, vars, format)
 
     def process(self,request,typer,vars):
         """
         Return a list of all users.
+        :param request:
+        :param typer:
+        :param vars:
+        :return:
         """
 
         if typer == HTTPChoice.get:
@@ -153,24 +199,59 @@ class AbsBaseLink(APIView):
         return HttpResponse('this is a '+str(typer)+' on '+self.get_view_name())
 
     def process_get(self,request,vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         return HttpResponse('this is process get on '+self.get_view_name())
 
     def process_post(self,request,vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         return HttpResponse('this is process post on '+self.get_view_name())
 
     def process_put(self,request,vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         return HttpResponse('this is process put on '+self.get_view_name())
 
     def process_patch(self, request, vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         return HttpResponse('this is process patch on ' + self.get_view_name())
 
     def process_delete(self,request,vars):
         return HttpResponse('this is process delete on '+self.get_view_name())
 
     def get_the_template(self, request,html):
+        """
+
+        :param request:
+        :param html:
+        :return:
+        """
         return loader.get_template(html)
 
     def get_template(self, request):
+        """
+        get the proper template
+        :param request:
+        :return:
+        """
         if Util.mobile(request):
             t = loader.get_template(self.the_html)
             the_mobile_web = self.the_tag
@@ -180,11 +261,21 @@ class AbsBaseLink(APIView):
         return t, the_mobile_web
 
     def get_client_ip(self,request):
+        """
+
+        :param request:
+        :return:
+        """
         ip = request.META.get('REMOTE_ADDR')
         logger.debug("get_client_ip: " + str(ip), extra=log_json(self.req_context))
         return ip
 
     def get_jwt(self, request):
+        """
+
+        :param request:
+        :return:
+        """
         ip = self.get_client_ip(request)
         encoded_token = jwt.encode({'ip': ip}, settings.SECRET_JWT_KEY, algorithm ='HS256')
         return encoded_token

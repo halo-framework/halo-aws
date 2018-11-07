@@ -39,11 +39,22 @@ class AbsBaseEvent(object):
     key_val = None
 
     def get_loc_url(self):
+        """
+
+        :return:
+        """
         if self.target_service in settings.LOC_TABLE:
             return settings.LOC_TABLE[self.target_service]
         raise NoTargetUrlException("not a local service")
 
     def send_event(self, messageDict, request=None, ctx=None):
+        """
+
+        :param messageDict:
+        :param request:
+        :param ctx:
+        :return:
+        """
         if messageDict:
             messageDict[self.key_name] = self.key_val
             messageDict[self.target_service + 'service_task_id'] = 'y'
@@ -96,6 +107,11 @@ class AbsMainHandler(object):
         self.process_event(event, context)
 
     def process_event(self, event, context):
+        """
+
+        :param event:
+        :param context:
+        """
         for key in self.keys:
             if key in event:
                 val = self.vals[key]
@@ -115,6 +131,11 @@ class AbsBaseHandler(object):
     key_val = None
 
     def do_event(self, event, context):
+        """
+
+        :param event:
+        :param context:
+        """
         req_context = Util.get_correlation_from_event(event)
         logger.debug(' get_event : ' + str(event), extra=log_json(req_context))
         self.process_event(event, context)

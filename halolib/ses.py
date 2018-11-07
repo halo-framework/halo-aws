@@ -55,6 +55,14 @@ CHARSET = "UTF-8"
 
 
 def send_mail(req_context, vars, from1=None, to=None):
+    """
+
+    :param req_context:
+    :param vars:
+    :param from1:
+    :param to:
+    :return:
+    """
     name1 = vars["name1"]
     email1 = vars["email1"]
     message1 = vars["message1"]

@@ -6,6 +6,12 @@ except:
     from .flask.utilx import Util
 
 def append_error(params, err):
+    """
+
+    :param params:
+    :param err:
+    :return:
+    """
     dict_items = params.copy()
     if err:
         stack = None
@@ -18,7 +24,13 @@ def append_error(params, err):
 
 
 def log_json(req_context, params=None, err=None):
+    """
 
+    :param req_context:
+    :param params:
+    :param err:
+    :return:
+    """
     context = Util.get_context()
     dict_items = dict(req_context)
     dict_items.update(context)

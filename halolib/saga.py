@@ -87,9 +87,17 @@ class Action(object):
         raise SagaException("no compensation for : " + self.__name)
 
     def next(self):
+        """
+
+        :return:
+        """
         return self.__next
 
     def result_path(self):
+        """
+
+        :return:
+        """
         return self.__result_path
 
 
@@ -106,6 +114,13 @@ class SagaLog(object):
     failTx = "failTx"
 
     def log(self, req_context, saga_stage, name, log_db=False):
+        """
+
+        :param req_context:
+        :param saga_stage:
+        :param name:
+        :param log_db:
+        """
         if log_db:
             # @TODO finish db log for saga
             # db_logeer(saga_stage + " " + name)
@@ -134,6 +149,9 @@ class Saga(object):
     def execute(self, req_context, payloads, apis):
         """
         Execute this Saga.
+        :param req_context:
+        :param payloads:
+        :param apis:
         :return: None
         """
 
@@ -206,6 +224,11 @@ class SagaBuilder(object):
 
     @staticmethod
     def create(name):
+        """
+
+        :param name:
+        :return:
+        """
         return SagaBuilder(name)
 
     def action(self, name, action_func, compensation, next, result_path):
@@ -229,6 +252,12 @@ class SagaBuilder(object):
 
 
 def load_saga(name, jsonx):
+    """
+
+    :param name:
+    :param jsonx:
+    :return:
+    """
     try:
         if "StartAt" in jsonx:
             start = jsonx["StartAt"]

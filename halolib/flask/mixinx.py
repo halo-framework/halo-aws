@@ -43,6 +43,10 @@ class AbsBaseMixinX(object):
     #    return loader.get_template(name)
 
     def get_root_url(self):
+        """
+
+        :return:
+        """
         if not settings.STAGE_URL:
             root = '/'
         else:
@@ -50,31 +54,79 @@ class AbsBaseMixinX(object):
         return root
 
     def get_name(self):
+        """
+
+        :return:
+        """
         name = self.__class__.__name__
         new_name = name.replace('Link', '')
         return new_name
 
     def process_get(self, request, vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         html = 'this is a get on view ' + self.name
         return HttpResponse(html)
 
     def process_post(self, request, vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         return HttpResponse('this is a post on view ' + self.name)
 
     def process_put(self, request, vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         return HttpResponse('this is a put on view ' + self.name)
 
     def process_patch(self, request, vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         return HttpResponse('this is a patch on view ' + self.name)
 
     def process_delete(self, request, vars):
+        """
+
+        :param request:
+        :param vars:
+        :return:
+        """
         return HttpResponse('this is a delete on view ' + self.name)
 
     def check_author(self, request, vars, json):
+        """
+
+        :param request:
+        :param vars:
+        :param json:
+        :return:
+        """
         # @TODO check authorization and do masking
         return True, json, None
 
     def check_authen(self, typer, request, vars):
+        """
+
+        :param typer:
+        :param request:
+        :param vars:
+        :return:
+        """
         # @TODO check authentication and do masking
         return True, None
 

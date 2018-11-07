@@ -70,6 +70,11 @@ class BaseUtil:
 
     @classmethod
     def get_aws_request_id(cls, request):
+        """
+
+        :param request:
+        :return:
+        """
         context = cls.get_lambda_context(request)
         if context:
             return context.aws_request_id
@@ -77,6 +82,10 @@ class BaseUtil:
 
     @staticmethod
     def get_func_name():
+        """
+
+        :return:
+        """
         if 'AWS_LAMBDA_FUNCTION_NAME' in os.environ:
             return os.environ['AWS_LAMBDA_FUNCTION_NAME']
         else:
@@ -84,6 +93,10 @@ class BaseUtil:
 
     @staticmethod
     def get_func_ver():
+        """
+
+        :return:
+        """
         if 'AWS_LAMBDA_FUNCTION_VERSION' in os.environ:
             return os.environ['AWS_LAMBDA_FUNCTION_VERSION']
         else:
@@ -91,6 +104,10 @@ class BaseUtil:
 
     @staticmethod
     def get_func_mem():
+        """
+
+        :return:
+        """
         if 'AWS_LAMBDA_FUNCTION_MEMORY_SIZE' in os.environ:
             return os.environ['AWS_LAMBDA_FUNCTION_MEMORY_SIZE']
         else:
@@ -98,6 +115,10 @@ class BaseUtil:
 
     @staticmethod
     def get_func_region():
+        """
+
+        :return:
+        """
         if 'AWS_REGION' in os.environ:
             return os.environ['AWS_REGION']
         else:
@@ -107,12 +128,20 @@ class BaseUtil:
 
     @staticmethod
     def get_stage():
+        """
+
+        :return:
+        """
         if 'HALO_STAGE' in os.environ:
             return os.environ['HALO_STAGE']
         return "STAGE"
 
     @classmethod
     def get_context(cls):
+        """
+
+        :return:
+        """
         ret = {"awsRegion": cls.get_func_region(), "functionName": cls.get_func_name(),
                "functionVersion": cls.get_func_ver(), "functionMemorySize": cls.get_func_mem(),
                "stage": cls.get_stage()}
@@ -122,6 +151,10 @@ class BaseUtil:
 
     @staticmethod
     def get_debug_param():
+        """
+
+        :return:
+        """
         # check if env var for sampled debug logs is on and activate for percentage in settings (5%)
         dbg = 'false'
         try:
@@ -134,6 +167,10 @@ class BaseUtil:
 
     @classmethod
     def get_system_debug_enabled(cls):
+        """
+
+        :return:
+        """
         # check if env var for sampled debug logs is on and activate for percentage in settings (5%)
         if ('DEBUG_LOG' in os.environ and os.environ['DEBUG_LOG'] == 'true') or (cls.get_debug_param() == 'true'):
             rand = random.random()
@@ -143,6 +180,12 @@ class BaseUtil:
 
     @classmethod
     def get_req_context(cls, request, api_key=None):
+        """
+
+        :param request:
+        :param api_key:
+        :return:
+        """
         x_correlation_id = cls.get_correlation_id(request)
         x_user_agent = cls.get_user_agent(request)
         dlog = cls.get_debug_enabled(request)
@@ -154,6 +197,12 @@ class BaseUtil:
 
     @classmethod
     def isDebugEnabled(cls, req_context, request=None):
+        """
+
+        :param req_context:
+        :param request:
+        :return:
+        """
         # disable debug logging by default, but allow override via env variables
         # or if enabled via forwarded request context or if debug flag is on
         if req_context["debug-log-enabled"] == 'true' or cls.get_system_debug_enabled() == 'true':
@@ -162,10 +211,21 @@ class BaseUtil:
 
     @staticmethod
     def get_auth_context(request, key=None):
+        """
+
+        :param request:
+        :param key:
+        :return:
+        """
         return {}
 
     @classmethod
     def get_correlation_from_event(cls, event):
+        """
+
+        :param event:
+        :return:
+        """
         if cls.event_req_context:
             logger.debug("cached event req_context", extra=cls.event_req_context)
             return cls.event_req_context
@@ -251,6 +311,13 @@ class BaseUtil:
 
     @staticmethod
     def json_error_response(req_context, clazz, e):  # code, msg, requestId):
+        """
+
+        :param req_context:
+        :param clazz:
+        :param e:
+        :return:
+        """
         module = importlib.import_module(clazz)
         my_class = getattr(module, 'ErrorMessages')
         msgs = my_class()
@@ -259,6 +326,11 @@ class BaseUtil:
 
     @classmethod
     def get_timeout(cls, request):
+        """
+
+        :param request:
+        :return:
+        """
         if 'AWS_LAMBDA_FUNCTION_NAME' in os.environ:
             context = cls.get_lambda_context(request)
             if context:
@@ -267,6 +339,11 @@ class BaseUtil:
 
     @classmethod
     def get_timeout_milli(cls, context):
+        """
+
+        :param context:
+        :return:
+        """
         timeout = context.get_remaining_time_in_millis() - settings.RECOVER_TIME_MILLI
         logger.debug("timeout=" + str(timeout))
         if timeout > settings.MINIMUM_SERVICE_TIMEOUT_IN_MS:
