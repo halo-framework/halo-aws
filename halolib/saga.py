@@ -1,6 +1,7 @@
 import logging
 
 from .apis import ApiMngr
+from .base_util import BaseUtil as Util
 from .exceptions import ApiError
 from .exceptions import HaloException, HaloError
 
@@ -251,13 +252,17 @@ class SagaBuilder(object):
         return Saga(self.name, self.actions, start)
 
 
-def load_saga(name, jsonx):
+def load_saga(name, jsonx, schema=None):
     """
 
     :param name:
     :param jsonx:
     :return:
     """
+    # validate saga json
+    if schema:
+        Util.assert_valid_schema(jsonx, schema)
+    # process saga
     try:
         if "StartAt" in jsonx:
             start = jsonx["StartAt"]

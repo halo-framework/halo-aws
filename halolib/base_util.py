@@ -8,6 +8,8 @@ import os
 import random
 import uuid
 
+from jsonschema import validate
+
 from .exceptions import CacheError, ApiTimeOutExpired
 from .settingsx import settingsx
 
@@ -349,3 +351,9 @@ class BaseUtil:
         if timeout > settings.MINIMUM_SERVICE_TIMEOUT_IN_MS:
             return timeout
         raise ApiTimeOutExpired()
+
+    @staticmethod
+    def assert_valid_schema(data, schema):
+        """ Checks whether the given data matches the schema """
+
+        return validate(data, schema)
