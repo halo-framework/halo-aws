@@ -253,7 +253,7 @@ class AbsApiMixin(AbsBaseMixin):
         json, ret_status = self.process_api(ctx, HTTPChoice.get, request, vars)
         if ret_status == status.HTTP_200_OK:
             jsonx = self.process_out_auth(request, vars, json)
-            return Response(jsonx, status=ret_status)
+            return Util.json_data_response(jsonx, ret_status)
         return HttpResponse(status=ret_status)
 
     def process_post(self, request, vars):

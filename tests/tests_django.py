@@ -46,7 +46,7 @@ class TestUserDetailTestCase(APITestCase):
     def test_get_request_returns_a_given_string(self):
         response = self.client.get(self.url)
         eq_(response.status_code, status.HTTP_200_OK)
-        eq_(json.loads(response.content), {"test": "good"})
+        eq_(json.loads(response.content), {'data': {'test': 'good'}})
 
     def test_api_request_returns_a_given_string(self):
         request = self.mock_request('GET')

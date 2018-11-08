@@ -17,12 +17,11 @@ from halolib.logs import log_json
 from halolib import saga
 from halolib.models import AbsModel
 import unittest
-# settings.configure(default_settings=settings, DEBUG=True)
+import requests
+
 app = FlaskAPI(__name__)
 app.config.from_object('settings')
 
-
-# app.run(debug=False, use_reloader=False,host='0.0.0.0')
 
 class TestUserDetailTestCase(unittest.TestCase):
     """
@@ -33,12 +32,10 @@ class TestUserDetailTestCase(unittest.TestCase):
         self.url = 'http://127.0.0.1:8000/?abc=def'
         self.perf_url = 'http://127.0.0.1:8000/perf'
 
-
     def test_get_request_returns_a_given_string(self):
-        tester = app.test_client()
-        response = tester.get(self.url)
+        response = requests.get(self.url)
         eq_(response.status_code, status.HTTP_200_OK)
-        eq_(json.loads(response.content), {"test": "good"})
+        eq_(json.loads(response.content), {'data': {'test2': 'good'}})
 
     def test_api_request_returns_a_given_string(self):
         with app.test_request_context(method='GET', path='/?a=b'):
@@ -116,8 +113,7 @@ class TestUserDetailTestCase(unittest.TestCase):
         eq_(ret["debug-log-enabled"], 'true')
 
     def test_pref_mixin(self):
-        tester = app.test_client()
-        response = tester.get(self.perf_url)
+        response = requests.get(self.perf_url)
         eq_(response.status_code, status.HTTP_200_OK)
 
     def test_model_get_pre(self):
@@ -198,13 +194,11 @@ class TestUserDetailTestCase(unittest.TestCase):
         eq_(len(sagax.actions), 6)
 
     def test_run_saga(self):
-        tester = app.test_client()
-        response = tester.get(self.url)
+        response = requests.put(self.url)
         eq_(response.status_code, status.HTTP_200_OK)
 
     def test_rollback_saga(self):
-        tester = app.test_client()
-        response = tester.get(self.url)
+        response = requests.post(self.url)
         eq_(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def test_ssm(self):  # @TODO

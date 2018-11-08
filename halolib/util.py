@@ -196,13 +196,13 @@ class Util(BaseUtil):
     """
 
     @staticmethod
-    def json_data_response(data):
+    def json_data_response(data, status_code=200):
         """
 
         :param data:
         :return:
         """
-        return Response({"data": data})
+        return Response({"data": data}, status=status_code)
 
     @staticmethod
     def get_req_params(request):
