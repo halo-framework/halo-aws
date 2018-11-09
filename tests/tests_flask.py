@@ -190,7 +190,9 @@ class TestUserDetailTestCase(unittest.TestCase):
     def test_load_saga(self):
         with open("saga.json") as f:
             jsonx = json.load(f)
-        sagax = saga.load_saga("test", jsonx)
+        with open("schema.json") as f1:
+            schema = json.load(f1)
+        sagax = saga.load_saga("test", jsonx, schema)
         eq_(len(sagax.actions), 6)
 
     def test_run_saga(self):

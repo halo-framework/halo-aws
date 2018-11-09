@@ -252,7 +252,7 @@ class SagaBuilder(object):
         return Saga(self.name, self.actions, start)
 
 
-def load_saga(name, jsonx, schema=None):
+def load_saga(name, jsonx, schema):
     """
 
     :param name:
