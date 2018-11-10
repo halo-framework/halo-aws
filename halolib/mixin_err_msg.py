@@ -23,12 +23,19 @@ class ErrorMessages(object):
     @staticmethod
     def get_code(ex):
         """
-
+        get the proper status code and error msg for exception
         :param ex:
         :return:
         """
         e = type(ex).__name__
-        logger.debug("e=" + e)
+        emsg = str(ex)
+        logger.debug("e=" + emsg)
         if e in ErrorMessages.hashx:
-            return ErrorMessages.hashx[e]["code"], ErrorMessages.hashx[e]["message"]
-        return 500, "Server Error"
+            code = ErrorMessages.hashx[e]["code"]
+            msg = ErrorMessages.hashx[e]["message"]
+        else:
+            code = 500
+            msg = "Server Error"
+        if emsg != None and emsg != "":
+            msg = emsg
+        return code, msg

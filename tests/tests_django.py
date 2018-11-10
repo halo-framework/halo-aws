@@ -24,7 +24,7 @@ from halolib.models import AbsModel
 django.setup()
 
 
-class TestUserDetailTestCase(APITestCase):
+class TestDjangoTestCase(APITestCase):
     """
     Tests /users detail operations.
     """
@@ -216,3 +216,25 @@ class TestUserDetailTestCase(APITestCase):
         from halolib.ssm import get_app_config
         ret = get_app_config("us-east-1")
         eq_(ret.get_param("halolib")["url"], 'https://127.0.0.1:8000/loc')
+
+    def test_error_handler(self):  # @TODO
+        response = self.client.delete(self.url)
+        eq_(json.loads(response.content)['error']['message'], 'test error msg')
+        eq_(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def test_timeout(self):
+        os.environ["AWS_LAMBDA_FUNCTION_NAME"] = "halolib"
+        request = self.mock_request('GET')
+        timeout = Util.get_timeout(request)
+        eq_(timeout, 0.3)
+
+    def test_timeout_mili(self):
+        class Ctx:
+            def get_remaining_time_in_millis(self):
+                return 5500
+
+        ctx = Ctx()
+        os.environ["AWS_LAMBDA_FUNCTION_NAME"] = "halolib"
+        request = self.mock_request('GET', {"context": ctx})
+        timeout = Util.get_timeout(request)
+        eq_(timeout, 5.0)

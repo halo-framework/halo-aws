@@ -15,7 +15,6 @@ from flask import request
 # from flask import request
 # flask
 from flask.views import MethodView
-from flask_api import status
 
 # halolib
 from .utilx import Util
@@ -87,9 +86,9 @@ class AbsBaseLinkX(MethodView):
             return ret
 
         except Exception as e:
-            error_message = str(e)
-            e.stack = traceback.format_exc()
             error = e
+            error_message = str(error)
+            e.stack = traceback.format_exc()
             logger.error(error_message, extra=log_json(self.req_context, Util.get_req_params(request), e))
             # exc_type, exc_obj, exc_tb = sys.exc_info()
             # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
@@ -103,11 +102,10 @@ class AbsBaseLinkX(MethodView):
                                                              {"type": "LAMBDA",
                                                               "milliseconds": int(total.total_seconds() * 1000)}))
 
+        error_code, json_error = Util.json_error_response(self.req_context, settings.ERR_MSG_CLASS, error)
         if settings.FRONT_WEB:
-            return redirect("/" + str(status.HTTP_400_BAD_REQUEST))
-        # return HttpResponse(json.dumps({"error": error_message}), status=status.HTTP_400_BAD_REQUEST,mimetype = 'application/json')
-        return HttpResponse(Util.json_error_response(self.req_context, settings.ERR_MSG_CLASS, error),
-                            status=status.HTTP_400_BAD_REQUEST, mimetype='application/json')
+            return redirect("/" + str(error_code))
+        return HttpResponse(json_error, status=error_code, mimetype='application/json')
 
     def process_finally(self, request, orig_log_level):
         """

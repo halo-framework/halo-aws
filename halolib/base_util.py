@@ -324,7 +324,7 @@ class BaseUtil:
         my_class = getattr(module, 'ErrorMessages')
         msgs = my_class()
         code, msg = msgs.get_code(e)
-        return json.dumps({"error": {"code": code, "message": msg, "trace_id": req_context["x-correlation-id"]}})
+        return code, json.dumps({"error": {"code": code, "message": msg, "trace_id": req_context["x-correlation-id"]}})
 
     @classmethod
     def get_timeout(cls, request):
@@ -336,24 +336,27 @@ class BaseUtil:
         if 'AWS_LAMBDA_FUNCTION_NAME' in os.environ:
             context = cls.get_lambda_context(request)
             if context:
-                return cls.get_timeout_milli(context)
-        return settings.SERVICE_CONNECT_TIMEOUT_IN_MS
+                return cls.get_timeout_mili(context)
+        return settings.SERVICE_CONNECT_TIMEOUT_IN_SC
 
     @classmethod
-    def get_timeout_milli(cls, context):
+    def get_timeout_mili(cls, context):
         """
 
         :param context:
         :return:
         """
-        timeout = context.get_remaining_time_in_millis() - settings.RECOVER_TIME_MILLI
+        mili = context.get_remaining_time_in_millis()
+        logger.debug("mili=" + str(mili))
+        sc = mili / 1000
+        timeout = sc - settings.RECOVER_TIMEOUT_IN_SC
         logger.debug("timeout=" + str(timeout))
-        if timeout > settings.MINIMUM_SERVICE_TIMEOUT_IN_MS:
+        if timeout > settings.MINIMUM_SERVICE_TIMEOUT_IN_SC:
             return timeout
-        raise ApiTimeOutExpired()
+        raise ApiTimeOutExpired("left " + str(timeout))
 
     @staticmethod
     def assert_valid_schema(data, schema):
-        """ Checks whether the given data matches the schema """
+        """ Checks whether the given saga json matches the schema """
 
         return validate(data, schema)

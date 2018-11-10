@@ -207,3 +207,14 @@ class TestUserDetailTestCase(unittest.TestCase):
         from halolib.ssm import get_app_config
         ret = get_app_config("us-east-1")
         eq_(ret.get_param("halolib")["url"], 'https://127.0.0.1:8000/loc')
+
+    def test_error_handler(self):  # @TODO
+        response = requests.delete(self.url)
+        eq_(json.loads(response.content)['error']['message'], 'test error msg')
+        eq_(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def test_timeout(self):
+        with app.test_request_context(method='GET', path='/?a=b'):
+            os.environ["AWS_LAMBDA_FUNCTION_NAME"] = "halolib"
+            timeout = Util.get_timeout(request)
+            eq_(timeout, 0.3)

@@ -14,7 +14,6 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 # DRF
 from rest_framework import permissions
-from rest_framework import status
 from rest_framework.views import APIView
 
 # halolib
@@ -87,7 +86,8 @@ class AbsBaseLink(APIView):
             return ret
 
         except Exception as e:
-            error_message = str(e)
+            error = e
+            error_message = str(error)
             e.stack = traceback.format_exc()
             logger.error(error_message, extra=log_json(self.req_context, Util.get_req_params(request), e))
             #exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -100,13 +100,11 @@ class AbsBaseLink(APIView):
         total = datetime.datetime.now() - now
         logger.info("error performance_data", extra=log_json(self.req_context,
                                                              {"type": "LAMBDA", "milliseconds": int(total.total_seconds() * 1000)}))
-        #log_json(logger, self.req_context, logging.DEBUG, str(ret), Util.get_req_params(request))
 
+        error_code, json_error = Util.json_error_response(self.req_context, settings.ERR_MSG_CLASS, error)
         if settings.FRONT_WEB:
-            return HttpResponseRedirect("/" + str(status.HTTP_400_BAD_REQUEST))
-        # return HttpResponse({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
-        return HttpResponse(Util.json_error_response(self.req_context, settings.ERR_MSG_CLASS, error),
-                            status=status.HTTP_400_BAD_REQUEST, content_type='application/json')
+            return HttpResponseRedirect("/" + str(error_code))
+        return HttpResponse(json_error, status=error_code, content_type='application/json')
 
 
     def process_finally(self, request, orig_log_level):

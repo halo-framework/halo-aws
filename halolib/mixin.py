@@ -346,6 +346,8 @@ class TestMixin(AbsApiMixin):
             except SagaRollBack as e:
                 print("xyz=" + str(e))
                 return {"test": "bad"}, 500
+        if typer == typer.delete:
+            raise Exception("test error msg")
 
     def create_api1(self, api, results, payload):
         print("create_api1=" + str(api) + " result=" + str(results))
