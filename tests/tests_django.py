@@ -215,6 +215,7 @@ class TestDjangoTestCase(APITestCase):
     def test_ssm(self):  # @TODO
         from halolib.ssm import get_app_config
         ret = get_app_config("us-east-1")
+        print(str(ret.get_param("halolib")))
         eq_(ret.get_param("halolib")["url"], 'https://127.0.0.1:8000/loc')
 
     def test_error_handler(self):
