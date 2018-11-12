@@ -16,7 +16,7 @@ setup(
     author_email='yoramk2@yahoo.com',
     description='this is the Halo framework library',
     long_description=long_description,
-    # long_description_content_type="text/markdown",
+    long_description_content_type="html",
     zip_safe=False,
     classifiers=[
         'Environment :: Console',
