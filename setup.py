@@ -28,7 +28,6 @@ setup(
         'Framework :: Django',
         'Framework :: Django :: 1.11',
         'Framework :: Flask',
-        'Framework :: Flask :: 1.0',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ]
