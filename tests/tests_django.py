@@ -212,7 +212,7 @@ class TestDjangoTestCase(APITestCase):
         response = self.client.post(self.url)
         eq_(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def test_ssm(self):  # @TODO
+    def test_ssm(self):
         from halolib.ssm import get_app_config
         ret = get_app_config("us-east-1")
         print(str(ret.get_param("halolib")))

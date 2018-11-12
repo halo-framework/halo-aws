@@ -1,14 +1,17 @@
-from distutils.core import setup
+from io import open
 
-# pip install halolib-1.0.1.zip
+from setuptools import setup
+
 # python setup.py sdist --formats=zip
-# \dev\python27\python setup.py build
+# python setup.py sdist bdist_wheel
+# twine upload dist/halolib-0.13.8.tar.gz -r pypitest
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
     name='halolib',
-    version='0.13.6',
+    version='0.13.8',
     packages=['halolib', 'halolib.flask'],
     url='https://github.com/yoramk2/halolib',
     license='MIT License',
@@ -17,7 +20,6 @@ setup(
     description='this is the Halo framework library',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    zip_safe=False,
     classifiers=[
         'Environment :: Console',
         'License :: OSI Approved :: Apache Software License',
