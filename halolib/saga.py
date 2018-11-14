@@ -4,6 +4,7 @@ from .apis import ApiMngr
 from .base_util import BaseUtil as Util
 from .exceptions import ApiError
 from .exceptions import HaloException, HaloError
+from .logs import log_json
 
 logger = logging.getLogger(__name__)
 
@@ -126,7 +127,8 @@ class SagaLog(object):
             # @TODO finish db log for saga
             # db_logeer(saga_stage + " " + name)
             logger.debug("db log")
-        logger.info("SagaLog: " + saga_stage + " " + name)
+        logger.info("SagaLog: " + saga_stage + " " + name,
+                    extra=log_json(self.req_context))
 
 class Saga(object):
     """
