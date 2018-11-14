@@ -11,7 +11,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='halolib',
-    version='0.14.2',
+    version='0.14.3',
     packages=['halolib', 'halolib.flask'],
     url='https://github.com/yoramk2/halolib',
     license='MIT License',
