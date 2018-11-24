@@ -73,6 +73,6 @@ pip==10.0.1
 virtualenv==16.0.0
 pynamodb==3.2.1
 flask==1.0.2
-flask-api==1.0
+flask_restful==0.3.6
 jsonschema==2.6.0
 

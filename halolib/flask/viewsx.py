@@ -43,13 +43,12 @@ class AbsBaseLinkX(MethodView):
     def __init__(self, **kwargs):
         super(AbsBaseLinkX, self).__init__(**kwargs)
 
-    def do_process(self, request, typer, vars, format=None):
+    def do_process(self, request, typer, *argv):
         """
 
         :param request:
         :param typer:
         :param vars:
-        :param format:
         :return:
         """
         now = datetime.datetime.now()
@@ -119,74 +118,29 @@ class AbsBaseLinkX(MethodView):
                 logger.info("process_finally - back to orig:" + str(orig_log_level),
                             extra=log_json(self.req_context))
 
-    def get(self, format=None):
-        """
-
-        :param format:
-        :return:
-        """
-        vars = {}
-        return self.do_process(request, HTTPChoice.get, vars, format)
-
-    def post(self, format=None):
-        """
-
-        :param format:
-        :return:
-        """
-        vars = {}
-        return self.do_process(request, HTTPChoice.post, vars, format)
-
-    def put(self, format=None):
-        """
-
-        :param format:
-        :return:
-        """
-        vars = {}
-        return self.do_process(request, HTTPChoice.put, vars, format)
-
-    def patch(self, format=None):
-        """
-
-        :param format:
-        :return:
-        """
-        vars = {}
-        return self.do_process(request, HTTPChoice.patch, vars, format)
-
-    def delete(self, format=None):
-        """
-
-        :param format:
-        :return:
-        """
-        vars = {}
-        return self.do_process(request, HTTPChoice.delete, vars, format)
-
-    def process(self, request, typer, vars):
+    def process(self, request, typer, *argv):
         """
         Return a list of all users.
         """
 
         if typer == HTTPChoice.get:
-            return self.process_get(request, vars)
+            return self.process_get(request, argv)
 
         if typer == HTTPChoice.post:
-            return self.process_post(request, vars)
+            return self.process_post(request, argv)
 
         if typer == HTTPChoice.put:
-            return self.process_put(request, vars)
+            return self.process_put(request, argv)
 
         if typer == HTTPChoice.patch:
-            return self.process_patch(request, vars)
+            return self.process_patch(request, argv)
 
         if typer == HTTPChoice.delete:
-            return self.process_delete(request, vars)
+            return self.process_delete(request, argv)
 
         return HttpResponse('this is a ' + str(typer) + ' on ' + self.get_view_name())
 
-    def process_get(self, request, vars):
+    def process_get(self, request, *argv):
         """
 
         :param request:
@@ -195,7 +149,7 @@ class AbsBaseLinkX(MethodView):
         """
         return HttpResponse('this is process get on ' + self.get_view_name())
 
-    def process_post(self, request, vars):
+    def process_post(self, request, *argv):
         """
 
         :param request:
@@ -204,7 +158,7 @@ class AbsBaseLinkX(MethodView):
         """
         return HttpResponse('this is process post on ' + self.get_view_name())
 
-    def process_put(self, request, vars):
+    def process_put(self, request, *argv):
         """
 
         :param request:
@@ -213,7 +167,7 @@ class AbsBaseLinkX(MethodView):
         """
         return HttpResponse('this is process put on ' + self.get_view_name())
 
-    def process_patch(self, request, vars):
+    def process_patch(self, request, *argv):
         """
 
         :param request:
@@ -222,7 +176,7 @@ class AbsBaseLinkX(MethodView):
         """
         return HttpResponse('this is process patch on ' + self.get_view_name())
 
-    def process_delete(self, request, vars):
+    def process_delete(self, request, *argv):
         """
 
         :param request:
@@ -283,7 +237,23 @@ class PerfLinkX(PerfMixinX, AbsBaseLinkX):
 ##################################### test ##########################
 
 from ..flask.mixinx import TestMixinX
+import flask_restful as restful
 
 
-class TestLinkX(TestMixinX, AbsBaseLinkX):
+class Resource(restful.Resource):
     pass
+
+
+class TestLinkX(Resource, TestMixinX, AbsBaseLinkX):
+
+    def get(self):
+        return self.do_process(request, HTTPChoice.get)
+
+    def post(self):
+        return self.do_process(request, HTTPChoice.post)
+
+    def put(self):
+        return self.do_process(request, HTTPChoice.put)
+
+    def delete(self):
+        return self.do_process(request, HTTPChoice.delete)

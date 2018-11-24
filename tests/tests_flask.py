@@ -4,13 +4,13 @@ import json
 import os
 
 from faker import Faker
-from flask import request
-from flask_api import status, FlaskAPI
+from flask import Flask, request
+from flask_restful import Api
 from nose.tools import eq_
 
 fake = Faker()
 
-from halolib.flask.utilx import Util
+from halolib.flask.utilx import Util, status
 from halolib.apis import ApiTest
 from halolib.exceptions import ApiError
 from halolib.logs import log_json
@@ -19,7 +19,8 @@ from halolib.models import AbsModel
 import unittest
 import requests
 
-app = FlaskAPI(__name__)
+app = Flask(__name__)
+api = Api(app)
 app.config.from_object('settings')
 
 
@@ -210,6 +211,7 @@ class TestUserDetailTestCase(unittest.TestCase):
 
     def test_error_handler(self):
         response = requests.delete(self.url)
+        print("ret=" + str(response))
         eq_(json.loads(response.content)['error']['message'], 'test error msg')
         eq_(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
 

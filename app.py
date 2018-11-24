@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Create an application instance."""
-from flask_api import FlaskAPI
+from flask import Flask
+from flask_restful import Api
 
 
 def create_app(config_object='settings'):
@@ -8,7 +9,9 @@ def create_app(config_object='settings'):
 
     :param config_object: The configuration object to use.
     """
-    app = FlaskAPI(__name__.split('.')[0])
+    app = Flask(__name__.split('.')[0])
+    api = Api(app)
+
     app.config.from_object(config_object)
     with app.app_context():
         from halolib.flask.viewsx import TestLinkX, PerfLinkX

@@ -3,7 +3,6 @@ from __future__ import print_function
 import json
 
 from faker import Faker
-from flask_api import status
 from nose.tools import eq_
 
 fake = Faker()

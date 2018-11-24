@@ -128,7 +128,7 @@ class SagaLog(object):
             # db_logeer(saga_stage + " " + name)
             logger.debug("db log")
         logger.info("SagaLog: " + saga_stage + " " + name,
-                    extra=log_json(self.req_context))
+                    extra=log_json(req_context))
 
 class Saga(object):
     """

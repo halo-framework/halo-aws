@@ -10,9 +10,8 @@ import requests
 # common
 # flask
 from flask import Response as HttpResponse
-from flask_api import status
 
-from .utilx import Util
+from .utilx import Util, status
 from ..const import HTTPChoice
 from ..exceptions import AuthException
 from ..settingsx import settingsx

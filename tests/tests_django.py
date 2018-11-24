@@ -21,6 +21,7 @@ from halolib.models import AbsModel
 
 # from django.conf import settings
 # settings.configure(default_settings=settings, DEBUG=True)
+# os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
 django.setup()
 
 
