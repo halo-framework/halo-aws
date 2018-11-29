@@ -14,6 +14,7 @@ from flask import Response as HttpResponse
 from .utilx import Util, status
 from ..const import HTTPChoice
 from ..exceptions import AuthException
+from ..response import HaloResponse
 from ..settingsx import settingsx
 
 settings = settingsx()
@@ -68,8 +69,11 @@ class AbsBaseMixinX(object):
         :param vars:
         :return:
         """
-        html = 'this is a get on view ' + self.name
-        return HttpResponse(html)
+        ret = HaloResponse()
+        ret.payload = 'this is process get on '  # + self.get_view_name()
+        ret.code = 200
+        ret.headers = []
+        return ret
 
     def process_post(self, request, vars):
         """
@@ -78,7 +82,11 @@ class AbsBaseMixinX(object):
         :param vars:
         :return:
         """
-        return HttpResponse('this is a post on view ' + self.name)
+        ret = HaloResponse()
+        ret.payload = 'this is process post on '  # + self.get_view_name()
+        ret.code = 201
+        ret.headers = []
+        return ret
 
     def process_put(self, request, vars):
         """
@@ -87,7 +95,11 @@ class AbsBaseMixinX(object):
         :param vars:
         :return:
         """
-        return HttpResponse('this is a put on view ' + self.name)
+        ret = HaloResponse()
+        ret.payload = 'this is process put on '  # + self.get_view_name()
+        ret.code = 200
+        ret.headers = []
+        return ret
 
     def process_patch(self, request, vars):
         """
@@ -96,7 +108,11 @@ class AbsBaseMixinX(object):
         :param vars:
         :return:
         """
-        return HttpResponse('this is a patch on view ' + self.name)
+        ret = HaloResponse()
+        ret.payload = 'this is process patch on '  # + self.get_view_name()
+        ret.code = 200
+        ret.headers = []
+        return ret
 
     def process_delete(self, request, vars):
         """
@@ -105,7 +121,11 @@ class AbsBaseMixinX(object):
         :param vars:
         :return:
         """
-        return HttpResponse('this is a delete on view ' + self.name)
+        ret = HaloResponse()
+        ret.payload = 'this is process delete on '  # + self.get_view_name()
+        ret.code = 200
+        ret.headers = []
+        return ret
 
     def check_author(self, request, vars, json):
         """

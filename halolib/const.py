@@ -13,3 +13,4 @@ class HTTPChoice(Enum):  # A subclass of Enum
     delete = "DELETE"
     patch = "PATCH"
 
+

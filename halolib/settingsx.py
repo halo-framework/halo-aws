@@ -2,7 +2,7 @@ from __future__ import print_function
 
 flx = None
 try:
-    from django.conf import settings
+    from django.conf import settings1
     flx = False
 except:
     try:

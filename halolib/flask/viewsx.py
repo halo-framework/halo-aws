@@ -20,6 +20,7 @@ from flask.views import MethodView
 from .utilx import Util
 from ..const import HTTPChoice
 from ..logs import log_json
+from ..response import HaloResponse
 from ..settingsx import settingsx
 
 settings = settingsx()
@@ -147,7 +148,12 @@ class AbsBaseLinkX(MethodView):
         :param vars:
         :return:
         """
-        return HttpResponse('this is process get on ' + self.get_view_name())
+        # return HttpResponse('this is process get on ' + self.get_view_name())
+        ret = HaloResponse()
+        ret.payload = 'this is process get on '  # + self.get_view_name()
+        ret.code = 200
+        ret.headers = []
+        return ret
 
     def process_post(self, request, *argv):
         """
@@ -156,7 +162,12 @@ class AbsBaseLinkX(MethodView):
         :param vars:
         :return:
         """
-        return HttpResponse('this is process post on ' + self.get_view_name())
+        # return HttpResponse('this is process post on ' + self.get_view_name())
+        ret = HaloResponse()
+        ret.payload = 'this is process post on '  # + self.get_view_name()
+        ret.code = 201
+        ret.headers = []
+        return ret
 
     def process_put(self, request, *argv):
         """
@@ -165,7 +176,12 @@ class AbsBaseLinkX(MethodView):
         :param vars:
         :return:
         """
-        return HttpResponse('this is process put on ' + self.get_view_name())
+        # return HttpResponse('this is process put on ' + self.get_view_name())
+        ret = HaloResponse()
+        ret.payload = 'this is process put on '  # + self.get_view_name()
+        ret.code = 200
+        ret.headers = []
+        return ret
 
     def process_patch(self, request, *argv):
         """
@@ -174,7 +190,12 @@ class AbsBaseLinkX(MethodView):
         :param vars:
         :return:
         """
-        return HttpResponse('this is process patch on ' + self.get_view_name())
+        # return HttpResponse('this is process patch on ' + self.get_view_name())
+        ret = HaloResponse()
+        ret.payload = 'this is process patch on '  # + self.get_view_name()
+        ret.code = 200
+        ret.headers = []
+        return ret
 
     def process_delete(self, request, *argv):
         """
@@ -183,7 +204,12 @@ class AbsBaseLinkX(MethodView):
         :param vars:
         :return:
         """
-        return HttpResponse('this is process delete on ' + self.get_view_name())
+        # return HttpResponse('this is process delete on ' + self.get_view_name())
+        ret = HaloResponse()
+        ret.payload = 'this is process delete on '  # + self.get_view_name()
+        ret.code = 200
+        ret.headers = []
+        return ret
 
     def get_client_ip(self, request):
         """
