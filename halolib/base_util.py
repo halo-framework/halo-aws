@@ -159,6 +159,8 @@ class BaseUtil:
         """
         # check if env var for sampled debug logs is on and activate for percentage in settings (5%)
         dbg = 'false'
+        if settings.SSM_CONFIG is None:
+            return dbg
         try:
             DEBUG_LOG = settings.SSM_CONFIG.get_param('DEBUG_LOG')
             dbg = DEBUG_LOG["val"]
