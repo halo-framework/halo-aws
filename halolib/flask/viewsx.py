@@ -78,7 +78,7 @@ class AbsBaseLinkX(MethodView):
 
 
         try:
-            ret = self.process(request, typer, vars)
+            ret = self.process(request, typer, *argv)
             total = datetime.datetime.now() - now
             logger.info("performance_data", extra=log_json(self.req_context,
                                                            {"type": "LAMBDA",
@@ -105,7 +105,11 @@ class AbsBaseLinkX(MethodView):
         error_code, json_error = Util.json_error_response(self.req_context, settings.ERR_MSG_CLASS, error)
         if settings.FRONT_WEB:
             return redirect("/" + str(error_code))
-        return HttpResponse(json_error, status=error_code, mimetype='application/json')
+        ret = HaloResponse()
+        ret.code = error_code
+        ret.payload = json_error
+        ret.headers = {'content-type': 'application/json'}
+        return ret
 
     def process_finally(self, request, orig_log_level):
         """
@@ -253,33 +257,51 @@ class AbsBaseLinkX(MethodView):
         return '&jwt=' + self.get_jwt(request).decode()
 
 
-from ..flask.mixinx import PerfMixinX
-
-
-class PerfLinkX(PerfMixinX, AbsBaseLinkX):
-    pass
-
-
-##################################### test ##########################
-
-from ..flask.mixinx import TestMixinX
 import flask_restful as restful
 
 
 class Resource(restful.Resource):
     pass
 
+from ..flask.mixinx import PerfMixinX
+
+
+class PerfLinkX(Resource, PerfMixinX, AbsBaseLinkX):
+    def get(self):
+        ret = self.do_process(request, HTTPChoice.get)
+        return Util.json_data_response(ret.payload, ret.code, ret.headers)
+
+    def post(self):
+        ret = self.do_process(request, HTTPChoice.post)
+        return Util.json_data_response(ret.payload, ret.code, ret.headers)
+
+    def put(self):
+        ret = self.do_process(request, HTTPChoice.put)
+        return Util.json_data_response(ret.payload, ret.code, ret.headers)
+
+    def delete(self):
+        ret = self.do_process(request, HTTPChoice.delete)
+        return Util.json_data_response(ret.payload, ret.code, ret.headers)
+
+
+##################################### test ##########################
+
+from ..flask.mixinx import TestMixinX
 
 class TestLinkX(Resource, TestMixinX, AbsBaseLinkX):
 
     def get(self):
-        return self.do_process(request, HTTPChoice.get)
+        ret = self.do_process(request, HTTPChoice.get)
+        return Util.json_data_response(ret.payload, ret.code, ret.headers)
 
     def post(self):
-        return self.do_process(request, HTTPChoice.post)
+        ret = self.do_process(request, HTTPChoice.post)
+        return Util.json_data_response(ret.payload, ret.code, ret.headers)
 
     def put(self):
-        return self.do_process(request, HTTPChoice.put)
+        ret = self.do_process(request, HTTPChoice.put)
+        return Util.json_data_response(ret.payload, ret.code, ret.headers)
 
     def delete(self):
-        return self.do_process(request, HTTPChoice.delete)
+        ret = self.do_process(request, HTTPChoice.delete)
+        return Util.json_data_response(ret.payload, ret.code, ret.headers)

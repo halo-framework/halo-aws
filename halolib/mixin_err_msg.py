@@ -20,6 +20,8 @@ class ErrorMessages(object):
     hashx["ConnectionError"] = {"code": 112, "message": "Server Error"}
     hashx["TypeError"] = {"code": 113, "message": "Server Error"}
 
+    # hashx["ApiException"] = {"code": 114, "message": "Server Error"}
+
     @staticmethod
     def get_code(ex):
         """

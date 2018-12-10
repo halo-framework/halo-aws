@@ -10,13 +10,15 @@ def create_app(config_object='settings'):
     :param config_object: The configuration object to use.
     """
     app = Flask(__name__.split('.')[0])
-    api = Api(app)
 
     app.config.from_object(config_object)
     with app.app_context():
         from halolib.flask.viewsx import TestLinkX, PerfLinkX
         app.add_url_rule("/", view_func=TestLinkX.as_view("member"))
         app.add_url_rule("/perf", view_func=PerfLinkX.as_view("perf"))
+
+    api = Api(app, catch_all_404s=True)
+
     return app
 
 

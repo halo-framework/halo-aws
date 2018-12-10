@@ -187,8 +187,10 @@ class PerfMixinX(AbsBaseMixinX):
         if db is not None:
             ret = self.process_db(request, vars)
         total = datetime.datetime.now() - self.now
-        return HttpResponse('performance page: timing for process: ' + str(total) + " " + str(
-            urls) + " " + ret + " " + settings.VERSION)
+        # return HttpResponse('performance page: timing for process: ' + str(total) + " " + str(urls) + " " + ret + " " + settings.VERSION)
+        return HaloResponse({"msg": 'performance page: timing for process: ' + str(total) + " " + str(
+            urls) + " " + ret + " " + settings.VERSION}, 200, [])
+
 
     def process_db(self, request, vars):
         logger.debug('db perf: ')
@@ -232,54 +234,55 @@ class AbsApiMixinX(AbsBaseMixinX):
             ctx = self.process_in_auth(HTTPChoice.get, request, vars)
         except AuthException as e:
             return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
-        json, ret_status = self.process_api(ctx, HTTPChoice.get, request, vars)
-        if ret_status == status.HTTP_200_OK:
-            jsonx = self.process_out_auth(request, vars, json)
-            return Util.json_data_response(jsonx, ret_status)  # HttpResponse(jsonx, status=ret_status)
-        return HttpResponse(status=ret_status)
+        ret = self.process_api(ctx, HTTPChoice.get, request, vars)
+        if ret.code == status.HTTP_200_OK:
+            jsonx = self.process_out_auth(request, vars, ret.payload)
+            ret.payload = jsonx
+        return ret  #Util.json_data_response(jsonx, ret.status_code)  # HttpResponse(jsonx, status=ret_status)
 
     def process_post(self, request, vars):
         try:
             ctx = self.process_in_auth(HTTPChoice.post, request, vars)
         except AuthException as e:
             return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
-        json, ret_status = self.process_api(ctx, HTTPChoice.post, request, vars)
-        if ret_status == status.HTTP_201_CREATED:
+        ret = self.process_api(ctx, HTTPChoice.post, request, vars)
+        if ret.code == status.HTTP_201_CREATED:
             jsonx = self.process_out_auth(request, vars, json)
-            return Util.json_data_response(jsonx, ret_status)  #HttpResponse(jsonx, status=ret_status)
-        return HttpResponse(status=ret_status)
+            ret.payload = jsonx
+        return ret
 
     def process_put(self, request, vars):
         try:
             ctx = self.process_in_auth(HTTPChoice.put, request, vars)
         except AuthException as e:
             return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
-        json, ret_status = self.process_api(ctx, HTTPChoice.put, request, vars)
-        if ret_status == status.HTTP_202_ACCEPTED:
+        ret = self.process_api(ctx, HTTPChoice.put, request, vars)
+        if ret.code == status.HTTP_202_ACCEPTED:
             jsonx = self.process_out_auth(request, vars, json)
-            return Util.json_data_response(jsonx, ret_status)  #HttpResponse(jsonx, status=ret_status)
-        return HttpResponse(status=ret_status)
+            ret.payload = jsonx
+        return ret
 
     def process_patch(self, request, vars):
         try:
             ctx = self.process_in_auth(HTTPChoice.patch, request, vars)
         except AuthException as e:
             return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
-        json, ret_status = self.process_api(ctx, HTTPChoice.patch, request, vars)
-        if ret_status == status.HTTP_202_ACCEPTED:
+        ret = self.process_api(ctx, HTTPChoice.patch, request, vars)
+        if ret.code == status.HTTP_202_ACCEPTED:
             jsonx = self.process_out_auth(request, vars, json)
-            return Util.json_data_response(jsonx, ret_status)  #HttpResponse(jsonx, status=ret_status)
-        return HttpResponse(status=ret_status)
+            ret.payload = jsonx
+        return ret
 
     def process_delete(self, request, vars):
         try:
             ctx = self.process_in_auth(HTTPChoice.delete, request, vars)
         except AuthException as e:
             return HttpResponse(e.cause, status=status.HTTP_400_BAD_REQUEST)
-        json, ret_status = self.process_api(ctx, HTTPChoice.delete, request, vars)
-        if ret_status == status.HTTP_200_OK:
-            return Util.json_data_response(json, ret_status)  #HttpResponse(status=ret_status)
-        return HttpResponse(status=ret_status)
+        ret = self.process_api(ctx, HTTPChoice.delete, request, vars)
+        if ret.code == status.HTTP_200_OK:
+            jsonx = self.process_out_auth(request, vars, json)
+            ret.payload = jsonx
+        return ret
 
     def process_api(self, ctx, typer, request, vars):
         return {}, 200
@@ -289,7 +292,7 @@ class AbsApiMixinX(AbsBaseMixinX):
 import json
 from ..logs import log_json
 from ..apis import ApiTest
-from ..exceptions import ApiError
+from ..exceptions import ApiError, ApiException
 from ..saga import load_saga, SagaRollBack
 
 
@@ -307,11 +310,19 @@ class TestMixinX(AbsApiMixinX):
                 ret = api.get(timeout)
             except ApiError as e:
                 logger.debug("we did it", extra=log_json(self.req_context, Util.get_req_params(request), e))
-                return {"test1": "bad"}, 400
+                ret = HaloResponse()
+                ret.payload = {"test1": "bad"}
+                ret.code = 400
+                ret.headers = []
+                return ret
             # except NoReturnApiException as e:
             #    print("NoReturnApiException="+e.message)
             # log_json(self.req_context, LogLevels.DEBUG._name_, "we did it", Util.get_req_params(request))
-            return {"test2": "good"}, 200
+            ret = HaloResponse()
+            ret.payload = {"test2": "good"}
+            ret.code = 200
+            ret.headers = []
+            return ret
 
         if typer == typer.post or typer == typer.put:
             logger.debug("start " + str(typer))
@@ -327,11 +338,19 @@ class TestMixinX(AbsApiMixinX):
             try:
                 self.context = Util.get_lambda_context(request)
                 ret = sagax.execute(self.req_context, payloads, apis)
-                return {"test": "good"}, 200
+                ret = HaloResponse()
+                ret.payload = {"test": "good"}
+                ret.code = 200
+                ret.headers = []
+                return ret
             except SagaRollBack as e:
-                return {"test": "bad"}, 500
+                ret = HaloResponse()
+                ret.payload = {"test": "bad"}
+                ret.code = 500
+                ret.headers = []
+                return ret
         if typer == typer.delete:
-            raise Exception("test error msg")
+            raise ApiException("test error msg")
 
     def create_api1(self, api, results, payload):
         print("create_api1=" + str(api) + " result=" + str(results))

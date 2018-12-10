@@ -35,6 +35,7 @@ class TestUserDetailTestCase(unittest.TestCase):
 
     def test_get_request_returns_a_given_string(self):
         response = requests.get(self.url)
+        print("response=" + str(response.content))
         eq_(response.status_code, status.HTTP_200_OK)
         eq_(json.loads(response.content), {'data': {'test2': 'good'}})
 
@@ -211,7 +212,7 @@ class TestUserDetailTestCase(unittest.TestCase):
 
     def test_error_handler(self):
         response = requests.delete(self.url)
-        print("ret=" + str(response))
+        print("ret=" + str(json.loads(response.content)))
         eq_(json.loads(response.content)['error']['message'], 'test error msg')
         eq_(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
