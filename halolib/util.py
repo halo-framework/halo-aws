@@ -3,6 +3,7 @@ from __future__ import print_function
 import logging
 import re
 
+from rest_framework import status
 from rest_framework.response import Response
 
 from .base_util import BaseUtil
@@ -11,6 +12,10 @@ from .settingsx import settingsx
 settings = settingsx()
 
 logger = logging.getLogger(__name__)
+
+
+class status(status):
+    pass
 
 def strx(str1):
     if str1:
