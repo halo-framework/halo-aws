@@ -13,8 +13,10 @@ settings = settingsx()
 
 logger = logging.getLogger(__name__)
 
-
-class status(status):
+try:
+    class status(status):
+        pass
+except:
     pass
 
 def strx(str1):
@@ -105,7 +107,8 @@ class Util(BaseUtil):
         if "HTTP_X_USER_AGENT" in request.META:
             user_agent = request.META["HTTP_X_USER_AGENT"]
         else:
-            user_agent = cls.get_func_name() + ':' + request.path + ':' + request.method + ':' + settings.INSTANCE_ID
+            user_agent = str(cls.get_func_name()) + ':' + str(request.path) + ':' + str(request.method) + ':' + str(
+                settings.INSTANCE_ID)
         return user_agent
 
     @classmethod
