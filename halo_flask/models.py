@@ -8,8 +8,8 @@ from abc import ABCMeta
 from pynamodb.attributes import UnicodeAttribute
 from pynamodb.models import Model
 
-from halolib.exceptions import DbIdemError
-from halolib.logs import log_json
+from halo_flask.exceptions import DbIdemError
+from halo_flask.logs import log_json
 from .settingsx import settingsx
 
 settings = settingsx()

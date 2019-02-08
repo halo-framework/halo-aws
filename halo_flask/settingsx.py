@@ -1,23 +1,11 @@
 from __future__ import print_function
 
-flx = None
-try:
-    from django.conf import settings1
-    flx = False
-except:
-    try:
-        from flask import current_app as app
-        flx = True
-    except:
-        pass
+from flask import current_app as app
 
 
 class settingsx(object):
     def __getattribute__(self, name):
         global flx
-        if flx == False:
-            from django.conf import settings
-            return settings.__getattr__(name)
         try:
             settings = app.config
             attr = settings.get(name)

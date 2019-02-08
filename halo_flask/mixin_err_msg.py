@@ -4,7 +4,6 @@ import logging
 # from cStringIO import StringIO
 # aws
 # common
-# django
 
 
 logger = logging.getLogger(__name__)

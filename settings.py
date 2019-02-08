@@ -1,31 +1,18 @@
-# Django settings for checkerservice project.
-
+#  settings for  project.
 
 import os
+from environs import Env
+import json
 
-import environ
-from django.utils.translation import ugettext_lazy as _
+print("start base")
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 print('BASE_DIR : {}'.format(BASE_DIR))
 
-root = environ.Path(__file__) - 2 # two folders back (/a/b/ - 2 = /)
-env = environ.Env(DEBUG=(bool, False),)
-
-# Operating System Environment variables have precedence over variables defined in the .env file,
-# that is to say variables from the .env files will only be used if not defined
-# as environment variables.
-env_file=root('.env')
-print('Loading : {}'.format(env_file))
-#with open(env_file, "r") as f:
-#    data = f.read()
-#    print data
-env.read_env(env_file)
-print('The .env file has been loaded. env: '+env.str('ENV_NAME'))
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
+env = Env()
+THE_ENV=os.path.join(BASE_DIR,'env','.env')
+env.read_env(path=THE_ENV)
+print('The .env file has been loaded. env: '+str(THE_ENV))
 
 ENV = env.str('FLASK_ENV', default='production')
 DEBUG = ENV == 'development'
@@ -48,13 +35,13 @@ os.environ["HALO_TYPE"] = ENV_TYPE
 ENV_NAME = LOC  # env.str('ENV_NAME')
 os.environ["HALO_STAGE"] = ENV_NAME  # done in settings json file
 
-FUNC_NAME = env.str('FUNC_NAME', 'halolib')
+FUNC_NAME = env.str('FUNC_NAME', 'halo_flask')
 os.environ['HALO_FUNC_NAME'] = FUNC_NAME  # done in settings json file
 os.environ['HALO_APP_NAME'] = 'app'  #done in settings json file
 
 SERVER_LOCAL = True
 AWS_REGION = env.str('AWS_REGION')
-DB_URL = env('DYNAMODB_LOCAL_URL')
+DB_URL = env('DYNAMODB_LOCAL_URL','')
 if 'AWS_LAMBDA_FUNCTION_NAME' in os.environ:
     DB_URL = env('DYNAMODB_URL')
     SERVER_LOCAL = False
@@ -113,16 +100,16 @@ MANAGERS = ADMINS
 
 DB_VER = env('DB_VER')
 PAGE_SIZE = env.int('PAGE_SIZE', default=5)
-DATABASES = {
-    'default': env.db(),
-}
+#DATABASES = {
+#   'default': env.db(),
+#}
 
 def get_cache():
   return {
       'default': env.cache()
     }
 
-CACHES = get_cache()
+#CACHES = get_cache()
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -139,7 +126,7 @@ LOCALE_CODE = 'en-US'
 LANGUAGE_CODE = 'en'
 
 LANGUAGES = (
-    ('en', _('English')),
+    #('en', _('English')),
     #('nl', _('Dutch')),
     #('he', _('Hebrew')),
 )
@@ -171,71 +158,6 @@ MEDIA_URL = ''
 ADMIN_MEDIA_PREFIX = '/media/'
 
 
-MIDDLEWARE_CLASSES = (
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-)
-
-ROOT_URLCONF = 'halolib.urls'
-
-INSTALLED_APPS = (
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.sites',
-    'django.contrib.messages',
-    # Uncomment the next line to enable the admin:
-    # 'django.contrib.admin',
-    # Uncomment the next line to enable admin documentation:
-    # 'django.contrib.admindocs',
-    'django.contrib.staticfiles',
-	
-	## 3rd party
-    'rest_framework',
-    'rest_framework_swagger',
-    'rest_framework.authtoken',
-
-    ## custom
-    'halolib',
-
-    # testing etc:
-    'django_jenkins',
-    'django_extensions',
-    'corsheaders',
-)
-
-# CUSTOM AUTH
-AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
-)
-
-## REST
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        ## we need this for the browsable API to work
-        'rest_framework.authentication.SessionAuthentication',
-    )
-}
-
-# Services:
-
-## Service base urls without a trailing slash:
-USER_SERVICE_BASE_URL = 'http://staging.userservice.tangentme.com'
-
-JENKINS_TASKS = (
-    'django_jenkins.tasks.run_pylint',
-    'django_jenkins.tasks.with_coverage',
-    # 'django_jenkins.tasks.run_sloccount',
-    # 'django_jenkins.tasks.run_graphmodels'
-)
-
 PROJECT_APPS = (
     'api',
 )
@@ -249,26 +171,9 @@ CORS_ORIGIN_ALLOW_ALL = True
 #    '127.0.0.1:9000'
 #)
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'debug': DEBUG,
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
-
 STATIC_URL = '/static1/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, "halolib/api/static")
+STATIC_ROOT = os.path.join(BASE_DIR, "halo_flask/api/static")
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
@@ -340,31 +245,31 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
-        'halolib.halolib.views': {
+        'halo_flask.halo_flask.views': {
             'level': 'INFO',
             'handlers': ['console', 'console_debug_false', 'mail_admins']
         },
-        'halolib.halolib.apis': {
+        'halo_flask.halo_flask.apis': {
             'level': 'INFO',
             'handlers': ['console', 'console_debug_false', 'mail_admins']
         },
-        'halolib.halolib.events': {
+        'halo_flask.halo_flask.events': {
             'level': 'INFO',
             'handlers': ['console', 'console_debug_false', 'mail_admins']
         },
-        'halolib.halolib.mixin': {
+        'halo_flask.halo_flask.mixin': {
             'level': 'INFO',
             'handlers': ['console', 'console_debug_false', 'mail_admins']
         },
-        'halolib.halolib.models': {
+        'halo_flask.halo_flask.models': {
             'level': 'INFO',
             'handlers': ['console', 'console_debug_false', 'mail_admins']
         },
-        'halolib.halolib.util': {
+        'halo_flask.halo_flask.util': {
             'level': 'INFO',
             'handlers': ['console', 'console_debug_false', 'mail_admins']
         },
-        'halolib.halolib.ssm': {
+        'halo_flask.halo_flask.ssm': {
             'level': 'INFO',
             'handlers': ['console', 'console_debug_false', 'mail_admins']
         },
@@ -399,7 +304,7 @@ INSTANCE_ID = uuid.uuid4().__str__()[0:4]
 
 LOG_SAMPLE_RATE = 0.05  # 5%
 
-ERR_MSG_CLASS = 'halolib.mixin_err_msg'
+ERR_MSG_CLASS = 'halo_flask.mixin_err_msg'
 
 #######################################################################################3
 
@@ -422,11 +327,11 @@ with open(file_path, 'r') as fi:
 
 SSM_CONFIG = None
 if ENV_NAME == LOC:
-    # from halolib.ssm import get_config as get_config
+    # from halo_flask.ssm import get_config as get_config
     try:
-        from halolib.halolib.ssm import get_config, set_param_config
+        from halo_flask.halo_flask.ssm import get_config, set_param_config
     except:
-        from halolib.ssm import get_config, set_param_config
+        from halo_flask.ssm import get_config, set_param_config
 
     SSM_CONFIG = get_config(AWS_REGION)
     # set_param_config(AWS_REGION, 'DEBUG_LOG', '{"val":"false"}')
@@ -435,11 +340,11 @@ if ENV_NAME == LOC:
 SSM_APP_CONFIG = None
 if ENV_NAME == LOC:
 
-    # from halolib.ssm import get_config as get_config
+    # from halo_flask.ssm import get_config as get_config
     try:
-        from halolib.halolib.ssm import get_app_config, set_app_param_config
+        from halo_flask.halo_flask.ssm import get_app_config, set_app_param_config
     except:
-        from halolib.ssm import get_app_config, set_app_param_config
+        from halo_flask.ssm import get_app_config, set_app_param_config
 
     SSM_APP_CONFIG = get_app_config(AWS_REGION)
 

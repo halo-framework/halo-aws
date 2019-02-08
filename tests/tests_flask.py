@@ -10,12 +10,12 @@ from nose.tools import eq_
 
 fake = Faker()
 
-from halolib.flask.utilx import Util, status
-from halolib.apis import ApiTest
-from halolib.exceptions import ApiError
-from halolib.logs import log_json
-from halolib import saga
-from halolib.models import AbsModel
+from halo_flask.flask.utilx import Util, status
+from halo_flask.apis import ApiTest
+from halo_flask.exceptions import ApiError
+from halo_flask.logs import log_json
+from halo_flask import saga
+from halo_flask.models import AbsModel
 import unittest
 import requests
 
@@ -59,7 +59,7 @@ class TestUserDetailTestCase(unittest.TestCase):
 
     def test_send_event(self):
         with app.test_request_context(method='GET', path='/?a=b'):
-            from halolib.events import AbsBaseEvent
+            from halo_flask.events import AbsBaseEvent
             class Event1Event(AbsBaseEvent):
                 target_service = 'func1'
                 key_name = 'def'
@@ -206,9 +206,9 @@ class TestUserDetailTestCase(unittest.TestCase):
         eq_(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def test_ssm(self):  # @TODO
-        from halolib.ssm import get_app_config
+        from halo_flask.ssm import get_app_config
         ret = get_app_config("us-east-1")
-        eq_(ret.get_param("halolib")["url"], 'https://127.0.0.1:8000/loc')
+        eq_(ret.get_param("halo_flask")["url"], 'https://127.0.0.1:8000/loc')
 
     def test_error_handler(self):
         response = requests.delete(self.url)
@@ -218,6 +218,6 @@ class TestUserDetailTestCase(unittest.TestCase):
 
     def test_timeout(self):
         with app.test_request_context(method='GET', path='/?a=b'):
-            os.environ["AWS_LAMBDA_FUNCTION_NAME"] = "halolib"
+            os.environ["AWS_LAMBDA_FUNCTION_NAME"] = "halo_flask"
             timeout = Util.get_timeout(request)
             eq_(timeout, 0.3)

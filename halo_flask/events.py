@@ -10,8 +10,8 @@ import boto3
 from botocore.exceptions import ClientError
 
 # DRF
-from halolib.exceptions import HaloException
-from halolib.logs import log_json
+from halo_flask.exceptions import HaloException
+from halo_flask.logs import log_json
 
 try:
     from .util import Util

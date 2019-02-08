@@ -8,14 +8,6 @@ from abc import ABCMeta
 import requests
 # aws
 # common
-# django
-from django.conf import settings
-from django.contrib import messages
-from django.http import HttpResponse
-from django.template import loader
-from django.template.exceptions import TemplateDoesNotExist
-from rest_framework import status
-from rest_framework.response import Response
 
 from .const import HTTPChoice
 from .exceptions import AuthException

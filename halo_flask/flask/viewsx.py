@@ -72,7 +72,7 @@ class AbsBaseLinkX(MethodView):
 
         if settings.HALO_HOST is None and 'HTTP_HOST' in request.headers:
             settings.HALO_HOST = request.headers['HTTP_HOST']
-            from halolib.ssm import set_app_param_config
+            from halo_flask.ssm import set_app_param_config
             set_app_param_config(settings.AWS_REGION, settings.HALO_HOST)
 
 

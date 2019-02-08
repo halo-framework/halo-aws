@@ -10,10 +10,10 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name='halolib',
+    name='halo_flask',
     version='0.14.10',
-    packages=['halolib', 'halolib.flask'],
-    url='https://github.com/yoramk2/halolib',
+    packages=['halo_flask', 'halo_flask.flask'],
+    url='https://github.com/yoramk2/halo_flask',
     license='MIT License',
     author='yoramk2',
     author_email='yoramk2@yahoo.com',
