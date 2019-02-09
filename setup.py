@@ -11,13 +11,13 @@ with open("README.md", "r") as fh:
 
 setup(
     name='halo_flask',
-    version='0.14.10',
+    version='0.15.1',
     packages=['halo_flask', 'halo_flask.flask'],
     url='https://github.com/yoramk2/halo_flask',
     license='MIT License',
     author='yoramk2',
     author_email='yoramk2@yahoo.com',
-    description='this is the Halo framework library',
+    description='this is the Halo framework library for Flask',
     long_description=long_description,
     long_description_content_type="text/markdown",
     classifiers=[
@@ -25,10 +25,7 @@ setup(
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.6',
-        'Framework :: Django',
-        'Framework :: Django :: 1.11',
         'Framework :: Flask',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
