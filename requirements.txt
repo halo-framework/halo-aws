@@ -1,3 +1,2 @@
 -r requirements/dev.txt
--r requirements/prod.txt
-boto3==1.7.16
+#-r requirements/prod.txt

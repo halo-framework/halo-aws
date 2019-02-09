@@ -13,10 +13,8 @@ from .exceptions import MaxTryHttpException, ApiError
 from .logs import log_json
 from .settingsx import settingsx
 
-try:
-    from .util import Util
-except:
-    from .flask.utilx import Util
+
+from .flask.utilx import Util
 
 settings = settingsx()
 

@@ -15,7 +15,6 @@ from flask import redirect
 # flask
 from flask.views import MethodView
 
-# halolib
 from .utilx import Util
 from ..const import HTTPChoice
 from ..logs import log_json

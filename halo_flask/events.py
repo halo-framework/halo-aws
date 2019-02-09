@@ -13,10 +13,8 @@ from botocore.exceptions import ClientError
 from halo_flask.exceptions import HaloException
 from halo_flask.logs import log_json
 
-try:
-    from .util import Util
-except:
-    from .flask.utilx import Util
+
+from .flask.utilx import Util
 from .settingsx import settingsx
 
 settings = settingsx()

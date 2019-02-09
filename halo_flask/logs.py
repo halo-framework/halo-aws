@@ -1,10 +1,7 @@
 from __future__ import print_function
 
-try:
-    from .util import Util
-except Exception as e:
-    # print(e)
-    from .flask.utilx import Util
+
+from .flask.utilx import Util
 
 def append_error(params, err):
     """
