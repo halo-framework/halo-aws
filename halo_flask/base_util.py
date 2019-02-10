@@ -325,8 +325,8 @@ class BaseUtil:
         module = importlib.import_module(clazz)
         my_class = getattr(module, 'ErrorMessages')
         msgs = my_class()
-        code, msg = msgs.get_code(e)
-        return code, json.dumps({"error": {"code": code, "message": msg, "trace_id": req_context["x-correlation-id"]}})
+        code, message = msgs.get_code(e)
+        return code, json.dumps({"error": {"code": code, "message": message, "err":e.msg, "trace_id": req_context["x-correlation-id"]}})
 
     @classmethod
     def get_timeout(cls, request):

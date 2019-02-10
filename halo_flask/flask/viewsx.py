@@ -10,11 +10,11 @@ from abc import ABCMeta
 import jwt
 from flask import Response as HttpResponse
 from flask import redirect
-# from flask_api import status
+from flask_restful import abort
 # from flask import request
 # flask
 from flask.views import MethodView
-
+from ..exceptions import BadRequestError
 from .utilx import Util
 from ..const import HTTPChoice
 from ..logs import log_json
@@ -58,6 +58,7 @@ class AbsBaseLinkX(MethodView):
         error_message = None
         error = None
         orig_log_level = 0
+        http_status_code = 500
 
         if Util.isDebugEnabled(self.req_context, request):
             orig_log_level = logger.getEffectiveLevel()
@@ -83,6 +84,16 @@ class AbsBaseLinkX(MethodView):
                                                             "milliseconds": int(total.total_seconds() * 1000)}))
             return ret
 
+        except BadRequestError as e:
+            http_status_code = e.status
+            error = e
+            error_message = str(error)
+            e.stack = traceback.format_exc()
+            logger.error(error_message, extra=log_json(self.req_context, Util.get_req_params(request), e))
+            # exc_type, exc_obj, exc_tb = sys.exc_info()
+            # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            # logger.debug('An error occured in '+str(fname)+' lineno: '+str(exc_tb.tb_lineno)+' exc_type '+str(exc_type)+' '+e.message)
+
         except Exception as e:
             error = e
             error_message = str(error)
@@ -102,12 +113,8 @@ class AbsBaseLinkX(MethodView):
 
         error_code, json_error = Util.json_error_response(self.req_context, settings.ERR_MSG_CLASS, error)
         if settings.FRONT_WEB:
-            return redirect("/" + str(error_code))
-        ret = HaloResponse()
-        ret.code = error_code
-        ret.payload = json_error
-        ret.headers = {'content-type': 'application/json'}
-        return ret
+            return redirect("/" + str(http_status_code))
+        abort(http_status_code, errors=json_error)
 
     def process_finally(self, request, orig_log_level):
         """
