@@ -73,6 +73,6 @@ class CacheExpireError(CacheError):
 class BadRequestError(HaloError):
     """Custom exception class to be thrown when local error occurs."""
     def __init__(self, message, status=400, payload=None):
-        self.msg = message
+        self.message = message
         self.status = status
         self.payload = payload

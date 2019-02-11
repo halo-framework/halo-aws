@@ -326,7 +326,11 @@ class BaseUtil:
         my_class = getattr(module, 'ErrorMessages')
         msgs = my_class()
         code, message = msgs.get_code(e)
-        return code, json.dumps({"error": {"code": code, "message": message, "err":e.msg, "trace_id": req_context["x-correlation-id"]}})
+        if hasattr(e, 'message'):
+            e_msg = e.message
+        else:
+            e_msg = str(e)
+        return code, json.dumps({"error": {"code": code, "message": message, "err":e_msg, "trace_id": req_context["x-correlation-id"]}})
 
     @classmethod
     def get_timeout(cls, request):
