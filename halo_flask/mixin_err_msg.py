@@ -21,8 +21,7 @@ class ErrorMessages(object):
 
     # hashx["ApiException"] = {"code": 114, "message": "Server Error"}
 
-    @staticmethod
-    def get_code(ex):
+    def get_code(self,ex):
         """
         get the proper status code and error msg for exception
         :param ex:
@@ -31,12 +30,12 @@ class ErrorMessages(object):
         e = type(ex).__name__
         emsg = str(ex)
         logger.debug("e=" + emsg)
-        if e in ErrorMessages.hashx:
-            code = ErrorMessages.hashx[e]["code"]
-            msg = ErrorMessages.hashx[e]["message"]
+        if e in self.hashx:
+            code = self.hashx[e]["code"]
+            msg = self.hashx[e]["message"]
         else:
             code = 500
             msg = "Server Error"
-        if emsg != None and emsg != "":
-            msg = emsg
+            if emsg != None and emsg != "":
+                msg = emsg
         return code, msg
