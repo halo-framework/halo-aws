@@ -1,6 +1,9 @@
 from __future__ import print_function
 
+from abc import ABCMeta
+
 class HaloException(Exception):
+    __metaclass__ = ABCMeta
     """
     The exception used when a template does not exist. Accepts the following
     optional arguments:
@@ -12,6 +15,7 @@ class HaloException(Exception):
 
 
 class HaloError(HaloException):
+    __metaclass__ = ABCMeta
     """
     The exception used when a template does not exist. Accepts the following
     optional arguments:
@@ -71,8 +75,9 @@ class CacheExpireError(CacheError):
     pass
 
 class BadRequestError(HaloError):
+    __metaclass__ = ABCMeta
     """Custom exception class to be thrown when local error occurs."""
-    def __init__(self, message, status=400, payload=None):
+    def __init__(self, message, http_status=400, payload=None):
         self.message = message
-        self.status = status
+        self.status = http_status
         self.payload = payload

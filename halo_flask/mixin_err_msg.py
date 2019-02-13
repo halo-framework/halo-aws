@@ -36,6 +36,6 @@ class ErrorMessages(object):
         else:
             code = 500
             msg = "Server Error"
-            if emsg != None and emsg != "":
+            if emsg is not None and emsg != 'None' and emsg != "":
                 msg = emsg
         return code, msg
