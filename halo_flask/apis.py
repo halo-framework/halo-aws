@@ -28,7 +28,7 @@ headers = {
 logger = logging.getLogger(__name__)
 
 
-def exec_client(req_context, method, url, api_type, timeout, data=None, headers=None):
+def exec_client(req_context, method, url, api_type, timeout, data=None, headers=None,auth=None):
     """
 
     :param req_context:
@@ -45,7 +45,7 @@ def exec_client(req_context, method, url, api_type, timeout, data=None, headers=
         try:
             logger.debug("try: " + str(i), extra=log_json(req_context))
             ret = requests.request(method, url, data=data, headers=headers,
-                                   timeout=timeout)
+                                   timeout=timeout,auth=auth)
             logger.debug("status_code=" + str(ret.status_code), extra=log_json(req_context))
             if ret.status_code >= 500:
                 if i > 0:
@@ -138,7 +138,7 @@ class AbsBaseApi(object):
         self.url = strx
         return self.url
 
-    def process(self, method, url, timeout, data=None, headers=None):
+    def process(self, method, url, timeout, data=None, headers=None,auth=None):
         """
 
         :param method:
@@ -151,7 +151,7 @@ class AbsBaseApi(object):
         try:
             logger.debug("method: " + str(method) + " url: " + str(url), extra=log_json(self.req_context))
             now = datetime.datetime.now()
-            ret = exec_client(self.req_context, method, url, self.api_type, timeout, data=data, headers=headers)
+            ret = exec_client(self.req_context, method, url, self.api_type, timeout, data=data, headers=headers,auth=auth)
             total = datetime.datetime.now() - now
             logger.info("performance_data", extra=log_json(self.req_context,
                                                            {"type": "API", "milliseconds": int(total.total_seconds() * 1000),
@@ -187,7 +187,7 @@ class AbsBaseApi(object):
             logger.debug("error: " + msg, extra=log_json(self.req_context))
             raise e
 
-    def get(self, timeout, headers=None):
+    def get(self, timeout, headers=None,auth=None):
         """
 
         :param timeout:
@@ -196,9 +196,9 @@ class AbsBaseApi(object):
         """
         if headers is None:
             headers = headers
-        return self.process('GET', self.url, timeout, headers=headers)
+        return self.process('GET', self.url, timeout, headers=headers,auth=auth)
 
-    def post(self, data, timeout, headers=None):
+    def post(self, data, timeout, headers=None,auth=None):
         """
 
         :param data:
@@ -209,9 +209,9 @@ class AbsBaseApi(object):
         logger.debug("payload=" + str(data))
         if headers is None:
             headers = headers
-        return self.process('POST', self.url, timeout, data=data, headers=headers)
+        return self.process('POST', self.url, timeout, data=data, headers=headers,auth=auth)
 
-    def put(self, data, timeout, headers=None):
+    def put(self, data, timeout, headers=None,auth=None):
         """
 
         :param data:
@@ -221,9 +221,9 @@ class AbsBaseApi(object):
         """
         if headers is None:
             headers = headers
-        return self.process('PUT', self.url, timeout, data=data, headers=headers)
+        return self.process('PUT', self.url, timeout, data=data, headers=headers,auth=auth)
 
-    def patch(self, data, timeout, headers=None):
+    def patch(self, data, timeout, headers=None,auth=None):
         """
 
         :param data:
@@ -233,9 +233,9 @@ class AbsBaseApi(object):
         """
         if headers is None:
             headers = headers
-        return self.process('PATCH', self.url, timeout, data=data, headers=headers)
+        return self.process('PATCH', self.url, timeout, data=data, headers=headers,auth=auth)
 
-    def delete(self, timeout, headers=None):
+    def delete(self, timeout, headers=None,auth=None):
         """
 
         :param timeout:
@@ -244,9 +244,9 @@ class AbsBaseApi(object):
         """
         if headers is None:
             headers = headers
-        return self.process('DELETE', self.url, timeout, headers=headers)
+        return self.process('DELETE', self.url, timeout, headers=headers,auth=auth)
 
-    def fwd_process(self, typer, request, vars, headers):
+    def fwd_process(self, typer, request, vars, headers,auth=None):
         """
 
         :param typer:
@@ -260,7 +260,7 @@ class AbsBaseApi(object):
             data = None
         else:
             data = request.data
-        return self.process(verb, self.url, Util.get_timeout(request), data=data, headers=headers)
+        return self.process(verb, self.url, Util.get_timeout(request), data=data, headers=headers,auth=auth)
 
 
 class ApiMngr(object):
