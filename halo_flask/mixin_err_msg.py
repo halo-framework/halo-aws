@@ -12,8 +12,6 @@ logger = logging.getLogger(__name__)
 class ErrorMessages(object):
     hashx = {}
     # generic halo messages and proprietery api messages
-    TransactionDisabled = msg_00001 = "ERROR-00001: Transaction Requests is disabled in this API instance."
-    # custom messages
     hashx["MaxTryException"] = {"code": 10100, "message": "Api reached Max Try count"}
     hashx["MaxTryHttpException"] = {"code": 10101, "message": "Api reached Max Try count using http"}
     hashx["MaxTryRpcException"] = {"code": 10102, "message": "Api reached Max Try count using rpc"}
@@ -21,8 +19,6 @@ class ErrorMessages(object):
     hashx["ApiError"] = {"code": 10104, "message": "Api call Error"}
     hashx["ConnectionError"] = {"code": 10105, "message": "Api Connection Error"}
     hashx["TypeError"] = {"code": 10106, "message": "Server Type Error"}
-
-    # hashx["ApiException"] = {"code": 114, "message": "Server Error"}
 
     def get_code(self,ex):
         """
