@@ -14,10 +14,13 @@ class ErrorMessages(object):
     # generic halo messages and proprietery api messages
     TransactionDisabled = msg_00001 = "ERROR-00001: Transaction Requests is disabled in this API instance."
     # custom messages
-    hashx["MaxTryException"] = {"code": 123, "message": "Server Error"}
-    hashx["ApiError"] = {"code": 111, "message": "Server Error"}
-    hashx["ConnectionError"] = {"code": 112, "message": "Server Error"}
-    hashx["TypeError"] = {"code": 113, "message": "Server Error"}
+    hashx["MaxTryException"] = {"code": 10100, "message": "Api reached Max Try count"}
+    hashx["MaxTryHttpException"] = {"code": 10101, "message": "Api reached Max Try count using http"}
+    hashx["MaxTryRpcException"] = {"code": 10102, "message": "Api reached Max Try count using rpc"}
+    hashx["ApiTimeOutExpired"] = {"code": 10103, "message": "Api call Timed Out"}
+    hashx["ApiError"] = {"code": 10104, "message": "Api call Error"}
+    hashx["ConnectionError"] = {"code": 10105, "message": "Api Connection Error"}
+    hashx["TypeError"] = {"code": 10106, "message": "Server Type Error"}
 
     # hashx["ApiException"] = {"code": 114, "message": "Server Error"}
 
