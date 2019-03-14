@@ -11,7 +11,7 @@ from nose.tools import eq_
 fake = Faker()
 
 from halo_flask.flask.utilx import Util, status
-from halo_flask.apis import ApiTest
+from halo_flask.apis import ApiTest,GoogleApi
 from halo_flask.exceptions import ApiError
 from halo_flask.logs import log_json
 from halo_flask import saga
@@ -42,6 +42,14 @@ class TestUserDetailTestCase(unittest.TestCase):
     def test_api_request_returns_a_given_string(self):
         with app.test_request_context(method='GET', path='/?a=b'):
             api = ApiTest(Util.get_req_context(request))
+            timeout = Util.get_timeout(request)
+            response = api.get(timeout)
+            print("google response " + str(response.content))
+            eq_(response.status_code, status.HTTP_200_OK)
+
+    def test_api_request_returns_a_given_string1(self):
+        with app.test_request_context(method='GET', path='/?a=b'):
+            api = GoogleApi(Util.get_req_context(request))
             timeout = Util.get_timeout(request)
             response = api.get(timeout)
             print("google response " + str(response.content))

@@ -42,7 +42,7 @@ class AbsBaseLinkX(MethodView):
     def __init__(self, **kwargs):
         super(AbsBaseLinkX, self).__init__(**kwargs)
 
-    def do_process(self, request, typer, args=None):
+    def do_process(self, typer, args=None):
         """
 
         :param request:

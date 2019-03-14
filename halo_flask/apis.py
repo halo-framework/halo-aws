@@ -27,51 +27,11 @@ headers = {
 
 logger = logging.getLogger(__name__)
 
-
-def exec_client(req_context, method, url, api_type, timeout, data=None, headers=None,auth=None):
-    """
-
-    :param req_context:
-    :param method:
-    :param url:
-    :param api_type:
-    :param timeout:
-    :param data:
-    :param headers:
-    :return:
-    """
-    msg = "Max Try for url: " + str(url)
-    for i in range(0, settings.HTTP_MAX_RETRY):
-        try:
-            logger.debug("try: " + str(i), extra=log_json(req_context))
-            ret = requests.request(method, url, data=data, headers=headers,
-                                   timeout=timeout,auth=auth)
-            logger.debug("status_code=" + str(ret.status_code), extra=log_json(req_context))
-            if ret.status_code >= 500:
-                if i > 0:
-                    time.sleep(settings.HTTP_RETRY_SLEEP)
-                continue
-            if 200 > ret.status_code or 500 > ret.status_code >= 300:
-                err = ApiError("error status_code " + str(ret.status_code) + " in : " + url)
-                err.status_code = ret.status_code
-                err.stack = None
-                raise err
-            return ret
-        except requests.exceptions.ReadTimeout:  # this confirms you that the request has reached server
-            logger.debug(
-                "ReadTimeout " + str(settings.SERVICE_READ_TIMEOUT_IN_MS) + " in method=" + method + " for url=" + url,
-                extra=log_json(req_context))
-            if i > 0:
-                time.sleep(settings.HTTP_RETRY_SLEEP)
-            continue
-        except requests.exceptions.ConnectTimeout:
-            logger.debug("ConnectTimeout in method=" + str(
-                settings.SERVICE_CONNECT_TIMEOUT_IN_MS) + " in method=" + method + " for url=" + url,
-                         extra=log_json(req_context))
-            if i > 0:
-                time.sleep(settings.HTTP_RETRY_SLEEP)
-            continue
-    raise MaxTryHttpException(msg)
+from halo_flask.circuitbreaker import CircuitBreaker
+class MyCircuitBreaker(CircuitBreaker):
+    FAILURE_THRESHOLD = 10
+    RECOVERY_TIMEOUT = settings.HTTP_RETRY_SLEEP
+    EXPECTED_EXCEPTION = Exception
 
 
 class AbsBaseApi(object):
@@ -81,10 +41,57 @@ class AbsBaseApi(object):
     url = None
     api_type = None
     req_context = None
+    cb = MyCircuitBreaker()
 
     def __init__(self, req_context):
         self.req_context = req_context
         self.url, self.api_type = self.get_url_str()
+        self.cb._name = self.name
+
+    @cb
+    def do_request(self,method, url, timeout, data=None, headers=None, auth=None):
+        return requests.request(method, url, data=data, headers=headers,
+                         timeout=timeout, auth=auth)
+
+    def exec_client(self, req_context, method, url, api_type, timeout, data=None, headers=None, auth=None):
+        """
+
+        :param req_context:
+        :param method:
+        :param url:
+        :param api_type:
+        :param timeout:
+        :param data:
+        :param headers:
+        :return:
+        """
+
+        msg = "Max Try for url: " + str(url)
+        for i in range(0, settings.HTTP_MAX_RETRY):
+            try:
+                logger.debug("try: " + str(i), extra=log_json(req_context))
+                ret = self.do_request(method, url, timeout, data=None, headers=None, auth=None)
+                logger.debug("status_code=" + str(ret.status_code), extra=log_json(req_context))
+                if ret.status_code >= 500:
+                    continue
+                if 200 > ret.status_code or 500 > ret.status_code >= 300:
+                    err = ApiError("error status_code " + str(ret.status_code) + " in : " + url)
+                    err.status_code = ret.status_code
+                    err.stack = None
+                    raise err
+                return ret
+            except requests.exceptions.ReadTimeout:  # this confirms you that the request has reached server
+                logger.debug(
+                    "ReadTimeout " + str(
+                        settings.SERVICE_READ_TIMEOUT_IN_MS) + " in method=" + method + " for url=" + url,
+                    extra=log_json(req_context))
+                continue
+            except requests.exceptions.ConnectTimeout:
+                logger.debug("ConnectTimeout in method=" + str(
+                    settings.SERVICE_CONNECT_TIMEOUT_IN_MS) + " in method=" + method + " for url=" + url,
+                             extra=log_json(req_context))
+                continue
+        raise MaxTryHttpException(msg)
 
     def get_url_str(self):
         """
@@ -149,9 +156,9 @@ class AbsBaseApi(object):
         :return:
         """
         try:
-            logger.debug("method: " + str(method) + " url: " + str(url), extra=log_json(self.req_context))
+            logger.debug("Api name:"+self.name+" method: " + str(method) + " url: " + str(url), extra=log_json(self.req_context))
             now = datetime.datetime.now()
-            ret = exec_client(self.req_context, method, url, self.api_type, timeout, data=data, headers=headers,auth=auth)
+            ret = self.exec_client(self.req_context, method, url, self.api_type, timeout, data=data, headers=headers,auth=auth)
             total = datetime.datetime.now() - now
             logger.info("performance_data", extra=log_json(self.req_context,
                                                            {"type": "API", "milliseconds": int(total.total_seconds() * 1000),
@@ -330,7 +337,7 @@ class ApiLambda(object):
 
 
 class ApiTest(AbsBaseApi):
-    name = 'Google'
+    name = 'Sim'
 
 
 class GoogleApi(AbsBaseApi):
