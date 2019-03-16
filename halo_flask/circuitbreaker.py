@@ -14,12 +14,13 @@ from typing import AnyStr, Iterable
 
 import logging
 import threading
+import uuid
+from halo_flask.exceptions import ApiError
 
 logger = logging.getLogger(__name__)
 
 #manage monitor in a multi thread env
 sem = threading.Semaphore()
-
 
 
 STATE_CLOSED = 'closed'
@@ -44,6 +45,7 @@ class CircuitBreaker(object):
         self._name = name
         self._state = STATE_CLOSED
         self._opened = datetime.utcnow()
+        self._uuid = str(uuid.uuid4())
 
     def __call__(self, wrapped):
         return self.decorate(wrapped)
@@ -88,7 +90,7 @@ class CircuitBreaker(object):
         """
         self._state = STATE_CLOSED
         self._failure_count = 0
-        logger.info("call_succeeded-Close circuit" + str(self.name))
+        logger.info("call_succeeded-Close circuit " + str(self.name)+ " : "+self._uuid)
 
     def __call_failed(self):
         """
@@ -98,7 +100,7 @@ class CircuitBreaker(object):
         if self._failure_count >= self._failure_threshold:
             self._state = STATE_OPEN
             self._opened = datetime.utcnow()
-            logger.debug("call_failed-Open circuit" + str(self.name))
+            logger.debug("call_failed-Open circuit " + str(self.name)+ " : "+self._uuid)
 
     @property
     def state(self):
@@ -142,7 +144,7 @@ class CircuitBreaker(object):
         return self._name
 
 
-class CircuitBreakerError(Exception):
+class CircuitBreakerError(ApiError):
     def __init__(self, circuit_breaker, *args, **kwargs):
         """
         :param circuit_breaker:
@@ -150,7 +152,7 @@ class CircuitBreakerError(Exception):
         :param kwargs:
         :return:
         """
-        super(CircuitBreakerError, self).__init__(*args, **kwargs)
+        super(CircuitBreakerError, self).__init__("msg",*args, **kwargs)
         self._circuit_breaker = circuit_breaker
 
     def __str__(self, *args, **kwargs):

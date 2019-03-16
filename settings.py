@@ -280,9 +280,9 @@ USER_HEADERS = 'Mozilla/5.0'
 
 MIXIN_HANDLER = 'loader1service.api.mixin.mixin_handler'
 
-SERVICE_READ_TIMEOUT_IN_SC = 0.3  # in seconds = 300 ms
+SERVICE_READ_TIMEOUT_IN_SC = 3  # in seconds = 300 ms
 
-SERVICE_CONNECT_TIMEOUT_IN_SC = 0.3  # in seconds = 300 ms
+SERVICE_CONNECT_TIMEOUT_IN_SC = 3  # in seconds = 300 ms
 
 RECOVER_TIMEOUT_IN_SC = 0.5  # in seconds = 500 ms
 
@@ -292,7 +292,7 @@ HTTP_MAX_RETRY = 4
 
 THRIFT_MAX_RETRY = 4
 
-HTTP_RETRY_SLEEP = 0.100  # in seconds = 100 ms
+HTTP_RETRY_SLEEP = 10 #0.100  # in seconds = 100 ms
 
 FRONT_WEB = False
 

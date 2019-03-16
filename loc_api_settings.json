@@ -45,6 +45,10 @@
   },
   "Google": {
     "url": "http://www.google.com",
-    "type": "service"
+    "type": "api"
+  },
+  "Cnn": {
+    "url": "http://www.cnn.com",
+    "type": "api"
   }
 }

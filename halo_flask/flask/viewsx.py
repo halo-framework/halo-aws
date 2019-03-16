@@ -77,7 +77,7 @@ class AbsBaseLinkX(MethodView):
 
 
         try:
-            ret = self.process(request, typer, args)
+            ret = self.process(request,typer, args)
             total = datetime.datetime.now() - now
             logger.info("performance_data", extra=log_json(self.req_context,
                                                            {"type": "LAMBDA",
@@ -128,29 +128,29 @@ class AbsBaseLinkX(MethodView):
                 logger.info("process_finally - back to orig:" + str(orig_log_level),
                             extra=log_json(self.req_context))
 
-    def process(self, request, typer, args):
+    def process(self,request, typer, args):
         """
         Return a list of all users.
         """
 
         if typer == HTTPChoice.get:
-            return self.process_get(request, args)
+            return self.process_get(request,args)
 
         if typer == HTTPChoice.post:
-            return self.process_post(request, args)
+            return self.process_post(request,args)
 
         if typer == HTTPChoice.put:
-            return self.process_put(request, args)
+            return self.process_put(request,args)
 
         if typer == HTTPChoice.patch:
-            return self.process_patch(request, args)
+            return self.process_patch(request,args)
 
         if typer == HTTPChoice.delete:
-            return self.process_delete(request, args)
+            return self.process_delete(request,args)
 
-        return HttpResponse('this is a ' + str(typer) + ' on ' + self.get_view_name())
+        return HttpResponse('this is a ' + str(typer) )
 
-    def process_get(self, request, args):
+    def process_get(self, args):
         """
 
         :param request:
@@ -164,7 +164,7 @@ class AbsBaseLinkX(MethodView):
         ret.headers = []
         return ret
 
-    def process_post(self, request, args):
+    def process_post(self, args):
         """
 
         :param request:
@@ -178,7 +178,7 @@ class AbsBaseLinkX(MethodView):
         ret.headers = []
         return ret
 
-    def process_put(self, request, args):
+    def process_put(self, args):
         """
 
         :param request:
@@ -192,7 +192,7 @@ class AbsBaseLinkX(MethodView):
         ret.headers = []
         return ret
 
-    def process_patch(self, request, args):
+    def process_patch(self, args):
         """
 
         :param request:
@@ -206,7 +206,7 @@ class AbsBaseLinkX(MethodView):
         ret.headers = []
         return ret
 
-    def process_delete(self, request, args):
+    def process_delete(self, args):
         """
 
         :param request:
@@ -273,19 +273,19 @@ from flask import request
 
 class PerfLinkX(Resource, PerfMixinX, AbsBaseLinkX):
     def get(self):
-        ret = self.do_process(request, HTTPChoice.get)
+        ret = self.do_process( HTTPChoice.get)
         return Util.json_data_response(ret.payload, ret.code, ret.headers)
 
     def post(self):
-        ret = self.do_process(request, HTTPChoice.post)
+        ret = self.do_process( HTTPChoice.post)
         return Util.json_data_response(ret.payload, ret.code, ret.headers)
 
     def put(self):
-        ret = self.do_process(request, HTTPChoice.put)
+        ret = self.do_process( HTTPChoice.put)
         return Util.json_data_response(ret.payload, ret.code, ret.headers)
 
     def delete(self):
-        ret = self.do_process(request, HTTPChoice.delete)
+        ret = self.do_process( HTTPChoice.delete)
         return Util.json_data_response(ret.payload, ret.code, ret.headers)
 
 
@@ -296,17 +296,17 @@ from ..flask.mixinx import TestMixinX
 class TestLinkX(Resource, TestMixinX, AbsBaseLinkX):
 
     def get(self):
-        ret = self.do_process(request, HTTPChoice.get)
+        ret = self.do_process( HTTPChoice.get)
         return Util.json_data_response(ret.payload, ret.code, ret.headers)
 
     def post(self):
-        ret = self.do_process(request, HTTPChoice.post)
+        ret = self.do_process( HTTPChoice.post)
         return Util.json_data_response(ret.payload, ret.code, ret.headers)
 
     def put(self):
-        ret = self.do_process(request, HTTPChoice.put)
+        ret = self.do_process( HTTPChoice.put)
         return Util.json_data_response(ret.payload, ret.code, ret.headers)
 
     def delete(self):
-        ret = self.do_process(request, HTTPChoice.delete)
+        ret = self.do_process( HTTPChoice.delete)
         return Util.json_data_response(ret.payload, ret.code, ret.headers)

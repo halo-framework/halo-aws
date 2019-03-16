@@ -27,10 +27,17 @@ headers = {
 
 logger = logging.getLogger(__name__)
 
+FAILURE_THRESHOLD = 3
+if settings.HTTP_MAX_RETRY:
+    FAILURE_THRESHOLD = settings.HTTP_MAX_RETRY
+RECOVERY_TIMEOUT = 15
+if settings.HTTP_RETRY_SLEEP:
+    RECOVERY_TIMEOUT = settings.HTTP_RETRY_SLEEP
+
 from halo_flask.circuitbreaker import CircuitBreaker
 class MyCircuitBreaker(CircuitBreaker):
-    FAILURE_THRESHOLD = 10
-    RECOVERY_TIMEOUT = settings.HTTP_RETRY_SLEEP
+    FAILURE_THRESHOLD = FAILURE_THRESHOLD
+    RECOVERY_TIMEOUT = RECOVERY_TIMEOUT
     EXPECTED_EXCEPTION = Exception
 
 
@@ -66,8 +73,9 @@ class AbsBaseApi(object):
         :return:
         """
 
-        msg = "Max Try for url: " + str(url)
+        msg = "Max Try for url: ("+str(settings.HTTP_MAX_RETRY)+") " + str(url)
         for i in range(0, settings.HTTP_MAX_RETRY):
+            print("try "+str(i))
             try:
                 logger.debug("try: " + str(i), extra=log_json(req_context))
                 ret = self.do_request(method, url, timeout, data=None, headers=None, auth=None)
@@ -80,13 +88,15 @@ class AbsBaseApi(object):
                     err.stack = None
                     raise err
                 return ret
-            except requests.exceptions.ReadTimeout:  # this confirms you that the request has reached server
+            except requests.exceptions.ReadTimeout as e:  # this confirms you that the request has reached server
+                print(str(e))
                 logger.debug(
                     "ReadTimeout " + str(
                         settings.SERVICE_READ_TIMEOUT_IN_MS) + " in method=" + method + " for url=" + url,
                     extra=log_json(req_context))
                 continue
-            except requests.exceptions.ConnectTimeout:
+            except requests.exceptions.ConnectTimeout as e:
+                print(str(e))
                 logger.debug("ConnectTimeout in method=" + str(
                     settings.SERVICE_CONNECT_TIMEOUT_IN_MS) + " in method=" + method + " for url=" + url,
                              extra=log_json(req_context))
@@ -156,7 +166,7 @@ class AbsBaseApi(object):
         :return:
         """
         try:
-            logger.debug("Api name:"+self.name+" method: " + str(method) + " url: " + str(url), extra=log_json(self.req_context))
+            logger.debug("Api name: "+self.name+" method: " + str(method) + " url: " + str(url), extra=log_json(self.req_context))
             now = datetime.datetime.now()
             ret = self.exec_client(self.req_context, method, url, self.api_type, timeout, data=data, headers=headers,auth=auth)
             total = datetime.datetime.now() - now
@@ -337,11 +347,11 @@ class ApiLambda(object):
 
 
 class ApiTest(AbsBaseApi):
-    name = 'Sim'
+    name = 'Cnn'
 
 
 class GoogleApi(AbsBaseApi):
     name = 'Google'
 
 
-API_LIST = {"Google": 'GoogleApi'}
+API_LIST = {"Google": 'GoogleApi', "Cnn": "ApiTest"}
