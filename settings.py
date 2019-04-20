@@ -329,9 +329,9 @@ SSM_CONFIG = None
 if ENV_NAME == LOC:
     # from halo_flask.ssm import get_config as get_config
     try:
-        from halo_flask.halo_flask.ssm import get_config, set_param_config
+        from halo_flask.halo_flask.ssm import get_config
     except:
-        from halo_flask.ssm import get_config, set_param_config
+        from halo_flask.ssm import get_config
 
     SSM_CONFIG = get_config(AWS_REGION)
     # set_param_config(AWS_REGION, 'DEBUG_LOG', '{"val":"false"}')
@@ -342,9 +342,9 @@ if ENV_NAME == LOC:
 
     # from halo_flask.ssm import get_config as get_config
     try:
-        from halo_flask.halo_flask.ssm import get_app_config, set_app_param_config
+        from halo_flask.halo_flask.ssm import get_app_config
     except:
-        from halo_flask.ssm import get_app_config, set_app_param_config
+        from halo_flask.ssm import get_app_config
 
     SSM_APP_CONFIG = get_app_config(AWS_REGION)
 
