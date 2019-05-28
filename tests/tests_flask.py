@@ -253,11 +253,14 @@ API_LIST = {"Google": 'GoogleApi', "Cnn": "ApiTest"}
 
 ##################################### test #########################
 import json
-from ..logs import log_json
-from ..apis import ApiTest
-from ..exceptions import ApiError, ApiException
-from ..saga import load_saga, SagaRollBack
+import logging
+from halo_flask.logs import log_json
+from halo_flask.exceptions import ApiError, ApiException
+from halo_flask.saga import load_saga, SagaRollBack
+from halo_flask.flask.mixinx import AbsApiMixinX
+from halo_flask.response import HaloResponse
 
+logger = logging.getLogger(__name__)
 
 class TestMixinX(AbsApiMixinX):
     def process_api(self, ctx, typer, request, vars):
@@ -370,3 +373,27 @@ class TestMixinX(AbsApiMixinX):
         else:
             timeout = 100
         return api.get(timeout)
+
+
+from halo_flask.flask.viewsx import AbsBaseLinkX,Resource
+from halo_flask.const import HTTPChoice
+
+class TestLinkX(Resource, TestMixinX, AbsBaseLinkX):
+
+    def get(self):
+        ret = self.do_process( HTTPChoice.get)
+        return Util.json_data_response(ret.payload, ret.code, ret.headers)
+
+    def post(self):
+        ret = self.do_process( HTTPChoice.post)
+        return Util.json_data_response(ret.payload, ret.code, ret.headers)
+
+    def put(self):
+        ret = self.do_process( HTTPChoice.put)
+        return Util.json_data_response(ret.payload, ret.code, ret.headers)
+
+    def delete(self):
+        ret = self.do_process( HTTPChoice.delete)
+        return Util.json_data_response(ret.payload, ret.code, ret.headers)
+
+

@@ -288,25 +288,3 @@ class PerfLinkX(Resource, PerfMixinX, AbsBaseLinkX):
         ret = self.do_process( HTTPChoice.delete)
         return Util.json_data_response(ret.payload, ret.code, ret.headers)
 
-
-##################################### test ##########################
-
-from ..flask.mixinx import TestMixinX
-
-class TestLinkX(Resource, TestMixinX, AbsBaseLinkX):
-
-    def get(self):
-        ret = self.do_process( HTTPChoice.get)
-        return Util.json_data_response(ret.payload, ret.code, ret.headers)
-
-    def post(self):
-        ret = self.do_process( HTTPChoice.post)
-        return Util.json_data_response(ret.payload, ret.code, ret.headers)
-
-    def put(self):
-        ret = self.do_process( HTTPChoice.put)
-        return Util.json_data_response(ret.payload, ret.code, ret.headers)
-
-    def delete(self):
-        ret = self.do_process( HTTPChoice.delete)
-        return Util.json_data_response(ret.payload, ret.code, ret.headers)
