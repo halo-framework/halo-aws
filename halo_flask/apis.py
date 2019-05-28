@@ -312,46 +312,5 @@ class ApiMngr(object):
         logger.debug("class=" + str(instance))
         return instance
 
-##################################### lambda #########################
-import boto3
-import json
-
-"""
-response = client.invoke(
-    FunctionName='string',
-    InvocationType='Event'|'RequestResponse'|'DryRun',
-    LogType='None'|'Tail',
-    ClientContext='string',
-    Payload=b'bytes',
-    Qualifier='string'
-)
-"""
 
 
-def call_lambda(func_name, event):
-    client = boto3.client('lambda', region_name=settings.AWS_REGION)
-    ret = client.invoke(
-        FunctionName=func_name,
-        InvocationType='RequestResponse',
-        LogType='None',
-        Payload=bytes(json.dumps(event))
-    )
-    return ret
-
-
-class ApiLambda(object):
-    pass
-
-
-##################################### test #########################
-
-
-class ApiTest(AbsBaseApi):
-    name = 'Cnn'
-
-
-class GoogleApi(AbsBaseApi):
-    name = 'Google'
-
-
-API_LIST = {"Google": 'GoogleApi', "Cnn": "ApiTest"}

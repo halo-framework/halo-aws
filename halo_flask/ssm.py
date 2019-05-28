@@ -26,7 +26,6 @@ from .exceptions import HaloError, CacheKeyError, CacheExpireError
 
 logger = logging.getLogger(__name__)
 
-# Initialize boto3 client at global scope for connection reuse
 client = None
 env = os.environ['HALO_STAGE']
 type = os.environ['HALO_TYPE']
