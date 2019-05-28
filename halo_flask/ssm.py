@@ -22,7 +22,7 @@ from .exceptions import HaloError, CacheKeyError, CacheExpireError
 # from .logs import log_json
 
 
-current_milli_time = lambda: int(round(time.time() * 1000))
+#current_milli_time = lambda: int(round(time.time() * 1000))
 
 logger = logging.getLogger(__name__)
 
