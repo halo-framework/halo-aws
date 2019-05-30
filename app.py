@@ -2,8 +2,8 @@
 """Create an application instance."""
 from flask import Flask
 from flask_restful import Api
+from halo_flask.flask.viewsx import PerfLinkX
 
-#@TODO add test endpoint?
 
 def create_app(config_object='settings'):
     """An application factory, as explained here: http://flask.pocoo.org/docs/patterns/appfactories/.
@@ -14,7 +14,7 @@ def create_app(config_object='settings'):
 
     app.config.from_object(config_object)
     with app.app_context():
-        from halo_flask.flask.viewsx import PerfLinkX
+        # @TODO add test endpoint?
         #app.add_url_rule("/", view_func=TestLinkX.as_view("member"))
         app.add_url_rule("/perf", view_func=PerfLinkX.as_view("perf"))
 

@@ -7,10 +7,8 @@ import logging
 import os
 import time
 
-import boto3
-from botocore.exceptions import ClientError
 
-from .exceptions import HaloError, CacheKeyError, CacheExpireError
+from halo_flask.exceptions import HaloError, CacheKeyError, CacheExpireError
 
 # from .logs import log_json
 
@@ -19,7 +17,6 @@ current_milli_time = lambda: int(round(time.time() * 1000))
 
 logger = logging.getLogger(__name__)
 
-# Initialize boto3 client at global scope for connection reuse
 client = None
 env = os.environ['HALO_STAGE']
 type = os.environ['HALO_TYPE']
@@ -29,7 +26,7 @@ full_config_path = '/' + app_name + '/' + env + '/' + app_config_path
 short_config_path = '/' + app_name + '/' + type + '/service'
 
 
-def get_client(region_name):
+def get_client():
     """
 
     :param region_name:
@@ -37,8 +34,8 @@ def get_client(region_name):
     """
     logger.debug("get_client")
     global client
-    if not client:
-        client = boto3.client('ssm', region_name=region_name)
+    #if not client:
+    #    client = xxx.client('ssm')
     return client
 
 
@@ -82,14 +79,13 @@ def load_cache(config, expiryMs=DEFAULT_EXPIRY):
 
 
 class MyConfig:
-    def __init__(self, cache, path, region_name):
+    def __init__(self, cache, path):
         """
         Construct new MyApp with configuration
         :param config: application configuration
         """
         self.cache = cache
         self.path = path
-        self.region_name = region_name
 
     def get_param(self, key):
         """
@@ -110,7 +106,7 @@ class MyConfig:
         raise CacheExpireError("cache expired")
 
 
-def load_config(region_name, ssm_parameter_path):
+def load_config(ssm_parameter_path):
     """
     Load configparser from config stored in SSM Parameter Store
     :param ssm_parameter_path: Path to app config in SSM Parameter Store
@@ -119,7 +115,7 @@ def load_config(region_name, ssm_parameter_path):
     configuration = configparser.ConfigParser()
     try:
         # Get all parameters for this app
-        param_details = get_client(region_name).get_parameters_by_path(
+        param_details = get_client().get_parameters_by_path(
             Path=ssm_parameter_path,
             Recursive=False,
             WithDecryption=True
@@ -137,7 +133,7 @@ def load_config(region_name, ssm_parameter_path):
                 logger.debug("Found configuration: " + str(config_dict))
                 configuration.read_dict(config_dict)
 
-    except ClientError as e:
+    except HaloException as e:
         logger.error("Encountered a client error loading config from SSM:" + str(e))
     except json.decoder.JSONDecodeError as e:
         logger.error("Encountered a json error loading config from SSM:" + str(e))
@@ -176,7 +172,7 @@ def set_app_param_config(region_name, host):
     return set_config(region_name, ssm_parameter_path, value)
 
 
-def set_config(region_name, ssm_parameter_path, value):
+def set_config(ssm_parameter_path, value):
     """
     Load configparser from config stored in SSM Parameter Store
     :param ssm_parameter_path: Path to app config in SSM Parameter Store
@@ -186,7 +182,7 @@ def set_config(region_name, ssm_parameter_path, value):
         # set parameters for this app
 
         json.loads(value)
-        ret = get_client(region_name).put_parameter(
+        ret = get_client().put_parameter(
             Name=ssm_parameter_path,
             Value=value,
             Type='String',
@@ -195,7 +191,7 @@ def set_config(region_name, ssm_parameter_path, value):
 
         logger.debug(str(full_config_path) + "=" + str(ret))
         return True
-    except ClientError as e:
+    except HaloException as e:
         logger.error("Encountered a client error setting config from SSM:" + str(e))
     except json.decoder.JSONDecodeError as e:
         logger.error("Encountered a json error setting config from SSM" + str(e))
@@ -204,7 +200,7 @@ def set_config(region_name, ssm_parameter_path, value):
     return False
 
 
-def get_cache(region_name, path):
+def get_cache(path):
     """
 
     :param region_name:
@@ -212,12 +208,12 @@ def get_cache(region_name, path):
     :return:
     """
     logger.debug("get_cache")
-    config = load_config(region_name, path)
+    config = load_config(path)
     cache = load_cache(config)
     return cache
 
 
-def get_config(region_name):
+def get_config():
     """
 
     :param region_name:
@@ -225,13 +221,13 @@ def get_config(region_name):
     """
     # Initialize app if it doesn't yet exist
     logger.debug("Loading config and creating new MyConfig..." + full_config_path)
-    cache = get_cache(region_name, full_config_path)
-    myconfig = MyConfig(cache, full_config_path, region_name)
+    cache = get_cache(full_config_path)
+    myconfig = MyConfig(cache, full_config_path)
     logger.debug("MyConfig is " + str(cache.items._sections))
     return myconfig
 
 
-def get_app_config(region_name):
+def get_app_config():
     """
 
     :param region_name:
@@ -239,7 +235,7 @@ def get_app_config(region_name):
     """
     # Initialize app if it doesn't yet exist
     logger.debug("Loading app config and creating new AppConfig..." + short_config_path)
-    cache = get_cache(region_name, short_config_path)
-    appconfig = MyConfig(cache, short_config_path, region_name)
+    cache = get_cache(short_config_path)
+    appconfig = MyConfig(cache, short_config_path)
     logger.debug("AppConfig is " + str(cache.items._sections))
     return appconfig

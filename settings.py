@@ -29,6 +29,8 @@ LOC = "loc"
 DEV = "dev"
 TST = "tst"
 PRD = "prd"
+###### setup environment for testing
+
 ENV_TYPE = LOC
 os.environ["HALO_TYPE"] = ENV_TYPE
 
@@ -40,11 +42,6 @@ os.environ['HALO_FUNC_NAME'] = FUNC_NAME  # done in settings json file
 os.environ['HALO_APP_NAME'] = 'app'  #done in settings json file
 
 SERVER_LOCAL = True
-AWS_REGION = env.str('AWS_REGION')
-DB_URL = env('DYNAMODB_LOCAL_URL','')
-if 'AWS_LAMBDA_FUNCTION_NAME' in os.environ:
-    DB_URL = env('DYNAMODB_URL')
-    SERVER_LOCAL = False
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # Make this unique, and don't share it with anybody.
@@ -306,7 +303,11 @@ LOG_SAMPLE_RATE = 0.05  # 5%
 
 ERR_MSG_CLASS = 'halo_flask.mixin_err_msg'
 
+SSM_TYPE = env.str('SSM_TYPE',default='NONE')
+print('SSM_TYPE='+SSM_TYPE)
+
 #######################################################################################3
+
 
 import json
 
@@ -325,40 +326,41 @@ with open(file_path, 'r') as fi:
     LOC_TABLE = json.load(fi)
     print("loc_settings:" + str(LOC_TABLE))
 
-SSM_CONFIG = None
-if ENV_NAME == LOC:
-    # from halo_flask.ssm import get_config as get_config
-    try:
-        from halo_flask.halo_flask.ssm import get_config
-    except:
-        from halo_flask.ssm import get_config
+if SSM_TYPE != 'NONE':
+    SSM_CONFIG = None
+    if ENV_NAME == LOC:
+        # from halo_flask.ssm import get_config as get_config
+        try:
+            from halo_flask.halo_flask.ssm import get_config
+        except:
+            from halo_flask.ssm import get_config
 
-    SSM_CONFIG = get_config(AWS_REGION)
-    # set_param_config(AWS_REGION, 'DEBUG_LOG', '{"val":"false"}')
-    # SSM_CONFIG.get_param("test")
+        SSM_CONFIG = get_config(SSM_TYPE)
+        # set_param_config(AWS_REGION, 'DEBUG_LOG', '{"val":"false"}')
+        # SSM_CONFIG.get_param("test")
 
-SSM_APP_CONFIG = None
-if ENV_NAME == LOC:
+    SSM_APP_CONFIG = None
+    if ENV_NAME == LOC:
 
-    # from halo_flask.ssm import get_config as get_config
-    try:
-        from halo_flask.halo_flask.ssm import get_app_config
-    except:
-        from halo_flask.ssm import get_app_config
+        # from halo_flask.ssm import get_config as get_config
+        try:
+            from halo_flask.halo_flask.ssm import get_app_config
+        except:
+            from halo_flask.ssm import get_app_config
 
-    SSM_APP_CONFIG = get_app_config(AWS_REGION)
+        SSM_APP_CONFIG = get_app_config(SSM_TYPE)
 
-    # api_config:{'About': {'url': 'http://127.0.0.1:7000/about/', 'type': 'api'}, 'Task': {'url': 'http://127.0.0.1:7000/task/$upcid/', 'type': 'api'}, 'Curr': {'url': 'http://127.0.0.1:7000/curr/', 'type': 'api'}, 'Top': {'url': 'http://127.0.0.1:7000/top/', 'type': 'api'}, 'Rupc': {'url': 'http://127.0.0.1:7000/upc/$upcid/', 'type': 'api'}, 'Upc': {'url': 'http://127.0.0.1:7000/upc/$upcid/', 'type': 'api'}, 'Contact': {'url': 'http://127.0.0.1:7000/contact/', 'type': 'api'}, 'Fail': {'url': 'http://127.0.0.1:7000/fail/', 'type': 'api'}, 'Rtask': {'url': 'http://127.0.0.1:7000/task/$upcid/', 'type': 'api'}, 'Page': {'url': 'http://127.0.0.1:7000/page/$upcid/', 'type': 'api'}, 'Sim': {'url': 'http://127.0.0.1:7000/sim/', 'type': 'api'}, 'Google': {'url': 'http://www.google.com', 'type': 'service'}}
-    for item in SSM_APP_CONFIG.cache.items:
-        if item not in [FUNC_NAME, 'DEFAULT']:
-            url = SSM_APP_CONFIG.get_param(item)["url"]
-            print(item + ":" + url)
-            for key in API_CONFIG:
-                current = API_CONFIG[key]
-                new_url = current["url"]
-                if "service://" + item in new_url:
-                    API_CONFIG[key]["url"] = new_url.replace("service://" + item, url)
-    print(str(API_CONFIG))
+        # api_config:{'About': {'url': 'http://127.0.0.1:7000/about/', 'type': 'api'}, 'Task': {'url': 'http://127.0.0.1:7000/task/$upcid/', 'type': 'api'}, 'Curr': {'url': 'http://127.0.0.1:7000/curr/', 'type': 'api'}, 'Top': {'url': 'http://127.0.0.1:7000/top/', 'type': 'api'}, 'Rupc': {'url': 'http://127.0.0.1:7000/upc/$upcid/', 'type': 'api'}, 'Upc': {'url': 'http://127.0.0.1:7000/upc/$upcid/', 'type': 'api'}, 'Contact': {'url': 'http://127.0.0.1:7000/contact/', 'type': 'api'}, 'Fail': {'url': 'http://127.0.0.1:7000/fail/', 'type': 'api'}, 'Rtask': {'url': 'http://127.0.0.1:7000/task/$upcid/', 'type': 'api'}, 'Page': {'url': 'http://127.0.0.1:7000/page/$upcid/', 'type': 'api'}, 'Sim': {'url': 'http://127.0.0.1:7000/sim/', 'type': 'api'}, 'Google': {'url': 'http://www.google.com', 'type': 'service'}}
+        for item in SSM_APP_CONFIG.cache.items:
+            if item not in [FUNC_NAME, 'DEFAULT']:
+                url = SSM_APP_CONFIG.get_param(item)["url"]
+                print(item + ":" + url)
+                for key in API_CONFIG:
+                    current = API_CONFIG[key]
+                    new_url = current["url"]
+                    if "service://" + item in new_url:
+                        API_CONFIG[key]["url"] = new_url.replace("service://" + item, url)
+        print(str(API_CONFIG))
 
 
 print('The settings file has been loaded.')

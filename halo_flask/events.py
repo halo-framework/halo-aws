@@ -5,15 +5,11 @@ import json
 import logging
 from abc import ABCMeta, abstractmethod
 
-# aws
-import boto3
-from botocore.exceptions import ClientError
-
 # DRF
-from halo_flask.exceptions import HaloException
+from halo_flask.exceptions import HaloException,ProviderError
 from halo_flask.logs import log_json
-
-
+from halo_flask.providers.providers import get_provider
+from halo_flask.classes import AbsBaseClass
 from .flask.utilx import Util
 from .settingsx import settingsx
 
@@ -28,7 +24,7 @@ class NoMessageException(HaloException):
 class NoTargetUrlException(HaloException):
     pass
 
-class AbsBaseEvent(object):
+class AbsBaseEvent(AbsBaseClass):
     __metaclass__ = ABCMeta
 
     target_service = None
@@ -77,23 +73,16 @@ class AbsBaseEvent(object):
             try:
                 service_name = self.target_service_name[settings.ENV_TYPE]
                 logger.debug("send event to target_service:" + service_name, extra=log_json(ctx))
-                client = boto3.client('lambda', region_name=settings.AWS_REGION)
-                ret = client.invoke(
-                    FunctionName=service_name,
-                    InvocationType='Event',
-                    LogType='None',
-                    Payload=bytes(json.dumps(messageDict), "utf8")
-                )
-            except ClientError as e:
-                logger.error("Unexpected boto client Error", extra=log_json(ctx, messageDict, e))
+                ret = get_provider().send_event(ctx,messageDict,service_name)
+            except ProviderError as e:
+                logger.error("Unexpected Provider Error", extra=log_json(ctx, messageDict, e))
             else:
                 logger.debug("send_event to service " + self.target_service + " ret: " + str(ret),
                              extra=log_json(ctx, messageDict))
-
         return ret
 
 
-class AbsMainHandler(object):
+class AbsMainHandler(AbsBaseClass):
     __metaclass__ = ABCMeta
 
     keys = []
@@ -122,7 +111,7 @@ class AbsMainHandler(object):
                     instance.do_event(event, context)
 
 
-class AbsBaseHandler(object):
+class AbsBaseHandler(AbsBaseClass):
     __metaclass__ = ABCMeta
 
     key_name = None

@@ -6,11 +6,11 @@ import json
 import logging
 import os
 import time
-
+from environs import Env
 import boto3
 from botocore.exceptions import ClientError
 
-from .exceptions import HaloError, CacheKeyError, CacheExpireError
+from halo_flask.exceptions import HaloError, CacheKeyError, CacheExpireError
 
 # from .logs import log_json
 
@@ -27,7 +27,7 @@ app_config_path = os.environ['HALO_FUNC_NAME']
 app_name = os.environ['HALO_APP_NAME']
 full_config_path = '/' + app_name + '/' + env + '/' + app_config_path
 short_config_path = '/' + app_name + '/' + type + '/service'
-
+envr = Env()
 
 def get_client(region_name):
     """
@@ -217,28 +217,30 @@ def get_cache(region_name, path):
     return cache
 
 
-def get_config(region_name):
+def get_config():
     """
 
     :param region_name:
     :return:
     """
     # Initialize app if it doesn't yet exist
-    logger.debug("Loading config and creating new MyConfig..." + full_config_path)
+    region_name = envr.str('AWS_REGION')
+    logger.debug("Loading config and creating new MyConfig..." + full_config_path+",AWS_REGION="+region_name)
     cache = get_cache(region_name, full_config_path)
     myconfig = MyConfig(cache, full_config_path, region_name)
     logger.debug("MyConfig is " + str(cache.items._sections))
     return myconfig
 
 
-def get_app_config(region_name):
+def get_app_config():
     """
 
     :param region_name:
     :return:
     """
     # Initialize app if it doesn't yet exist
-    logger.debug("Loading app config and creating new AppConfig..." + short_config_path)
+    region_name = envr.str('AWS_REGION')
+    logger.debug("Loading app config and creating new AppConfig..." + short_config_path+",AWS_REGION="+region_name)
     cache = get_cache(region_name, short_config_path)
     appconfig = MyConfig(cache, short_config_path, region_name)
     logger.debug("AppConfig is " + str(cache.items._sections))

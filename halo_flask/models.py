@@ -7,7 +7,7 @@ from abc import ABCMeta
 
 from pynamodb.attributes import UnicodeAttribute
 from pynamodb.models import Model
-
+from halo_flask.classes import AbsBaseClass
 from halo_flask.exceptions import DbIdemError
 from halo_flask.logs import log_json
 from .settingsx import settingsx
@@ -25,7 +25,7 @@ tbl = False
 page_size = settings.PAGE_SIZE
 
 
-class AbsDbMixin(object):
+class AbsDbMixin(AbsBaseClass):
     __metaclass__ = ABCMeta
     # intercept db calls
 

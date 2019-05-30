@@ -9,7 +9,7 @@ import random
 import uuid
 
 from jsonschema import validate
-
+from .classes import AbsBaseClass
 from .exceptions import CacheError, ApiTimeOutExpired
 from .settingsx import settingsx
 
@@ -57,7 +57,7 @@ u'HTTP_ACCEPT_ENCODING': 'gzip, deflate, br'}
 logger = logging.getLogger(__name__)
 
 
-class BaseUtil:
+class BaseUtil(AbsBaseClass):
 
     def __init__(self):
         pass

@@ -10,12 +10,10 @@ import time
 #@ TODO put_parameter should be activated only is current value is different then the existing one
 #@ TODO perf activation will reload SSM if needed and refresh API table
 
-from .ssm_aws import set_app_param_config as set_app_param_config_aws
-from .ssm_aws import get_config as get_config_aws
-from .ssm_aws import get_app_config as get_app_config_aws
-from .ssm_onprem import set_app_param_config as set_app_param_config_onprem
-from .ssm_onprem import get_config as get_config_onprem
-from .ssm_onprem import get_app_config as get_app_config_onprem
+from .providers.providers import set_app_param_config as set_app_param_config_provider
+from .providers.providers import get_config as get_config_provider
+from .providers.providers import get_app_config as get_app_config_provider
+
 
 from .exceptions import HaloError, CacheKeyError, CacheExpireError
 
@@ -34,42 +32,36 @@ app_name = os.environ['HALO_APP_NAME']
 full_config_path = '/' + app_name + '/' + env + '/' + app_config_path
 short_config_path = '/' + app_name + '/' + type + '/service'
 
-AWS = False
-if 'AWS_LAMBDA_FUNCTION_NAME' in os.environ:
-    AWS = True
 
-def set_app_param_config(region_name, host):
+def set_app_param_config( host):
     """
 
     :param region_name:
     :param host:
     :return:
     """
-    if AWS:
-        return set_app_param_config_aws(region_name,host)
-    return set_app_param_config_onprem(region_name,host)
+
+    return set_app_param_config_provider(host)
 
 
 
-def get_config(region_name):
+def get_config(ssm_type):
     """
 
     :param region_name:
     :return:
     """
     # Initialize app if it doesn't yet exist
-    if AWS:
-        return get_config_aws(region_name)
-    return get_config_onprem(region_name)
+
+    return get_config_provider(ssm_type)
 
 
-def get_app_config(region_name):
+def get_app_config(ssm_type):
     """
 
     :param region_name:
     :return:
     """
     # Initialize app if it doesn't yet exist
-    if AWS:
-        return get_app_config_aws(region_name)
-    return get_app_config_onprem(region_name)
+
+    return get_app_config_provider(ssm_type)

@@ -16,6 +16,7 @@ import logging
 import threading
 import uuid
 from halo_flask.exceptions import ApiError
+from halo_flask.classes import AbsBaseClass
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ STATE_OPEN = 'open'
 STATE_HALF_OPEN = 'half_open'
 
 
-class CircuitBreaker(object):
+class CircuitBreaker(AbsBaseClass):
     FAILURE_THRESHOLD = 5
     RECOVERY_TIMEOUT = 30
     EXPECTED_EXCEPTION = Exception
@@ -164,7 +165,7 @@ class CircuitBreakerError(ApiError):
         )
 
 
-class CircuitBreakerMonitor(object):
+class CircuitBreakerMonitor(AbsBaseClass):
     circuit_breakers = {}
 
     @classmethod

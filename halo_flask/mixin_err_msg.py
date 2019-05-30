@@ -5,11 +5,11 @@ import logging
 # aws
 # common
 
-
+from halo_flask.classes import AbsBaseClass
 logger = logging.getLogger(__name__)
 
 
-class ErrorMessages(object):
+class ErrorMessages(AbsBaseClass):
     hashx = {}
     # generic halo messages and proprietery api messages
     hashx["MaxTryException"] = {"code": 10100, "message": "Api reached Max Try count"}

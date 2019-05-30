@@ -81,3 +81,6 @@ class BadRequestError(HaloError):
         self.message = message
         self.status = http_status
         self.payload = payload
+
+class ProviderError(HaloError):
+    pass

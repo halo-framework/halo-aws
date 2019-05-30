@@ -5,7 +5,7 @@ from .base_util import BaseUtil as Util
 from .exceptions import ApiError
 from .exceptions import HaloException, HaloError
 from .logs import log_json
-
+from  .classes import AbsBaseClass
 logger = logging.getLogger(__name__)
 
 """
@@ -47,7 +47,7 @@ class SagaError(HaloError):
         self.compensations = compensation_exceptions
 
 
-class Action(object):
+class Action(AbsBaseClass):
     """
     Groups an action with its corresponding compensation. For internal use.
     """
@@ -103,7 +103,7 @@ class Action(object):
         return self.__result_path
 
 
-class SagaLog(object):
+class SagaLog(AbsBaseClass):
     startSaga = "startSaga"
     endSaga = "endSaga"
     abortSaga = "abortSaga"
@@ -130,7 +130,7 @@ class SagaLog(object):
         logger.info("SagaLog: " + saga_stage + " " + name,
                     extra=log_json(req_context))
 
-class Saga(object):
+class Saga(AbsBaseClass):
     """
     Executes a series of Actions.
     If one of the actions raises, the compensation for the failed action and for all previous actions
@@ -216,7 +216,7 @@ class Saga(object):
 
 
 
-class SagaBuilder(object):
+class SagaBuilder(AbsBaseClass):
     """
     Build a Saga.
     """

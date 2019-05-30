@@ -9,6 +9,7 @@ from abc import ABCMeta
 
 import requests
 
+from .classes import AbsBaseClass
 from .exceptions import MaxTryHttpException, ApiError
 from .logs import log_json
 from .settingsx import settingsx
@@ -41,7 +42,7 @@ class MyCircuitBreaker(CircuitBreaker):
     EXPECTED_EXCEPTION = Exception
 
 
-class AbsBaseApi(object):
+class AbsBaseApi(AbsBaseClass):
     __metaclass__ = ABCMeta
 
     name = None
@@ -280,7 +281,7 @@ class AbsBaseApi(object):
         return self.process(verb, self.url, Util.get_timeout(request), data=data, headers=headers,auth=auth)
 
 
-class ApiMngr(object):
+class ApiMngr(AbsBaseClass):
 
     def __init__(self, req_context):
         logger.debug("ApiMngr=" + str(req_context))

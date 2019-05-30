@@ -1,9 +1,9 @@
 from __future__ import print_function
 
 from flask import current_app as app
+from halo_flask.classes import AbsBaseClass
 
-
-class settingsx(object):
+class settingsx(AbsBaseClass):
     def __getattribute__(self, name):
         global flx
         try:
