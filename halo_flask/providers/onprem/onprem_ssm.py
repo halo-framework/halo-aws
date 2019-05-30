@@ -8,8 +8,8 @@ import os
 import time
 
 
-from halo_flask.exceptions import HaloError, CacheKeyError, CacheExpireError
-
+from halo_flask.exceptions import HaloError, CacheKeyError, CacheExpireError,HaloException
+from halo_flask.classes import AbsBaseClass
 # from .logs import log_json
 
 
@@ -42,7 +42,7 @@ def get_client():
 
 # ALWAYS use json value in parameter store!!!
 
-class Cache(object):
+class Cache(AbsBaseClass):
     expiration = 0
     items = None
 
@@ -78,7 +78,7 @@ def load_cache(config, expiryMs=DEFAULT_EXPIRY):
     return cache
 
 
-class MyConfig:
+class MyConfig(AbsBaseClass):
     def __init__(self, cache, path):
         """
         Construct new MyApp with configuration

@@ -58,18 +58,11 @@ class Provider(AbsBaseClass):
     @abstractmethod
     def show(self): raise NotImplementedError
 
-    @abstractmethod
-    def show(self): raise NotImplementedError
-
-    @abstractmethod
-    def show(self): raise NotImplementedError
-
-    @abstractmethod
-    def show(self): raise NotImplementedError
 
 def get_provider():
     if PROVIDER == AWS:
-        return Provider()
+        from halo_flask.providers.cloud.aws.aws import AwsProvider
+        return AwsProvider()
 
 ################## ssm ###########################
 
@@ -111,10 +104,3 @@ def get_app_config(ssm_type):
         return get_app_config_cld()
     return get_app_config_onprem()
 
-##################### the rest ########################
-
-from halo_flask.providers.cloud.aws.aws import send_event
-
-def get_provider():
-    if PROVIDER == AWS:
-        return get_app_config_cld()

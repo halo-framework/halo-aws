@@ -9,9 +9,9 @@ from flask import Response
 
 from ..base_util import BaseUtil
 from ..settingsx import settingsx
+from halo_flask.classes import AbsBaseClass
 
-
-class status:
+class status(AbsBaseClass):
 
     def is_informational(code):
         return 100 <= code <= 199

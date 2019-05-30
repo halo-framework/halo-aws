@@ -17,6 +17,7 @@ from ..exceptions import AuthException
 from ..response import HaloResponse
 from ..settingsx import settingsx
 from ..logs import log_json
+from ..classes import AbsBaseClass
 
 settings = settingsx()
 
@@ -32,7 +33,7 @@ logger = logging.getLogger(__name__)
 dbaccess = None
 
 
-class AbsBaseMixinX(object):
+class AbsBaseMixinX(AbsBaseClass):
     __metaclass__ = ABCMeta
 
     name = 'Base'

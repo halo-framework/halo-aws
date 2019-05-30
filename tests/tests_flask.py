@@ -31,6 +31,13 @@ class TestUserDetailTestCase(unittest.TestCase):
     def setUp(self):
         self.url = 'http://127.0.0.1:8000/?abc=def'
         self.perf_url = 'http://127.0.0.1:8000/perf'
+        self.app = app.test_client()
+    def setUp1(self):
+        self.url = 'http://127.0.0.1:8000/?abc=def'
+        self.perf_url = 'http://127.0.0.1:8000/perf'
+        from app import create_app
+        app = create_app()
+        app.run(debug=False, use_reloader=False, host='127.0.0.1', port=8000, threaded=True)
 
     def test_get_request_returns_a_given_string(self):
         response = requests.get(self.url)
