@@ -329,9 +329,9 @@ class TestMixinX(AbsApiMixinX):
 
         if typer == typer.post or typer == typer.put:
             logger.debug("start " + str(typer))
-            with open("C:\\dev\\projects\\halo\halo_flask\\tests\\saga.json") as f:
+            with open("C:\\dev\\projects\\halo\\halo_flask\\halo_flask\\tests\\saga.json") as f:
                 jsonx = json.load(f)
-            with open("C:\\dev\\projects\\halo\halo_flask\\tests\\schema.json") as f1:
+            with open("C:\\dev\\projects\\halo\\halo_flask\\halo_flask\\tests\\schema.json") as f1:
                 schema = json.load(f1)
             sagax = load_saga("test", jsonx, schema)
             payloads = {"BookHotel": {"abc": "def"}, "BookFlight": {"abc": "def"}, "BookRental": {"abc": "def"},
