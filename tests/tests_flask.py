@@ -224,9 +224,14 @@ class TestUserDetailTestCase(unittest.TestCase):
         response = requests.post(self.url)
         eq_(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def test_ssm(self):  # @TODO
+    def test_ssm_aws(self):  # @TODO
         from halo_flask.ssm import get_app_config
-        ret = get_app_config("us-east-1")
+        ret = get_app_config("AWS")
+        eq_(ret.get_param("halo_flask")["url"], 'https://127.0.0.1:8000/loc')
+
+    def test_ssm_onperm(self):  # @TODO
+        from halo_flask.ssm import get_app_config
+        ret = get_app_config("ONPREM")
         eq_(ret.get_param("halo_flask")["url"], 'https://127.0.0.1:8000/loc')
 
     def test_error_handler(self):
