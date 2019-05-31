@@ -2,7 +2,7 @@
 """Create an application instance."""
 from flask import Flask
 from flask_restful import Api
-from halo_flask.flask.viewsx import PerfLinkX
+from halo_flask.flask.viewsx import PerfLinkX,TestLinkX
 
 
 def create_app(config_object='settings'):
@@ -15,7 +15,7 @@ def create_app(config_object='settings'):
     app.config.from_object(config_object)
     with app.app_context():
         # @TODO add test endpoint?
-        #app.add_url_rule("/", view_func=TestLinkX.as_view("member"))
+        app.add_url_rule("/", view_func=TestLinkX.as_view("member"))
         app.add_url_rule("/perf", view_func=PerfLinkX.as_view("perf"))
 
     api = Api(app, catch_all_404s=True)

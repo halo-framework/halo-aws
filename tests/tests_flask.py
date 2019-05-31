@@ -15,6 +15,7 @@ from halo_flask.exceptions import ApiError
 from halo_flask.logs import log_json
 from halo_flask import saga
 from halo_flask.models import AbsModel
+from halo_flask.apis import ApiTest,GoogleApi
 import unittest
 import requests
 
@@ -31,17 +32,12 @@ class TestUserDetailTestCase(unittest.TestCase):
     def setUp(self):
         self.url = 'http://127.0.0.1:8000/?abc=def'
         self.perf_url = 'http://127.0.0.1:8000/perf'
-        app.config['TESTING'] = True
+        #app.config['TESTING'] = True
         #app.config['WTF_CSRF_ENABLED'] = False
         #app.config['DEBUG'] = False
         #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' +  os.path.join(app.config['BASEDIR'], TEST_DB)
-        self.app = app.test_client()
-    def setUp1(self):
-        self.url = 'http://127.0.0.1:8000/?abc=def'
-        self.perf_url = 'http://127.0.0.1:8000/perf'
-        from app import create_app
-        app = create_app()
-        app.run(debug=False, use_reloader=False, host='127.0.0.1', port=8000, threaded=True)
+        #self.app = app#.test_client()
+
 
     def test_get_request_returns_a_given_string(self):
         response = requests.get(self.url)
@@ -72,7 +68,7 @@ class TestUserDetailTestCase(unittest.TestCase):
     def test_api_request_returns_a_fail(self):
         with app.test_request_context(method='GET', path='/?a=b'):
             api = ApiTest(Util.get_req_context(request))
-            api.url = api.url + "/lgkmlgkhm??l,mhb&&,g,hj "
+            #api.url = api.url + "/lgkmlgkhm??l,mhb&&,g,hj "
             timeout = Util.get_timeout(request)
             try:
                 response = api.get(timeout)
@@ -248,163 +244,7 @@ class TestUserDetailTestCase(unittest.TestCase):
 
 
 
-##################################### test #########################
-from halo_flask.apis import AbsBaseApi
-
-class ApiTest(AbsBaseApi):
-    name = 'Cnn'
 
 
-class GoogleApi(AbsBaseApi):
-    name = 'Google'
-
-
-API_LIST = {"Google": 'GoogleApi', "Cnn": "ApiTest"}
-
-
-##################################### test #########################
-import json
-import logging
-from halo_flask.logs import log_json
-from halo_flask.exceptions import ApiError, ApiException
-from halo_flask.saga import load_saga, SagaRollBack
-from halo_flask.flask.mixinx import AbsApiMixinX
-from halo_flask.response import HaloResponse
-
-logger = logging.getLogger(__name__)
-
-class TestMixinX(AbsApiMixinX):
-    def process_api(self, ctx, typer, request, vars):
-        self.upc = "123"
-        self.typer = typer
-        if typer == typer.get:
-            logger.debug("start get")
-            api = ApiTest(self.req_context)
-            # api.set_api_url("upcid", upc)
-            # api.set_api_query(request)
-            timeout = Util.get_timeout(request)
-            try:
-                ret = api.get(timeout)
-            except ApiError as e:
-                logger.debug("we did it", extra=log_json(self.req_context, Util.get_req_params(request), e))
-                ret = HaloResponse()
-                ret.payload = {"test1": "bad"}
-                ret.code = 400
-                ret.headers = []
-                return ret
-            # except NoReturnApiException as e:
-            #    print("NoReturnApiException="+e.message)
-            # log_json(self.req_context, LogLevels.DEBUG._name_, "we did it", Util.get_req_params(request))
-            ret = HaloResponse()
-            ret.payload = {"test2": "good"}
-            ret.code = 200
-            ret.headers = []
-            return ret
-
-        if typer == typer.post or typer == typer.put:
-            logger.debug("start " + str(typer))
-            with open("C:\\dev\\projects\\halo\halo_lib\\saga.json") as f:
-                jsonx = json.load(f)
-            with open("C:\\dev\\projects\\halo\halo_lib\\schema.json") as f1:
-                schema = json.load(f1)
-            sagax = load_saga("test", jsonx, schema)
-            payloads = {"BookHotel": {"abc": "def"}, "BookFlight": {"abc": "def"}, "BookRental": {"abc": "def"},
-                        "CancelHotel": {"abc": "def"}, "CancelFlight": {"abc": "def"}, "CancelRental": {"abc": "def"}}
-            apis = {"BookHotel": self.create_api1, "BookFlight": self.create_api2, "BookRental": self.create_api3,
-                    "CancelHotel": self.create_api4, "CancelFlight": self.create_api5, "CancelRental": self.create_api6}
-            try:
-                self.context = Util.get_lambda_context(request)
-                ret = sagax.execute(self.req_context, payloads, apis)
-                ret = HaloResponse()
-                ret.payload = {"test": "good"}
-                ret.code = 200
-                ret.headers = []
-                return ret
-            except SagaRollBack as e:
-                ret = HaloResponse()
-                ret.payload = {"test": "bad"}
-                ret.code = 500
-                ret.headers = []
-                return ret
-        if typer == typer.delete:
-            raise ApiException("test error msg")
-
-    def create_api1(self, api, results, payload):
-        print("create_api1=" + str(api) + " result=" + str(results))
-        api.set_api_url("upcid", self.upc)
-        if self.context:
-            timeout = Util.get_timeout_milli(self.context)
-        else:
-            timeout = 100
-        return api.get(timeout)
-
-    def create_api2(self, api, results, payload):
-        print("create_api2=" + str(api) + " result=" + str(results))
-        api.set_api_url("upcid", self.upc)
-        if self.context:
-            timeout = Util.get_timeout_milli(self.context)
-        else:
-            timeout = 100
-        return api.get(timeout)
-
-    def create_api3(self, api, results, payload):
-        print("create_api3=" + str(api) + " result=" + str(results))
-        api.set_api_url("upcid", self.upc)
-        if self.context:
-            timeout = Util.get_timeout_milli(self.context)
-        else:
-            timeout = 100
-        if self.typer == self.typer.post:
-            return api.post(payload, timeout)
-        return api.get(timeout)
-
-    def create_api4(self, api, results, payload):
-        print("create_api4=" + str(api) + " result=" + str(results))
-        api.set_api_url("upcid", self.upc)
-        if self.context:
-            timeout = Util.get_timeout_milli(self.context)
-        else:
-            timeout = 100
-        return api.get(timeout)
-
-    def create_api5(self, api, results, payload):
-        print("create_api5=" + str(api) + " result=" + str(results))
-        api.set_api_url("upcid", self.upc)
-        if self.context:
-            timeout = Util.get_timeout_milli(self.context)
-        else:
-            timeout = 100
-        return api.get(timeout)
-
-    def create_api6(self, api, results, payload):
-        print("create_api6=" + str(api) + " result=" + str(results))
-        api.set_api_url("upcid", self.upc)
-        if self.context:
-            timeout = Util.get_timeout_milli(self.context)
-        else:
-            timeout = 100
-        return api.get(timeout)
-
-
-from halo_flask.flask.viewsx import AbsBaseLinkX,Resource
-from halo_flask.const import HTTPChoice
-
-class TestLinkX(Resource, TestMixinX, AbsBaseLinkX):
-
-    def get(self):
-        ret = self.do_process( HTTPChoice.get)
-        return Util.json_data_response(ret.payload, ret.code, ret.headers)
-
-    def post(self):
-        ret = self.do_process( HTTPChoice.post)
-        return Util.json_data_response(ret.payload, ret.code, ret.headers)
-
-    def put(self):
-        ret = self.do_process( HTTPChoice.put)
-        return Util.json_data_response(ret.payload, ret.code, ret.headers)
-
-    def delete(self):
-        ret = self.do_process( HTTPChoice.delete)
-        return Util.json_data_response(ret.payload, ret.code, ret.headers)
 
 

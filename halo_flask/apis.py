@@ -280,7 +280,7 @@ class AbsBaseApi(AbsBaseClass):
             data = request.data
         return self.process(verb, self.url, Util.get_timeout(request), data=data, headers=headers,auth=auth)
 
-
+API_LIST = {"Google": 'GoogleApi', "Cnn": "ApiTest"}
 class ApiMngr(AbsBaseClass):
 
     def __init__(self, req_context):
@@ -315,3 +315,13 @@ class ApiMngr(AbsBaseClass):
 
 
 
+
+##################################### test #########################
+from halo_flask.apis import AbsBaseApi
+
+class ApiTest(AbsBaseApi):
+    name = 'Cnn'
+
+
+class GoogleApi(AbsBaseApi):
+    name = 'Google'
