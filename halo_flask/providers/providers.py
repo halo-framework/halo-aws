@@ -11,15 +11,13 @@ from abc import ABCMeta,abstractmethod
 #@ TODO put_parameter should be activated only is current value is different then the existing one
 #@ TODO perf activation will reload SSM if needed and refresh API table
 
-#from .cloud.aws.ssm import set_app_param_config as set_app_param_config_aws
-#from .cloud.aws.ssm import get_config as get_config_aws
-#from .cloud.aws.ssm import get_app_config as get_app_config_aws
-from .onprem.aws_ssm import set_app_param_config as set_app_param_config_cld
-from .onprem.aws_ssm import get_config as get_config_cld
-from .onprem.aws_ssm import get_app_config as get_app_config_cld
-from .onprem.onprem_ssm  import set_app_param_config as set_app_param_config_onprem
-from .onprem.onprem_ssm import get_config as get_config_onprem
-from .onprem.onprem_ssm import get_app_config as get_app_config_onprem
+
+from .ssm.aws_ssm import set_app_param_config as set_app_param_config_cld
+from .ssm.aws_ssm import get_config as get_config_cld
+from .ssm.aws_ssm import get_app_config as get_app_config_cld
+from .ssm.onprem_ssm  import set_app_param_config as set_app_param_config_onprem
+from .ssm.onprem_ssm import get_config as get_config_onprem
+from .ssm.onprem_ssm import get_app_config as get_app_config_onprem
 from ..settingsx import settingsx
 from halo_flask.exceptions import HaloError, HaloException
 from halo_flask.classes import AbsBaseClass

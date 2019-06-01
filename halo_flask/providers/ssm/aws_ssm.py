@@ -172,7 +172,7 @@ def set_app_param_config(region_name, host):
     else:
         url = host
     value = '{"url":"' + str(url) + '"}'
-    logger.debug("ssm:" + value)
+    print("app ssm_parameter_path:" + ssm_parameter_path+" value:"+value)
     return set_config(region_name, ssm_parameter_path, value)
 
 
