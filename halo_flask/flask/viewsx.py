@@ -28,6 +28,8 @@ settings = settingsx()
 # Create your views here.
 logger = logging.getLogger(__name__)
 
+HALO_HOST = None
+
 
 class AbsBaseLinkX(MethodView):
     __metaclass__ = ABCMeta
@@ -51,7 +53,7 @@ class AbsBaseLinkX(MethodView):
         :return:
         """
         now = datetime.datetime.now()
-
+        global HALO_HOST
         self.req_context = Util.get_req_context(request)
         self.correlate_id = self.req_context["x-correlation-id"]
         self.user_agent = self.req_context["x-user-agent"]
@@ -70,10 +72,14 @@ class AbsBaseLinkX(MethodView):
 
         logger.debug("environ", extra=log_json(self.req_context, os.environ))
 
-        if settings.HALO_HOST is None and 'HTTP_HOST' in request.headers:
-            settings.HALO_HOST = request.headers['HTTP_HOST']
+        logger.debug("set ssm for host:" + str(HALO_HOST)+" and HTTP_HOST:"+str(request.headers['HOST']),extra=log_json(self.req_context))
+        #from flask import current_app as app
+        #app.config["INFO"] = ???
+        if HALO_HOST is None and 'HOST' in request.headers:
+            HALO_HOST = request.headers['HOST']
+            logger.debug("request.headers['HOST']:"+str(request.headers['HOST']))
             from halo_flask.ssm import set_app_param_config
-            set_app_param_config(settings.HALO_HOST)
+            set_app_param_config(settings.SSM_TYPE,HALO_HOST)
 
 
         try:

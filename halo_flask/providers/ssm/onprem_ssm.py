@@ -6,8 +6,8 @@ import json
 import logging
 import os
 import time
-
-
+from environs import Env
+from abc import ABCMeta,abstractmethod
 from halo_flask.exceptions import HaloError, CacheKeyError, CacheExpireError,HaloException
 from halo_flask.classes import AbsBaseClass
 # from .logs import log_json
@@ -24,7 +24,28 @@ app_config_path = os.environ['HALO_FUNC_NAME']
 app_name = os.environ['HALO_APP_NAME']
 full_config_path = '/' + app_name + '/' + env + '/' + app_config_path
 short_config_path = '/' + app_name + '/' + type + '/service'
+envr = Env()
 
+class AbsOnPremClient(AbsBaseClass):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def get_parameters_by_path(self,Path,Recursive,WithDecryption): raise NotImplementedError("NotImplemented get_parameters_by_path in OnPremClient")
+
+    @abstractmethod
+    def put_parameter(self,Name,Value,Type,Overwrite): raise NotImplementedError("NotImplemented put_parameter in OnPremClient")
+
+class OnPremClient(AbsOnPremClient):
+    pass
+
+def get_onprem_client()->AbsOnPremClient:
+    class_name = envr.str('ONPREM_SSM_CLASS_NAME')
+    module = envr.str('ONPREM_SSM_MODULE_NAME')
+    import importlib
+    module = importlib.import_module(module)
+    class_ = getattr(module, class_name)
+    instance = class_()
+    return instance
 
 def get_client():
     """
@@ -34,8 +55,8 @@ def get_client():
     """
     logger.debug("get_client")
     global client
-    #if not client:
-    #    client = xxx.client('ssm')
+    if not client:
+        client = get_onprem_client()
     return client
 
 

@@ -33,7 +33,7 @@ full_config_path = '/' + app_name + '/' + env + '/' + app_config_path
 short_config_path = '/' + app_name + '/' + type + '/service'
 
 
-def set_app_param_config( host):
+def set_app_param_config(ssm_type, host):
     """
 
     :param region_name:
@@ -41,7 +41,7 @@ def set_app_param_config( host):
     :return:
     """
 
-    return set_app_param_config_provider(host)
+    return set_app_param_config_provider(ssm_type,host)
 
 
 

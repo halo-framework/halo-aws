@@ -27,6 +27,7 @@ app_config_path = os.environ['HALO_FUNC_NAME']
 app_name = os.environ['HALO_APP_NAME']
 full_config_path = '/' + app_name + '/' + env + '/' + app_config_path
 short_config_path = '/' + app_name + '/' + type + '/service'
+region_name = None
 envr = Env()
 
 def get_client(region_name):
@@ -41,7 +42,12 @@ def get_client(region_name):
         client = boto3.client('ssm', region_name=region_name)
     return client
 
-
+def get_region():
+    logger.debug("get_region")
+    global region_name
+    if not region_name:
+        region_name = envr.str('AWS_REGION')
+    return region_name
 
 # ALWAYS use json value in parameter store!!!
 
@@ -159,13 +165,14 @@ def set_param_config(region_name, key, value):
     return set_config(region_name, ssm_parameter_path, value)
 
 
-def set_app_param_config(region_name, host):
+def set_app_param_config(host):
     """
 
     :param region_name:
     :param host:
     :return:
     """
+    region_name = get_region()
     ssm_parameter_path = short_config_path + '/' + app_config_path
     if host:
         url = "https://" + host + "/" + env
@@ -224,7 +231,7 @@ def get_config():
     :return:
     """
     # Initialize app if it doesn't yet exist
-    region_name = envr.str('AWS_REGION')
+    region_name = get_region()
     logger.debug("Loading config and creating new MyConfig..." + full_config_path+",AWS_REGION="+region_name)
     cache = get_cache(region_name, full_config_path)
     myconfig = MyConfig(cache, full_config_path, region_name)

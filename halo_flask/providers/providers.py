@@ -64,17 +64,15 @@ def get_provider():
 
 ################## ssm ###########################
 
-def set_app_param_config( host):
+def set_app_param_config(ssm_type, host):
     """
 
     :param region_name:
     :param host:
     :return:
     """
-    if PROVIDER == AWS:
+    if ssm_type == AWS:
         return set_app_param_config_cld(host)
-    #if PROVIDER == KUBELESS:
-    #    return set_app_param_config_kubeless(host)
     return set_app_param_config_onprem(host)
 
 

@@ -76,7 +76,7 @@ class AbsBaseApi(AbsBaseClass):
 
         msg = "Max Try for url: ("+str(settings.HTTP_MAX_RETRY)+") " + str(url)
         for i in range(0, settings.HTTP_MAX_RETRY):
-            print("try "+str(i))
+            logger.debug("try index: "+str(i), extra=log_json(req_context))
             try:
                 logger.debug("try: " + str(i), extra=log_json(req_context))
                 ret = self.do_request(method, url, timeout, data=None, headers=None, auth=None)
