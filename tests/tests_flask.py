@@ -68,13 +68,13 @@ class TestUserDetailTestCase(unittest.TestCase):
     def test_api_request_returns_a_fail(self):
         with app.test_request_context(method='GET', path='/?a=b'):
             api = ApiTest(Util.get_req_context(request))
-            #api.url = api.url + "/lgkmlgkhm??l,mhb&&,g,hj "
+            api.url = api.url + "/lgkmlgkhm??l,mhb&&,g,hj "
             timeout = Util.get_timeout(request)
             try:
                 response = api.get(timeout)
             except ApiError as e:
-                #eq_(e.status_code, status.HTTP_403_NOT_FOUND)
-                eq_(e.__class__.__name__,"CircuitBreakerError")
+                eq_(e.status_code, status.HTTP_404_NOT_FOUND)
+                #eq_(e.__class__.__name__,"CircuitBreakerError")
 
     def test_send_event(self):
         with app.test_request_context(method='GET', path='/?a=b'):

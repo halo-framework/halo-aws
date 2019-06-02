@@ -35,8 +35,6 @@ class AbsOnPremClient(AbsBaseClass):
     @abstractmethod
     def put_parameter(self,Name,Value,Type,Overwrite): raise NotImplementedError("NotImplemented put_parameter in OnPremClient")
 
-class OnPremClient(AbsOnPremClient):
-    pass
 
 def get_onprem_client()->AbsOnPremClient:
     class_name = envr.str('ONPREM_SSM_CLASS_NAME')
