@@ -13,6 +13,8 @@ settings = settingsx()
 logger = logging.getLogger(__name__)
 
 class AwsProvider(Provider) :
+
+    @classmethod
     def send_event(self,ctx,messageDict,service_name):
         try:
             client = boto3.client('lambda', region_name=settings.AWS_REGION)

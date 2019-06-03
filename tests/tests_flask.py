@@ -14,7 +14,7 @@ from halo_flask.flask.utilx import Util, status
 from halo_flask.exceptions import ApiError
 from halo_flask.logs import log_json
 from halo_flask import saga
-from halo_flask.models import AbsModel
+from halo_flask.providers.cloud.aws.models import AbsModel
 from halo_flask.apis import ApiTest,GoogleApi
 import unittest
 import requests
