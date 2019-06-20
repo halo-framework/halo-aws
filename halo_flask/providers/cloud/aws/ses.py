@@ -6,7 +6,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 from halo_flask.logs import log_json
-from .settingsx import settingsx
+from halo_flask.settingsx import settingsx
 
 settings = settingsx()
 
