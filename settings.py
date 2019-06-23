@@ -32,20 +32,23 @@ PRD = "prd"
 ###### setup environment for testing
 
 ENV_TYPE = LOC
-os.environ["HALO_TYPE"] = ENV_TYPE
+#os.environ["HALO_TYPE"] = ENV_TYPE
 
 ENV_NAME = LOC  # env.str('ENV_NAME')
-os.environ["HALO_STAGE"] = ENV_NAME  # done in settings json file
+#os.environ["HALO_STAGE"] = ENV_NAME  # done in settings json file
 
 FUNC_NAME = env.str('FUNC_NAME', 'halo_flask')
-os.environ['HALO_FUNC_NAME'] = FUNC_NAME  # done in settings json file
-os.environ['HALO_APP_NAME'] = 'app'  #done in settings json file
+#os.environ['HALO_FUNC_NAME'] = FUNC_NAME  # done in settings json file
+#os.environ['HALO_APP_NAME'] = 'app'  #done in settings json file
+APP_NAME = env.str('APP_NAME', 'halo_app')
 
 SERVER_LOCAL = True
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = env('SECRET_KEY')
+
+AWS_REGION = env('AWS_REGION')
 
 ###
 # Given a version number MAJOR.MINOR.PATCH, increment the:
@@ -308,7 +311,6 @@ print('SSM_TYPE='+SSM_TYPE)
 
 #######################################################################################3
 
-
 import json
 
 API_CONFIG = None
@@ -325,42 +327,6 @@ file_path = os.path.join(file_dir, 'loc_settings.json')
 with open(file_path, 'r') as fi:
     LOC_TABLE = json.load(fi)
     print("loc_settings:" + str(LOC_TABLE))
-
-if SSM_TYPE != 'NONE':
-    SSM_CONFIG = None
-    if ENV_NAME == LOC:
-        # from halo_flask.ssm import get_config as get_config
-        try:
-            from halo_flask.halo_flask.ssm import get_config
-        except:
-            from halo_flask.ssm import get_config
-
-        SSM_CONFIG = get_config(SSM_TYPE)
-        # set_param_config(AWS_REGION, 'DEBUG_LOG', '{"val":"false"}')
-        # SSM_CONFIG.get_param("test")
-
-    SSM_APP_CONFIG = None
-    if ENV_NAME == LOC:
-
-        # from halo_flask.ssm import get_config as get_config
-        try:
-            from halo_flask.halo_flask.ssm import get_app_config
-        except:
-            from halo_flask.ssm import get_app_config
-
-        SSM_APP_CONFIG = get_app_config(SSM_TYPE)
-
-        # api_config:{'About': {'url': 'http://127.0.0.1:7000/about/', 'type': 'api'}, 'Task': {'url': 'http://127.0.0.1:7000/task/$upcid/', 'type': 'api'}, 'Curr': {'url': 'http://127.0.0.1:7000/curr/', 'type': 'api'}, 'Top': {'url': 'http://127.0.0.1:7000/top/', 'type': 'api'}, 'Rupc': {'url': 'http://127.0.0.1:7000/upc/$upcid/', 'type': 'api'}, 'Upc': {'url': 'http://127.0.0.1:7000/upc/$upcid/', 'type': 'api'}, 'Contact': {'url': 'http://127.0.0.1:7000/contact/', 'type': 'api'}, 'Fail': {'url': 'http://127.0.0.1:7000/fail/', 'type': 'api'}, 'Rtask': {'url': 'http://127.0.0.1:7000/task/$upcid/', 'type': 'api'}, 'Page': {'url': 'http://127.0.0.1:7000/page/$upcid/', 'type': 'api'}, 'Sim': {'url': 'http://127.0.0.1:7000/sim/', 'type': 'api'}, 'Google': {'url': 'http://www.google.com', 'type': 'service'}}
-        for item in SSM_APP_CONFIG.cache.items:
-            if item not in [FUNC_NAME, 'DEFAULT']:
-                url = SSM_APP_CONFIG.get_param(item)["url"]
-                print(item + ":" + url)
-                for key in API_CONFIG:
-                    current = API_CONFIG[key]
-                    new_url = current["url"]
-                    if "service://" + item in new_url:
-                        API_CONFIG[key]["url"] = new_url.replace("service://" + item, url)
-        print(str(API_CONFIG))
 
 
 print('The settings file has been loaded.')

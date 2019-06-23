@@ -34,11 +34,6 @@ KUBELESS = 'KUBELESS'
 ONPREM = 'ONPREM'
 PROVIDERS = [AWS,AZURE,KUBELESS]
 
-env = os.environ['HALO_STAGE']
-type = os.environ['HALO_TYPE']
-app_config_path = os.environ['HALO_FUNC_NAME']
-app_name = os.environ['HALO_APP_NAME']
-
 
 def get_provider_name():
     if 'AWS_LAMBDA_FUNCTION_NAME' in os.environ:

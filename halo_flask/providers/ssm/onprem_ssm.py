@@ -8,23 +8,19 @@ import os
 import time
 from environs import Env
 from abc import ABCMeta,abstractmethod
-from halo_flask.exceptions import HaloError, CacheKeyError, CacheExpireError,HaloException
+from halo_flask.exceptions import HaloError, CacheKeyError, CacheExpireError,HaloException,NoLocalSSMClass,NoLocalSSMModule
 from halo_flask.classes import AbsBaseClass
 # from .logs import log_json
-
+from halo_flask.base_util import BaseUtil
+from halo_flask.settingsx import settingsx
+settings = settingsx()
 
 current_milli_time = lambda: int(round(time.time() * 1000))
 
 logger = logging.getLogger(__name__)
 
 client = None
-env = os.environ['HALO_STAGE']
-type = os.environ['HALO_TYPE']
-app_config_path = os.environ['HALO_FUNC_NAME']
-app_name = os.environ['HALO_APP_NAME']
-full_config_path = '/' + app_name + '/' + env + '/' + app_config_path
-short_config_path = '/' + app_name + '/' + type + '/service'
-envr = Env()
+full_config_path,short_config_path = BaseUtil.get_env()
 
 class AbsOnPremClient(AbsBaseClass):
     __metaclass__ = ABCMeta
@@ -37,8 +33,14 @@ class AbsOnPremClient(AbsBaseClass):
 
 
 def get_onprem_client()->AbsOnPremClient:
-    class_name = envr.str('ONPREM_SSM_CLASS_NAME')
-    module = envr.str('ONPREM_SSM_MODULE_NAME')
+    if settings.ONPREM_SSM_CLASS_NAME:
+        class_name = settings.ONPREM_SSM_CLASS_NAME
+    else:
+        raise NoLocalSSMClass()
+    if settings.ONPREM_SSM_MODULE_NAME:
+        module = settings.ONPREM_SSM_MODULE_NAME
+    else:
+        raise NoLocalSSMModule()
     import importlib
     module = importlib.import_module(module)
     class_ = getattr(module, class_name)
@@ -181,9 +183,9 @@ def set_app_param_config(region_name, host):
     :param host:
     :return:
     """
-    ssm_parameter_path = short_config_path + '/' + app_config_path
+    ssm_parameter_path = short_config_path + '/' + BaseUtil.get_func()
     if host:
-        url = "https://" + host + "/" + env
+        url = "https://" + host + "/" + BaseUtil.get_stage()
     else:
         url = host
     value = '{"url":"' + str(url) + '"}'

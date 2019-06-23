@@ -12,6 +12,7 @@ from jsonschema import validate
 from .classes import AbsBaseClass
 from .exceptions import CacheError, ApiTimeOutExpired
 from .settingsx import settingsx
+from halo_flask.const import LOC,DEV,TST,PRD
 
 settings = settingsx()
 
@@ -126,7 +127,8 @@ class BaseUtil(AbsBaseClass):
         else:
             if 'AWS_DEFAULT_REGION' in os.environ:
                 return os.environ['AWS_DEFAULT_REGION']
-            return "REGION"
+            return settings.AWS_REGION
+
 
     @staticmethod
     def get_stage():
@@ -136,7 +138,37 @@ class BaseUtil(AbsBaseClass):
         """
         if 'HALO_STAGE' in os.environ:
             return os.environ['HALO_STAGE']
-        return "STAGE"
+        return LOC
+
+    @staticmethod
+    def get_type():
+        """
+
+        :return:
+        """
+        if 'HALO_TYPE' in os.environ:
+            return os.environ['HALO_TYPE']
+        return LOC
+
+    @staticmethod
+    def get_func():
+        """
+
+        :return:
+        """
+        if 'HALO_FUNC_NAME' in os.environ:
+            return os.environ['HALO_FUNC_NAME']
+        return settings.FUNC_NAME
+
+    @staticmethod
+    def get_app():
+        """
+
+        :return:
+        """
+        if 'HALO_APP_NAME' in os.environ:
+            return os.environ['HALO_APP_NAME']
+        return settings.APP_NAME
 
     @classmethod
     def get_context(cls):
@@ -373,3 +405,18 @@ class BaseUtil(AbsBaseClass):
         """ Checks whether the given saga json matches the schema """
 
         return validate(data, schema)
+
+
+    @staticmethod
+    def get_env():
+        env = BaseUtil.get_stage()
+        print("stage:" + str(env))
+        type = BaseUtil.get_type()
+        print("type:" + str(type))
+        app_config_path = BaseUtil.get_func()
+        print("func_name:" + str(app_config_path))
+        app_name = BaseUtil.get_app()
+        print("app_name:"+str(app_name))
+        full_config_path = '/' + app_name + '/' + env + '/' + app_config_path
+        short_config_path = '/' + app_name + '/' + type + '/service'
+        return full_config_path,short_config_path

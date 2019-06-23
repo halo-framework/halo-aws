@@ -13,8 +13,7 @@ from .classes import AbsBaseClass
 from .exceptions import MaxTryHttpException, ApiError
 from .logs import log_json
 from .settingsx import settingsx
-
-
+from halo_flask.const import LOC,DEV,TST,PRD
 from .flask.utilx import Util
 
 settings = settingsx()
@@ -22,24 +21,30 @@ settings = settingsx()
 # DRF
 
 
-headers = {
-    'User-Agent': settings.USER_HEADERS,
-}
 
 logger = logging.getLogger(__name__)
 
-FAILURE_THRESHOLD = 3
-if settings.HTTP_MAX_RETRY:
-    FAILURE_THRESHOLD = settings.HTTP_MAX_RETRY
-RECOVERY_TIMEOUT = 15
-if settings.HTTP_RETRY_SLEEP:
-    RECOVERY_TIMEOUT = settings.HTTP_RETRY_SLEEP
+
 
 from halo_flask.circuitbreaker import CircuitBreaker
 class MyCircuitBreaker(CircuitBreaker):
-    FAILURE_THRESHOLD = FAILURE_THRESHOLD
-    RECOVERY_TIMEOUT = RECOVERY_TIMEOUT
-    EXPECTED_EXCEPTION = Exception
+    def __init__(self):
+        FAILURE_THRESHOLD =  self.get_failure_threshold()
+        RECOVERY_TIMEOUT = self.get_recovery_timeout()
+        EXPECTED_EXCEPTION = Exception
+        super(MyCircuitBreaker, self).__init__(FAILURE_THRESHOLD,RECOVERY_TIMEOUT,EXPECTED_EXCEPTION)
+
+    def get_failure_threshold(self):
+        FAILURE_THRESHOLD = 3
+        if settings.HTTP_MAX_RETRY:
+            FAILURE_THRESHOLD = settings.HTTP_MAX_RETRY
+        return FAILURE_THRESHOLD
+
+    def get_recovery_timeout(self):
+        RECOVERY_TIMEOUT = 15
+        if settings.HTTP_RETRY_SLEEP:
+            RECOVERY_TIMEOUT = settings.HTTP_RETRY_SLEEP
+        return RECOVERY_TIMEOUT
 
 
 class AbsBaseApi(AbsBaseClass):
@@ -90,14 +95,14 @@ class AbsBaseApi(AbsBaseClass):
                     raise err
                 return ret
             except requests.exceptions.ReadTimeout as e:  # this confirms you that the request has reached server
-                print(str(e))
+                logger.debug(str(e))
                 logger.debug(
                     "ReadTimeout " + str(
                         settings.SERVICE_READ_TIMEOUT_IN_MS) + " in method=" + method + " for url=" + url,
                     extra=log_json(req_context))
                 continue
             except requests.exceptions.ConnectTimeout as e:
-                print(str(e))
+                logger.debug(str(e))
                 logger.debug("ConnectTimeout in method=" + str(
                     settings.SERVICE_CONNECT_TIMEOUT_IN_MS) + " in method=" + method + " for url=" + url,
                              extra=log_json(req_context))
@@ -313,8 +318,42 @@ class ApiMngr(AbsBaseClass):
         logger.debug("class=" + str(instance))
         return instance
 
+SSM_CONFIG = None
+SSM_APP_CONFIG = None
+def load_api_config(stage_type,ssm_type,func_name,API_CONFIG):
+    global SSM_CONFIG
+    global SSM_APP_CONFIG
 
+    if stage_type == LOC:
+        # from halo_flask.ssm import get_config as get_config
+        try:
+            from halo_flask.halo_flask.ssm import get_config
+        except:
+            from halo_flask.ssm import get_config
 
+        SSM_CONFIG = get_config(ssm_type)
+        # set_param_config(AWS_REGION, 'DEBUG_LOG', '{"val":"false"}')
+        # SSM_CONFIG.get_param("test")
+
+        # from halo_flask.ssm import get_config as get_config
+        try:
+            from halo_flask.halo_flask.ssm import get_app_config
+        except:
+            from halo_flask.ssm import get_app_config
+
+        SSM_APP_CONFIG = get_app_config(ssm_type)
+
+        # api_config:{'About': {'url': 'http://127.0.0.1:7000/about/', 'type': 'api'}, 'Task': {'url': 'http://127.0.0.1:7000/task/$upcid/', 'type': 'api'}, 'Curr': {'url': 'http://127.0.0.1:7000/curr/', 'type': 'api'}, 'Top': {'url': 'http://127.0.0.1:7000/top/', 'type': 'api'}, 'Rupc': {'url': 'http://127.0.0.1:7000/upc/$upcid/', 'type': 'api'}, 'Upc': {'url': 'http://127.0.0.1:7000/upc/$upcid/', 'type': 'api'}, 'Contact': {'url': 'http://127.0.0.1:7000/contact/', 'type': 'api'}, 'Fail': {'url': 'http://127.0.0.1:7000/fail/', 'type': 'api'}, 'Rtask': {'url': 'http://127.0.0.1:7000/task/$upcid/', 'type': 'api'}, 'Page': {'url': 'http://127.0.0.1:7000/page/$upcid/', 'type': 'api'}, 'Sim': {'url': 'http://127.0.0.1:7000/sim/', 'type': 'api'}, 'Google': {'url': 'http://www.google.com', 'type': 'service'}}
+        for item in SSM_APP_CONFIG.cache.items:
+            if item not in [func_name, 'DEFAULT']:
+                url = SSM_APP_CONFIG.get_param(item)["url"]
+                print(item + ":" + url)
+                for key in API_CONFIG:
+                    current = API_CONFIG[key]
+                    new_url = current["url"]
+                    if "service://" + item in new_url:
+                        API_CONFIG[key]["url"] = new_url.replace("service://" + item, url)
+        print(str(API_CONFIG))
 
 ##################################### test #########################
 from halo_flask.apis import AbsBaseApi

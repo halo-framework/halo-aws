@@ -13,7 +13,9 @@ from botocore.exceptions import ClientError
 from halo_flask.exceptions import HaloError, CacheKeyError, CacheExpireError
 from halo_flask.classes import AbsBaseClass
 # from .logs import log_json
-
+from halo_flask.base_util import BaseUtil
+from halo_flask.settingsx import settingsx
+settings = settingsx()
 
 current_milli_time = lambda: int(round(time.time() * 1000))
 
@@ -21,14 +23,8 @@ logger = logging.getLogger(__name__)
 
 # Initialize boto3 client at global scope for connection reuse
 client = None
-env = os.environ['HALO_STAGE']
-type = os.environ['HALO_TYPE']
-app_config_path = os.environ['HALO_FUNC_NAME']
-app_name = os.environ['HALO_APP_NAME']
-full_config_path = '/' + app_name + '/' + env + '/' + app_config_path
-short_config_path = '/' + app_name + '/' + type + '/service'
 region_name = None
-envr = Env()
+full_config_path,short_config_path = BaseUtil.get_env()
 
 def get_client(region_name):
     """
@@ -46,7 +42,7 @@ def get_region():
     logger.debug("get_region")
     global region_name
     if not region_name:
-        region_name = envr.str('AWS_REGION')
+        region_name = settings.AWS_REGION
     return region_name
 
 # ALWAYS use json value in parameter store!!!
@@ -173,9 +169,9 @@ def set_app_param_config(host):
     :return:
     """
     region_name = get_region()
-    ssm_parameter_path = short_config_path + '/' + app_config_path
+    ssm_parameter_path = short_config_path + '/' + BaseUtil.get_func()
     if host:
-        url = "https://" + host + "/" + env
+        url = "https://" + host + "/" + BaseUtil.get_stage()
     else:
         url = host
     value = '{"url":"' + str(url) + '"}'
@@ -232,6 +228,7 @@ def get_config():
     """
     # Initialize app if it doesn't yet exist
     region_name = get_region()
+    print("region_name:"+str(region_name))
     logger.debug("Loading config and creating new MyConfig..." + full_config_path+",AWS_REGION="+region_name)
     cache = get_cache(region_name, full_config_path)
     myconfig = MyConfig(cache, full_config_path, region_name)
@@ -246,7 +243,7 @@ def get_app_config():
     :return:
     """
     # Initialize app if it doesn't yet exist
-    region_name = envr.str('AWS_REGION')
+    region_name = BaseUtil.get_func_region()
     logger.debug("Loading app config and creating new AppConfig..." + short_config_path+",AWS_REGION="+region_name)
     cache = get_cache(region_name, short_config_path)
     appconfig = MyConfig(cache, short_config_path, region_name)

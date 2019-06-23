@@ -84,3 +84,9 @@ class BadRequestError(HaloError):
 
 class ProviderError(HaloError):
     pass
+
+class NoLocalSSMClass(HaloError):
+    pass
+
+class NoLocalSSMModule(HaloError):
+    pass
