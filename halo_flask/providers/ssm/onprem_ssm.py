@@ -36,11 +36,11 @@ def get_onprem_client()->AbsOnPremClient:
     if settings.ONPREM_SSM_CLASS_NAME:
         class_name = settings.ONPREM_SSM_CLASS_NAME
     else:
-        raise NoLocalSSMClass()
+        raise NoLocalSSMClass("no ONPREM_SSM_CLASS_NAME")
     if settings.ONPREM_SSM_MODULE_NAME:
         module = settings.ONPREM_SSM_MODULE_NAME
     else:
-        raise NoLocalSSMModule()
+        raise NoLocalSSMModule("no ONPREM_SSM_MODULE_NAME")
     import importlib
     module = importlib.import_module(module)
     class_ = getattr(module, class_name)
