@@ -1,9 +1,6 @@
 from __future__ import print_function
 
-import logging
 from enum import Enum
-
-logger = logging.getLogger(__name__)
 
 
 LOC = 'loc'

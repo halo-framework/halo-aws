@@ -3,6 +3,7 @@
 import os
 from environs import Env
 import json
+from halo_flask.const import LOC,DEV,TST,PRD
 
 print("start base")
 
@@ -25,10 +26,7 @@ CACHE_TYPE = 'simple'  # Can be "memcached", "redis", etc.
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 WEBPACK_MANIFEST_PATH = 'webpack/manifest.json'
 
-LOC = "loc"
-DEV = "dev"
-TST = "tst"
-PRD = "prd"
+
 ###### setup environment for testing
 
 ENV_TYPE = LOC
@@ -311,7 +309,6 @@ print('SSM_TYPE='+SSM_TYPE)
 
 #######################################################################################3
 
-import json
 
 API_CONFIG = None
 API_SETTINGS = ENV_NAME + '_api_settings.json'
