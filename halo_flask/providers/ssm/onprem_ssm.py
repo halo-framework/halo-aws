@@ -176,7 +176,7 @@ def set_param_config(region_name, key, value):
     return set_config(region_name, ssm_parameter_path, value)
 
 
-def set_app_param_config(region_name, host):
+def set_app_param_config(host):
     """
 
     :param region_name:
@@ -190,7 +190,7 @@ def set_app_param_config(region_name, host):
         url = host
     value = '{"url":"' + str(url) + '"}'
     logger.debug("ssm:" + value)
-    return set_config(region_name, ssm_parameter_path, value)
+    return set_config(ssm_parameter_path, value)
 
 
 def set_config(ssm_parameter_path, value):
