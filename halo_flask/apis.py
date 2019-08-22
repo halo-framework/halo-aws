@@ -84,8 +84,8 @@ class AbsBaseApi(AbsBaseClass):
             logger.debug("try index: "+str(i), extra=log_json(req_context))
             try:
                 logger.debug("try: " + str(i), extra=log_json(req_context))
-                ret = self.do_request(method, url, timeout, data=None, headers=None, auth=None)
-                logger.debug("status_code=" + str(ret.status_code), extra=log_json(req_context))
+                ret = self.do_request(method, url, timeout, data=data, headers=headers, auth=auth)
+                logger.debug("request status_code=" + str(ret.status_code)+" content="+str(ret.content), extra=log_json(req_context))
                 if ret.status_code >= 500:
                     continue
                 if 200 > ret.status_code or 500 > ret.status_code >= 300:
@@ -152,11 +152,16 @@ class AbsBaseApi(AbsBaseClass):
         :param params:
         :return:
         """
+        if not params or len(params) == 0:
+            return self.url
         strx = self.url
-        if "?" in self.url:
-            strx = strx + "&" + params
-        else:
-            strx = strx + "?" + params
+        for key in params:
+            val = params[key]
+            query = key+"="+val
+            if "?" in self.url:
+                strx = strx + "&" + query
+            else:
+                strx = strx + "?" + query
         logger.debug("url add query: " + strx, extra=log_json(self.req_context))
         self.url = strx
         return self.url
@@ -172,7 +177,7 @@ class AbsBaseApi(AbsBaseClass):
         :return:
         """
         try:
-            logger.debug("Api name: "+self.name+" method: " + str(method) + " url: " + str(url), extra=log_json(self.req_context))
+            logger.debug("Api name: "+self.name+" method: " + str(method) + " url: " + str(url)+ " headers:"+str(headers), extra=log_json(self.req_context))
             now = datetime.datetime.now()
             ret = self.exec_client(self.req_context, method, url, self.api_type, timeout, data=data, headers=headers,auth=auth)
             total = datetime.datetime.now() - now
