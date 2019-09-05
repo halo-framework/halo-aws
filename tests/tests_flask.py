@@ -8,9 +8,9 @@ from flask import Flask, request
 from flask_restful import Api
 from nose.tools import eq_
 
-fake = Faker()
 
 from halo_flask.flask.utilx import Util, status
+from halo_flask.flask.mixinx import AbsBaseMixinX
 from halo_flask.exceptions import ApiError
 from halo_flask.logs import log_json
 from halo_flask import saga
@@ -19,10 +19,22 @@ from halo_flask.apis import ApiTest,GoogleApi
 import unittest
 import requests
 
+
+
+fake = Faker()
 app = Flask(__name__)
 api = Api(app)
 app.config.from_object('settings')
 
+from halo_flask.response import HaloResponse
+class T1(AbsBaseMixinX):
+    def process_get(self, request, vars):
+
+        ret = HaloResponse()
+        ret.payload = {'data': {'test2': 'good'}}
+        ret.code = 200
+        ret.headers = []
+        return ret
 
 class TestUserDetailTestCase(unittest.TestCase):
     """
@@ -30,20 +42,23 @@ class TestUserDetailTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        self.url = 'http://127.0.0.1:8000/?abc=def'
-        self.perf_url = 'http://127.0.0.1:8000/perf'
+        #self.url = 'http://127.0.0.1:8000/?abc=def'
+        #self.perf_url = 'http://127.0.0.1:8000/perf'
         #app.config['TESTING'] = True
         #app.config['WTF_CSRF_ENABLED'] = False
         #app.config['DEBUG'] = False
         #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' +  os.path.join(app.config['BASEDIR'], TEST_DB)
         #self.app = app#.test_client()
+        self.t1 = T1()
 
 
     def test_get_request_returns_a_given_string(self):
-        response = requests.get(self.url)
-        print("response=" + str(response.content))
-        eq_(response.status_code, status.HTTP_200_OK)
-        eq_(json.loads(response.content), {'data': {'test2': 'good'}})
+        with app.test_request_context(method='GET', path='/?abc=def'):
+            response = self.t1.process_get(request, {})
+            #response = requests.get(self.url)
+            print("response=" + str(response.payload))
+            eq_(response.code, status.HTTP_200_OK)
+            eq_(response.payload, {'data': {'test2': 'good'}})
 
     def test_api_request_returns_a_given_string(self):
         with app.test_request_context(method='GET', path='/?a=b'):
@@ -239,7 +254,7 @@ class TestUserDetailTestCase(unittest.TestCase):
 
     def test_error_handler(self):
         response = requests.delete(self.url)
-        #print("x="+str(response.content))
+        print("x="+str(response.content))
         #print("ret=" + str(json.loads(response.content)))
         #eq_(json.loads(response.content)['error']['error_message'], 'test error msg')
         eq_(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)

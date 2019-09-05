@@ -156,34 +156,36 @@ class PerfMixinX(AbsBaseMixinX):
     now = None
 
     def process_get(self, request, vars):
-        logger.debug('perf: ' + str(settings.SSM_APP_CONFIG.cache.items))
         self.now = datetime.datetime.now()
         db = request.args.get('db', None)
         urls = {}
-        for item in settings.SSM_APP_CONFIG.cache.items:
-            logger.debug("item=" + str(item))
-            if item not in [settings.FUNC_NAME, 'DEFAULT']:
-                rec = settings.SSM_APP_CONFIG.get_param(item)
-                if "url" in rec:
-                    url = rec["url"]
-                else:
-                    logger.error("service " + item + " in API_CONFIG is set to None in cache/store")
-                    continue
-                logger.debug("got url for " + item + ":" + url)
-                if settings.FRONT_WEB is True:
-                    if db is not None:
-                        s = '?db=' + db
-                    else:
-                        s = ''
-                    ret = requests.get(url + "/perf" + s)
-                    urls[item] = {"url": url, "ret": str(ret.content)}
-                else:
-                    urls[item] = {"url": url, "ret": ''}
-                for key in settings.API_CONFIG:
-                    current = settings.API_CONFIG[key]
-                    new_url = current["url"]
-                    if "service://" + item in new_url:
-                        settings.API_CONFIG[key]["url"] = new_url.replace("service://" + item, url)
+        if settings.SSM_APP_CONFIG:
+            if settings.SSM_APP_CONFIG.cache:
+                logger.debug('perf: ' + str(settings.SSM_APP_CONFIG.cache.items))
+                for item in settings.SSM_APP_CONFIG.cache.items:
+                    logger.debug("item=" + str(item))
+                    if item not in [settings.FUNC_NAME, 'DEFAULT']:
+                        rec = settings.SSM_APP_CONFIG.get_param(item)
+                        if "url" in rec:
+                            url = rec["url"]
+                        else:
+                            logger.error("service " + item + " in API_CONFIG is set to None in cache/store")
+                            continue
+                        logger.debug("got url for " + item + ":" + url)
+                        if settings.FRONT_WEB is True:
+                            if db is not None:
+                                s = '?db=' + db
+                            else:
+                                s = ''
+                            ret = requests.get(url + "/perf" + s)
+                            urls[item] = {"url": url, "ret": str(ret.content)}
+                        else:
+                            urls[item] = {"url": url, "ret": ''}
+                        for key in settings.API_CONFIG:
+                            current = settings.API_CONFIG[key]
+                            new_url = current["url"]
+                            if "service://" + item in new_url:
+                                settings.API_CONFIG[key]["url"] = new_url.replace("service://" + item, url)
         logger.debug(str(settings.API_CONFIG))
         ret = ''
         if db is not None:
