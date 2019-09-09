@@ -17,7 +17,6 @@ from halo_flask import saga
 from halo_flask.providers.cloud.aws.models import AbsModel
 from halo_flask.apis import ApiTest,GoogleApi
 import unittest
-import requests
 
 
 
@@ -35,6 +34,11 @@ class T1(AbsBaseMixinX):
         ret.code = 200
         ret.headers = []
         return ret
+
+from halo_flask.flask.viewsx import PerfLinkX as PerfLink
+class S1(PerfLink):
+    pass
+
 
 class TestUserDetailTestCase(unittest.TestCase):
     """
@@ -55,7 +59,6 @@ class TestUserDetailTestCase(unittest.TestCase):
     def test_get_request_returns_a_given_string(self):
         with app.test_request_context(method='GET', path='/?abc=def'):
             response = self.t1.process_get(request, {})
-            #response = requests.get(self.url)
             print("response=" + str(response.payload))
             eq_(response.code, status.HTTP_200_OK)
             eq_(response.payload, {'data': {'test2': 'good'}})
@@ -149,8 +152,9 @@ class TestUserDetailTestCase(unittest.TestCase):
         eq_(ret["debug-log-enabled"], 'true')
 
     def test_pref_mixin(self):
-        response = requests.get(self.perf_url)
-        eq_(response.status_code, status.HTTP_200_OK)
+        with app.test_request_context(method='GET', path='/perf'):
+            response = self.t1.process_get(request, {})
+            eq_(response.code, status.HTTP_200_OK)
 
     def test_model_get_pre(self):
         from pynamodb.attributes import UTCDateTimeAttribute, UnicodeAttribute
@@ -232,12 +236,14 @@ class TestUserDetailTestCase(unittest.TestCase):
         eq_(len(sagax.actions), 6)
 
     def test_run_saga(self):
-        response = requests.put(self.url)
-        eq_(response.status_code, status.HTTP_200_OK)
+        with app.test_request_context(method='PUT', path="/"):
+            response = self.t1.process_put(request, {})
+            eq_(response.code, status.HTTP_200_OK)
 
     def test_rollback_saga(self):
-        response = requests.post(self.url)
-        eq_(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        with app.test_request_context(method='POST', path="/"):
+            response = self.t1.process_post(request, {})
+            eq_(response.code, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def test_ssm_aws(self):  # @TODO
         header = {'HTTP_HOST': '127.0.0.2'}
@@ -253,11 +259,12 @@ class TestUserDetailTestCase(unittest.TestCase):
         eq_(ret.get_param("halo_flask")["url"], 'https://127.0.0.1:8000/loc')
 
     def test_error_handler(self):
-        response = requests.delete(self.url)
-        print("x="+str(response.content))
-        #print("ret=" + str(json.loads(response.content)))
-        #eq_(json.loads(response.content)['error']['error_message'], 'test error msg')
-        eq_(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        with app.test_request_context(method='DELETE', path='/perf'):
+            response = self.t1.process_delete(request, {})
+            #print("x="+str(response.content))
+            #print("ret=" + str(json.loads(response.content)))
+            #eq_(json.loads(response.content)['error']['error_message'], 'test error msg')
+            eq_(response.code, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def test_timeout(self):
         with app.test_request_context(method='GET', path='/?a=b'):
