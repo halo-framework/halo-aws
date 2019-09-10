@@ -119,6 +119,7 @@ def load_config(region_name, ssm_parameter_path):
     :return: ConfigParser holding loaded config
     """
     configuration = configparser.ConfigParser()
+    logger.debug("ssm_parameter_path=" + str(ssm_parameter_path))
     try:
         # Get all parameters for this app
         param_details = get_client(region_name).get_parameters_by_path(
@@ -127,7 +128,7 @@ def load_config(region_name, ssm_parameter_path):
             WithDecryption=True
         )
 
-        logger.debug(str(ssm_parameter_path) + "=" + str(param_details))
+        logger.debug("config="+str(ssm_parameter_path) + "=" + str(param_details))
         # Loop through the returned parameters and populate the ConfigParser
         if 'Parameters' in param_details and len(param_details.get('Parameters')) > 0:
             for param in param_details.get('Parameters'):
@@ -175,7 +176,7 @@ def set_app_param_config(host):
     else:
         url = host
     value = '{"url":"' + str(url) + '"}'
-    print("app ssm_parameter_path:" + ssm_parameter_path+" value:"+value)
+    print("aws ssm_parameter_path:" + ssm_parameter_path+" value:"+value)
     return set_config(region_name, ssm_parameter_path, value)
 
 
@@ -200,11 +201,13 @@ def set_config(region_name, ssm_parameter_path, value):
         return True
     except ClientError as e:
         logger.error("Encountered a client error setting config from SSM:" + str(e))
+        raise e
     except json.decoder.JSONDecodeError as e:
         logger.error("Encountered a json error setting config from SSM" + str(e))
+        raise e
     except Exception as e:
         logger.error("Encountered an error setting config from SSM:" + str(e))
-    return False
+        raise e
 
 
 def get_cache(region_name, path):

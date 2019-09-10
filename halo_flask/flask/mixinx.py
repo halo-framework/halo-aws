@@ -208,7 +208,7 @@ class AbsApiMixinX(AbsBaseMixinX):
     name = 'Api'
     class_name = None
     correlate_id = None
-    req_context = None
+    #req_context = None
 
     def __init__(self):
         AbsBaseMixinX.__init__(self)
@@ -219,7 +219,8 @@ class AbsApiMixinX(AbsBaseMixinX):
         ret, cause = self.check_authen(typer, request, vars)
         if ret:
             ctx = Util.get_auth_context(request)
-            logger.debug("ctx:" + str(ctx), extra=log_json(self.req_context))
+            req_context = Util.get_req_context(request)
+            logger.debug("ctx:" + str(ctx), extra=log_json(req_context))
             return ctx
         raise AuthException(request, cause)
 
@@ -227,7 +228,8 @@ class AbsApiMixinX(AbsBaseMixinX):
         ret, jsonx, cause = self.check_author(request, vars, json)
         # who can use this model with this method - object,field
         if ret:
-            logger.debug("jsonx:" + str(jsonx), extra=log_json(self.req_context))
+            req_context = Util.get_req_context(request)
+            logger.debug("jsonx:" + str(jsonx), extra=log_json(req_context))
             return jsonx
         raise AuthException(request, cause)
 
@@ -307,14 +309,15 @@ class TestMixinX(AbsApiMixinX):
         self.typer = typer
         if typer == typer.get:
             logger.debug("start get")
-            api = ApiTest(self.req_context)
+            req_context = Util.get_req_context(request)
+            api = ApiTest(req_context)
             # api.set_api_url("upcid", upc)
             # api.set_api_query(request)
             timeout = Util.get_timeout(request)
             try:
                 ret = api.get(timeout)
             except ApiError as e:
-                logger.debug("we did it", extra=log_json(self.req_context, Util.get_req_params(request), e))
+                logger.debug("we did it", extra=log_json(req_context, Util.get_req_params(request), e))
                 ret = HaloResponse()
                 ret.payload = {"test1": "bad"}
                 ret.code = 400
@@ -342,7 +345,8 @@ class TestMixinX(AbsApiMixinX):
                     "CancelHotel": self.create_api4, "CancelFlight": self.create_api5, "CancelRental": self.create_api6}
             try:
                 self.context = Util.get_lambda_context(request)
-                ret = sagax.execute(self.req_context, payloads, apis)
+                req_context = Util.get_req_context(request)
+                ret = sagax.execute(req_context, payloads, apis)
                 ret = HaloResponse()
                 ret.payload = {"test": "good"}
                 ret.code = 200

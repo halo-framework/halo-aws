@@ -15,8 +15,14 @@ from halo_flask.providers.ssm.onprem_ssm import AbsOnPremClient
 
 logger = logging.getLogger(__name__)
 
-
+# for testing
 class OnPremClient(AbsOnPremClient):
-    pass
+    dict = {}
+
+    def put_parameter(self, Name, Value, Type, Overwrite):
+        self.dict[Name] = Value
+
+    def get_parameters_by_path(self, Path, Recursive, WithDecryption):
+        return self.dict[Path]
 
 

@@ -10,7 +10,8 @@ from nose.tools import eq_
 
 
 from halo_flask.flask.utilx import Util, status
-from halo_flask.flask.mixinx import AbsBaseMixinX
+from halo_flask.flask.mixinx import AbsBaseMixinX,TestMixinX
+from halo_flask.flask.viewsx import TestLinkX
 from halo_flask.exceptions import ApiError
 from halo_flask.logs import log_json
 from halo_flask import saga
@@ -23,17 +24,28 @@ import unittest
 fake = Faker()
 app = Flask(__name__)
 api = Api(app)
-app.config.from_object('settings')
 
 from halo_flask.response import HaloResponse
 class T1(AbsBaseMixinX):
     def process_get(self, request, vars):
-
         ret = HaloResponse()
         ret.payload = {'data': {'test2': 'good'}}
         ret.code = 200
         ret.headers = []
         return ret
+
+    def process_delete(self, request, vars):
+        ret = HaloResponse()
+        ret.payload = {'data': {'test2': 'good'}}
+        ret.code = 500
+        ret.headers = []
+        return ret
+
+class T2(TestMixinX):
+    pass
+
+class T3(TestLinkX):
+    pass
 
 from halo_flask.flask.viewsx import PerfLinkX as PerfLink
 class S1(PerfLink):
@@ -53,7 +65,10 @@ class TestUserDetailTestCase(unittest.TestCase):
         #app.config['DEBUG'] = False
         #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' +  os.path.join(app.config['BASEDIR'], TEST_DB)
         #self.app = app#.test_client()
+        app.config.from_pyfile('../settings.py')
         self.t1 = T1()
+        self.t2 = T2()
+        self.t3 = T3()
 
 
     def test_get_request_returns_a_given_string(self):
@@ -237,26 +252,34 @@ class TestUserDetailTestCase(unittest.TestCase):
 
     def test_run_saga(self):
         with app.test_request_context(method='PUT', path="/"):
-            response = self.t1.process_put(request, {})
+            response = self.t2.process_put(request, {})
             eq_(response.code, status.HTTP_200_OK)
 
     def test_rollback_saga(self):
         with app.test_request_context(method='POST', path="/"):
-            response = self.t1.process_post(request, {})
+            response = self.t2.process_post(request, {})
             eq_(response.code, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def test_ssm_aws(self):  # @TODO
         header = {'HTTP_HOST': '127.0.0.2'}
         with app.test_request_context(method='GET', path='/?a=b', headers=header):
-            ret = Util.get_debug_enabled(request)
-        from halo_flask.ssm import get_app_config
-        config = get_app_config("AWS")
-        eq_(config.get_param("halo_base")["url"], 'https://127.0.0.1:8000/loc')
+            from halo_flask.ssm import set_app_param_config
+            set_app_param_config("AWS", "124")
+            from halo_flask.ssm import get_app_config
+            config = get_app_config("AWS")
+            eq_(config.get_param("halo_base")["url"], 'https://127.0.0.1:8000/loc')
 
     def test_ssm_onperm(self):  # @TODO
-        from halo_flask.ssm import get_app_config
-        ret = get_app_config("ONPREM")
-        eq_(ret.get_param("halo_flask")["url"], 'https://127.0.0.1:8000/loc')
+        header = {'HTTP_HOST': '127.0.0.2'}
+        app.config['SSM_TYPE'] = "ONPREM"
+        app.config['ONPREM_SSM_CLASS_NAME'] = 'OnPremClient'
+        app.config['ONPREM_SSM_MODULE_NAME'] = 'halo_flask.providers.ssm.onprem_ssm_client'
+        with app.test_request_context(method='GET', path='/?a=b', headers=header):
+            from halo_flask.ssm import set_app_param_config
+            set_app_param_config("AWS", "124")
+            from halo_flask.ssm import get_app_config
+            config = get_app_config("ONPREM")
+            eq_(config.get_param('halo_base')["url"], 'https://127.0.0.1:8000/loc')
 
     def test_error_handler(self):
         with app.test_request_context(method='DELETE', path='/perf'):

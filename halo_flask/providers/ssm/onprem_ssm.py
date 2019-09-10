@@ -116,6 +116,8 @@ class MyConfig(AbsBaseClass):
         """
         now = current_milli_time()
         if now <= self.cache.expiration:
+            for key in self.cache.items:
+                print("key=" + str(key))
             if key in self.cache.items:
                 return self.cache.items[key]
             else:
@@ -134,6 +136,7 @@ def load_config(ssm_parameter_path):
     :return: ConfigParser holding loaded config
     """
     configuration = configparser.ConfigParser()
+    logger.debug("ssm_parameter_path=" + str(ssm_parameter_path) )
     try:
         # Get all parameters for this app
         param_details = get_client().get_parameters_by_path(
@@ -142,7 +145,7 @@ def load_config(ssm_parameter_path):
             WithDecryption=True
         )
 
-        logger.debug(str(ssm_parameter_path) + "=" + str(param_details))
+        logger.debug("config="+str(ssm_parameter_path) + "=" + str(param_details))
         # Loop through the returned parameters and populate the ConfigParser
         if 'Parameters' in param_details and len(param_details.get('Parameters')) > 0:
             for param in param_details.get('Parameters'):
@@ -189,7 +192,7 @@ def set_app_param_config(host):
     else:
         url = host
     value = '{"url":"' + str(url) + '"}'
-    logger.debug("ssm:" + value)
+    logger.debug(" prem ssm: " + ssm_parameter_path+" "+ value)
     return set_config(ssm_parameter_path, value)
 
 
@@ -214,11 +217,13 @@ def set_config(ssm_parameter_path, value):
         return True
     except HaloException as e:
         logger.error("Encountered a client error setting config from SSM:" + str(e))
+        raise e
     except json.decoder.JSONDecodeError as e:
         logger.error("Encountered a json error setting config from SSM" + str(e))
+        raise e
     except Exception as e:
         logger.error("Encountered an error setting config from SSM:" + str(e))
-    return False
+        raise e
 
 
 def get_cache(path):
