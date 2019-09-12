@@ -10,14 +10,14 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name='halo_flask',
-    version='0.15.20',
-    packages=['halo_flask', 'halo_flask.flask', 'halo_flask.providers', 'halo_flask.providers.cloud', 'halo_flask.providers.cloud.aws', 'halo_flask.providers.onprem', 'halo_flask.providers.ssm'],
-    url='https://github.com/yoramk2/halo_flask',
+    name='halo_aws',
+    version='0.11.10',
+    packages=['halo_aws', 'halo_aws.providers', 'halo_aws.providers.cloud', 'halo_aws.providers.cloud.aws'],
+    url='https://github.com/yoramk2/halo_aws',
     license='MIT License',
     author='yoramk2',
     author_email='yoramk2@yahoo.com',
-    description='this is the Halo framework library for Flask',
+    description='this is the Halo framework library for aws',
     long_description=long_description,
     long_description_content_type="text/markdown",
     classifiers=[

@@ -1,52 +1,18 @@
 #  settings for  project.
 
 import os
-from environs import Env
 import json
-from halo_flask.const import LOC,DEV,TST,PRD
 
 print("start base")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 print('BASE_DIR : {}'.format(BASE_DIR))
-
-env = Env()
 THE_ENV=os.path.join(BASE_DIR,'env','.env')
-env.read_env(path=THE_ENV)
 print('The .env file has been loaded. env: '+str(THE_ENV))
-
-ENV = env.str('FLASK_ENV', default='production')
-DEBUG = ENV == 'development'
-SQLALCHEMY_DATABASE_URI = env.str('DATABASE_URL')
-SECRET_KEY = env.str('SECRET_KEY')
-BCRYPT_LOG_ROUNDS = env.int('BCRYPT_LOG_ROUNDS', default=13)
-DEBUG_TB_ENABLED = DEBUG
-DEBUG_TB_INTERCEPT_REDIRECTS = False
-CACHE_TYPE = 'simple'  # Can be "memcached", "redis", etc.
-SQLALCHEMY_TRACK_MODIFICATIONS = False
-WEBPACK_MANIFEST_PATH = 'webpack/manifest.json'
-
-
-###### setup environment for testing
-
-ENV_TYPE = LOC
-#os.environ["HALO_TYPE"] = ENV_TYPE
-
-ENV_NAME = LOC  # env.str('ENV_NAME')
-#os.environ["HALO_STAGE"] = ENV_NAME  # done in settings json file
-
-FUNC_NAME = env.str('FUNC_NAME', 'halo_flask')
-#os.environ['HALO_FUNC_NAME'] = FUNC_NAME  # done in settings json file
-#os.environ['HALO_APP_NAME'] = 'app'  #done in settings json file
-APP_NAME = env.str('APP_NAME', 'halo_app')
 
 SERVER_LOCAL = True
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = env('SECRET_KEY')
-
-AWS_REGION = env('AWS_REGION')
+AWS_REGION = "us-east-1"
 
 ###
 # Given a version number MAJOR.MINOR.PATCH, increment the:
@@ -74,7 +40,7 @@ def get_version():
     """
     Return package version as listed in  env file
     """
-    return version + "/" + build + ' (' + ENV_NAME + ')'
+    return version + "/" + build
 
 
 VERSION = get_version()
@@ -85,27 +51,6 @@ APPEND_SLASH = True
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True  # env.bool('DEBUG', default=True)
 print("DEBUG=" + str(DEBUG))
-
-SERVER = env('SERVER_NAME')
-HALO_HOST = None
-ALLOWED_HOSTS = ['*','127.0.0.1',SERVER]
-
-ADMINS = (
-    # ('Your Name', 'your_email@domain.com'),
-)
-
-MANAGERS = ADMINS
-
-DB_VER = env('DB_VER')
-PAGE_SIZE = env.int('PAGE_SIZE', default=5)
-#DATABASES = {
-#   'default': env.db(),
-#}
-
-def get_cache():
-  return {
-      'default': env.cache()
-    }
 
 #CACHES = get_cache()
 
@@ -304,20 +249,10 @@ LOG_SAMPLE_RATE = 0.05  # 5%
 
 ERR_MSG_CLASS = 'halo_flask.mixin_err_msg'
 
-SSM_TYPE = env.str('SSM_TYPE',default='NONE')
-print('SSM_TYPE='+SSM_TYPE)
 
 #######################################################################################3
 
 
-API_CONFIG = None
-API_SETTINGS = ENV_NAME + '_api_settings.json'
-
-file_dir = os.path.dirname(__file__)
-file_path = os.path.join(file_dir, API_SETTINGS)
-with open(file_path, 'r') as fi:
-    API_CONFIG = json.load(fi)
-    print("api_config:" + str(API_CONFIG))
 
 file_dir = os.path.dirname(__file__)
 file_path = os.path.join(file_dir, 'loc_settings.json')
