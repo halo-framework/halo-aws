@@ -112,3 +112,17 @@ class TestUserDetailTestCase(unittest.TestCase):
         eq_(ret, ret1)
 
 
+    def test_send_event(self):
+        class Event1Event():
+            target_service = 'func1'
+            key_name = 'def'
+            key_val = '456'
+
+        event = Event1Event()
+        dict = {"name": "david"}
+        try:
+            response = self.aws.send_event({},dict,"tst")
+            print("event response " + str(response))
+            eq_(response, 'sent event')
+        except Exception as e:
+            eq_(e.__class__.__name__,"ProviderError")
