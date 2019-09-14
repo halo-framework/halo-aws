@@ -30,13 +30,13 @@ class TestUserDetailTestCase(unittest.TestCase):
         eq_(ret, {'data': {'test2': 'good'}})
 
     def test_send_mail(self):
-        ret = self.aws.send_mail({},{"msg":"tst"},"test")
-        eq_(ret, {'data': {'test2': 'good'}})
+        ret = self.aws.send_mail({},{"name1":"name1","email1":"email1","message1":"message1","contact1":"contact1"},"test")
+        eq_(ret, True)
 
 
     def test_get_request_returns_a_given_string2(self):
-        ret = self.aws.get_util()
-        eq_(ret, {'data': {'test2': 'good'}})
+        ret = self.aws.get_util({})
+        eq_(ret.get_func_name(), "FUNC_NAME")
 
 
 

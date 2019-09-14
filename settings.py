@@ -10,6 +10,7 @@ print('BASE_DIR : {}'.format(BASE_DIR))
 THE_ENV=os.path.join(BASE_DIR,'env','.env')
 print('The .env file has been loaded. env: '+str(THE_ENV))
 
+FUNC_NAME = "FUNC_NAME"
 SERVER_LOCAL = True
 
 AWS_REGION = "us-east-1"
@@ -252,13 +253,6 @@ ERR_MSG_CLASS = 'halo_flask.mixin_err_msg'
 
 #######################################################################################3
 
-
-
-file_dir = os.path.dirname(__file__)
-file_path = os.path.join(file_dir, 'loc_settings.json')
-with open(file_path, 'r') as fi:
-    LOC_TABLE = json.load(fi)
-    print("loc_settings:" + str(LOC_TABLE))
 
 
 print('The settings file has been loaded.')
