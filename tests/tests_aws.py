@@ -31,6 +31,7 @@ class TestUserDetailTestCase(unittest.TestCase):
 
     def test_send_mail(self):
         ret = self.aws.send_mail({},{"name1":"name1","email1":"email1","message1":"message1","contact1":"contact1"},"test")
+        print(str(ret))
         eq_(ret, True)
 
 
@@ -112,7 +113,7 @@ class TestUserDetailTestCase(unittest.TestCase):
         eq_(ret, ret1)
 
 
-    def test_send_event(self):
+    def test_send_event1(self):
         class Event1Event():
             target_service = 'func1'
             key_name = 'def'
@@ -125,4 +126,5 @@ class TestUserDetailTestCase(unittest.TestCase):
             print("event response " + str(response))
             eq_(response, 'sent event')
         except Exception as e:
+            print(str(e))
             eq_(e.__class__.__name__,"ProviderError")
