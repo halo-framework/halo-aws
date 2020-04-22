@@ -4,14 +4,14 @@ from setuptools import setup
 
 # python setup.py sdist --formats=zip
 # python setup.py sdist bdist_wheel
-# twine upload dist/halo_flask-0.13.8.tar.gz -r pypitest
+# twine upload dist/halo_aws-0.13.8.tar.gz -r pypitest
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
     name='halo_aws',
-    version='0.11.14',
+    version='0.11.15',
     packages=['halo_aws', 'halo_aws.providers', 'halo_aws.providers.cloud', 'halo_aws.providers.cloud.aws'],
     url='https://github.com/yoramk2/halo_aws',
     license='MIT License',

@@ -14,7 +14,7 @@ import settings
 logger = logging.getLogger(__name__)
 
 
-class BaseUtil():
+class AWSUtil():
 
     def __init__(self):
         pass

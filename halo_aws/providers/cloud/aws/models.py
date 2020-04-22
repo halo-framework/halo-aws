@@ -100,3 +100,11 @@ class AbsModel(Model):
             condition = condition & (AbsModel.halo_request_id.does_not_exist())
         self.halo_request_id = self.get_idempotent_id(halo_request_id)
         return super(AbsModel, self).update(attributes, actions, condition, conditional_operator, **expected_values)
+
+    def delete(self, halo_request_id, condition=None, conditional_operator=None, **expected_values):
+        if condition is None:
+            condition = AbsModel.halo_request_id.does_not_exist()
+        else:
+            condition = condition & (AbsModel.halo_request_id.does_not_exist())
+        self.halo_request_id = self.get_idempotent_id(halo_request_id)
+        return super(AbsModel, self).delete(condition, conditional_operator, **expected_values)

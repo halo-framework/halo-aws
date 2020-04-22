@@ -115,14 +115,6 @@ CORS_ORIGIN_ALLOW_ALL = True
 #    '127.0.0.1:9000'
 #)
 
-STATIC_URL = '/static1/'
-
-STATIC_ROOT = os.path.join(BASE_DIR, "halo_flask/api/static")
-
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
-    '/var/www/static/',
-]
 
 LOGGING = {
     'version': 1,
@@ -248,7 +240,7 @@ INSTANCE_ID = uuid.uuid4().__str__()[0:4]
 
 LOG_SAMPLE_RATE = 0.05  # 5%
 
-ERR_MSG_CLASS = 'halo_flask.mixin_err_msg'
+#ERR_MSG_CLASS = 'halo_flask.mixin_err_msg'
 
 
 #######################################################################################3
