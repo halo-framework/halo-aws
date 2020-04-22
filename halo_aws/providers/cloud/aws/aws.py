@@ -112,12 +112,12 @@ class AWSProvider() :
             print(e.response['Error']['Message'])
             raise ProviderError(e.response['Error']['Message'])
 
-    def query_db(self,key, item, table_name):
+    def query_db(self, table_name, proj=None, express=None,keycond=None):
         try:
             resp = self.dynamodb.query(TableName=table_name,
-                ProjectionExpression="#yr, title, info.genres, info.actors[0]",
-                ExpressionAttributeNames={"#yr": "year"},  # Expression Attribute Names for Projection Expression only.
-                KeyConditionExpression=Key('year').eq(1992) & Key('title').between('A', 'L')
+                ProjectionExpression=proj,#"#yr, title, info.genres, info.actors[0]",
+                ExpressionAttributeNames=express,#{"#yr": "year"},  # Expression Attribute Names for Projection Expression only.
+                KeyConditionExpression=keycond#Key('year').eq(1992) & Key('title').between('A', 'L')
             )
 
             items = []
