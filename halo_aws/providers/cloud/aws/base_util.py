@@ -90,8 +90,7 @@ class AWSUtil():
         :return:
         """
         ret = {"awsRegion": cls.get_func_region(), "functionName": cls.get_func_name(),
-               "functionVersion": cls.get_func_ver(), "functionMemorySize": cls.get_func_mem(),
-               "stage": cls.get_stage()}
+               "functionVersion": cls.get_func_ver(), "functionMemorySize": cls.get_func_mem()}
         return ret
 
 

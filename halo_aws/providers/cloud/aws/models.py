@@ -11,6 +11,7 @@ from .exceptions import DbIdemError
 
 # java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -port 8600
 # java -D"java.library.path"=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -port 8600
+# "C:\dev\dynamodb\dynamodb_local_latest>"C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2019.3.4\jbr\bin\java" -D"java.library.path"=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -port 8600
 
 logger = logging.getLogger(__name__)
 
