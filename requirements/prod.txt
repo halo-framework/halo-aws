@@ -1,6 +1,7 @@
 # Everything needed in production
 
 # halo
+Flask==1.0.2
 requests==2.20.1
 boto3==1.9.227
 pynamodb==3.3.1

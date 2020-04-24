@@ -4,12 +4,14 @@ import logging
 import boto3
 from botocore.exceptions import ClientError
 from .exceptions import ProviderError
-import settings
+from .settingsx import settingsx
 from .base_util import AWSUtil
 import decimal
 from boto3.dynamodb.conditions import Key, Attr
 
 logger = logging.getLogger(__name__)
+
+settings = settingsx()
 
 # Helper class to convert a DynamoDB item to JSON.
 class DecimalEncoder(json.JSONEncoder):
