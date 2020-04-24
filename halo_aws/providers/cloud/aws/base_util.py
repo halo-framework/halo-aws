@@ -9,10 +9,11 @@ import random
 import uuid
 
 from.exceptions import ApiTimeOutExpired
-import settings
+from .settingsx import settingsx
 
 logger = logging.getLogger(__name__)
 
+settings = settingsx()
 
 class AWSUtil():
 

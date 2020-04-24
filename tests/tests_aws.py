@@ -5,7 +5,7 @@ import os
 
 from faker import Faker
 from nose.tools import eq_
-
+from flask import Flask
 from halo_aws.providers.cloud.aws.aws import *
 from halo_aws.providers.cloud.aws.models import AbsModel
 
@@ -14,6 +14,7 @@ import unittest
 
 
 fake = Faker()
+app = Flask(__name__)
 
 class TestUserDetailTestCase(unittest.TestCase):
     """
@@ -26,18 +27,24 @@ class TestUserDetailTestCase(unittest.TestCase):
 
 
     def test_send_event(self):
-        ret = self.aws.send_event({},{"msg":"tst"},"test")
-        eq_(ret, {'data': {'test2': 'good'}})
+        with app.test_request_context('/?name=Peter'):
+            app.config["AWS_REGION"] = "us-east-1"
+            ret = self.aws.send_event({},{"msg":"tst"},"test")
+            eq_(ret, {'data': {'test2': 'good'}})
 
     def test_send_mail(self):
-        ret = self.aws.send_mail({},{"name1":"name1","email1":"email1","message1":"message1","contact1":"contact1"},"test")
-        print(str(ret))
-        eq_(ret, True)
+        with app.test_request_context('/?name=Peter'):
+            app.config["AWS_REGION"] = "us-east-1"
+            ret = self.aws.send_mail({},{"name1":"name1","email1":"email1","message1":"message1","contact1":"contact1"},"test")
+            print(str(ret))
+            eq_(ret, True)
 
 
     def test_get_request_returns_a_given_string2(self):
-        ret = self.aws.get_util({})
-        eq_(ret.get_func_name(), "FUNC_NAME")
+        with app.test_request_context('/?name=Peter'):
+            app.config["FUNC_NAME"] = "FUNC_NAME"
+            ret = self.aws.get_util({})
+            eq_(ret.get_func_name(), "FUNC_NAME")
 
 
 
@@ -51,6 +58,8 @@ class TestUserDetailTestCase(unittest.TestCase):
             created_on = UTCDateTimeAttribute(null=False)
             pkey = UnicodeAttribute(hash_key=True)
 
+        if not TestModel.exists():
+            TestModel.create_table(read_capacity_units=1, write_capacity_units=1)
         m = TestModel()
         a, b = m.get_pre()
         eq_(a, "pkey")
@@ -114,17 +123,19 @@ class TestUserDetailTestCase(unittest.TestCase):
 
 
     def test_send_event1(self):
-        class Event1Event():
-            target_service = 'func1'
-            key_name = 'def'
-            key_val = '456'
+        with app.test_request_context('/?name=Peter'):
+            app.config["AWS_REGION"] = "us-east-1"
+            class Event1Event():
+                target_service = 'func1'
+                key_name = 'def'
+                key_val = '456'
 
-        event = Event1Event()
-        dict = {"name": "david"}
-        try:
-            response = self.aws.send_event({},dict,"tst")
-            print("event response " + str(response))
-            eq_(response, 'sent event')
-        except Exception as e:
-            print(str(e))
-            eq_(e.__class__.__name__,"ProviderError")
+            event = Event1Event()
+            dict = {"name": "david"}
+            try:
+                response = self.aws.send_event({},dict,"tst")
+                print("event response " + str(response))
+                eq_(response, 'sent event')
+            except Exception as e:
+                print(str(e))
+                eq_(e.__class__.__name__,"ProviderError")

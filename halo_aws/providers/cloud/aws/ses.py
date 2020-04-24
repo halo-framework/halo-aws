@@ -5,8 +5,8 @@ import logging
 import boto3
 from botocore.exceptions import ClientError
 
-import settings
-
+from .settingsx import settingsx
+settings = settingsx()
 
 # Replace sender@example.com with your "From" address.
 # This address must be verified with Amazon SES.
