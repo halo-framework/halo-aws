@@ -24,6 +24,11 @@ class DecimalEncoder(json.JSONEncoder):
 
 class AWSProvider() :
 
+    dynamodb = None
+
+    def __init__(self):
+        self.dynamodb = boto3.client('dynamodb', region_name=settings.AWS_REGION)
+
     def show(self):
         raise NotImplementedError
 
@@ -143,7 +148,3 @@ class AWSProvider() :
         except ClientError as e:
             print(e.response['Error']['Message'])
             raise ProviderError(e.response['Error']['Message'])
-
-
-
-

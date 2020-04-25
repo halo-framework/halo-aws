@@ -8,6 +8,7 @@ from nose.tools import eq_
 from flask import Flask
 from halo_aws.providers.cloud.aws.aws import *
 from halo_aws.providers.cloud.aws.models import AbsModel
+from halo_aws.providers.cloud.aws.settingsx import settingsx
 
 import unittest
 
@@ -22,28 +23,33 @@ class TestUserDetailTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        #self.app = app#.test_client()
-        self.aws = AWSProvider()
+        app.config.from_object('settings')
+        #settings = settingsx()
+        #self.aws = AWSProvider()
 
 
     def test_send_event(self):
         with app.test_request_context('/?name=Peter'):
             app.config["AWS_REGION"] = "us-east-1"
-            ret = self.aws.send_event({},{"msg":"tst"},"test")
+            aws = AWSProvider()
+            ret = aws.send_event({},{"msg":"tst"},"test")
             eq_(ret, {'data': {'test2': 'good'}})
 
     def test_send_mail(self):
         with app.test_request_context('/?name=Peter'):
             app.config["AWS_REGION"] = "us-east-1"
-            ret = self.aws.send_mail({},{"name1":"name1","email1":"email1","message1":"message1","contact1":"contact1"},"test")
+            aws = AWSProvider()
+            ret = aws.send_mail({},{"name1":"name1","email1":"email1","message1":"message1","contact1":"contact1"},"test")
             print(str(ret))
             eq_(ret, True)
 
 
     def test_get_request_returns_a_given_string2(self):
         with app.test_request_context('/?name=Peter'):
+            app.config["AWS_REGION"] = "us-east-1"
             app.config["FUNC_NAME"] = "FUNC_NAME"
-            ret = self.aws.get_util({})
+            aws = AWSProvider()
+            ret = aws.get_util({})
             eq_(ret.get_func_name(), "FUNC_NAME")
 
 
@@ -133,7 +139,8 @@ class TestUserDetailTestCase(unittest.TestCase):
             event = Event1Event()
             dict = {"name": "david"}
             try:
-                response = self.aws.send_event({},dict,"tst")
+                aws = AWSProvider()
+                response = aws.send_event({},dict,"tst")
                 print("event response " + str(response))
                 eq_(response, 'sent event')
             except Exception as e:
