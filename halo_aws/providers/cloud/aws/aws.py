@@ -2,12 +2,14 @@ from __future__ import print_function
 import json
 import logging
 import boto3
+import uuid
 from botocore.exceptions import ClientError
 from .exceptions import ProviderError
 from .settingsx import settingsx
 from .base_util import AWSUtil
 import decimal
 from boto3.dynamodb.conditions import Key, Attr
+from .exceptions import HaloAwsException
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +23,17 @@ class DecimalEncoder(json.JSONEncoder):
         return super(DecimalEncoder, self).default(o)
 
 class AWSProvider() :
+
+    def show(self):
+        raise NotImplementedError
+
+    def get_header_name(self, request, name):
+        if not name:
+            raise HaloAwsException("empty header name")
+        return 'HTTP_'+name
+
+    def get_request_id(self, request):
+        return uuid.uuid4().__str__()
 
     @staticmethod
     def send_event(ctx,messageDict,service_name):
@@ -130,5 +143,7 @@ class AWSProvider() :
         except ClientError as e:
             print(e.response['Error']['Message'])
             raise ProviderError(e.response['Error']['Message'])
+
+
 
 
