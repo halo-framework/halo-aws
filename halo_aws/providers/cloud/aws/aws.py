@@ -75,8 +75,8 @@ class AWSProvider() :
         return send_mailx(req_context, vars, from1, to)
 
     @staticmethod
-    def get_util(req_context):
-        return AWSUtil()
+    def get_timeout_mili(request):
+        return AWSUtil().get_timeout_mili(request)
 
 
     def get_db_item(self, item_id, table_name):

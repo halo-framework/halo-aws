@@ -11,7 +11,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='halo_aws',
-    version='0.11.22',
+    version='0.11.23',
     packages=['halo_aws', 'halo_aws.providers', 'halo_aws.providers.cloud', 'halo_aws.providers.cloud.aws'],
     url='https://github.com/yoramk2/halo_aws',
     license='MIT License',

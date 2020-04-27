@@ -231,31 +231,7 @@ class AWSUtil():
     }
     """
 
-    @staticmethod
-    def json_error_response(req_context, clazz, e):  # code, msg, requestId):
-        """
 
-        :param req_context:
-        :param clazz:
-        :param e:
-        :return:
-        """
-        module = importlib.import_module(clazz)
-        my_class = getattr(module, 'ErrorMessages')
-        msgs = my_class()
-        error_code, message = msgs.get_code(e)
-        if hasattr(e, 'message'):
-            e_msg = e.message
-        else:
-            e_msg = str(e)
-        error_detail = ""
-        if e_msg is not None and e_msg != 'None' and e_msg != "":
-            error_detail = e_msg
-        e_payload = {}
-        if hasattr(e, 'payload'):
-            e_payload = e.payload
-        payload = {"error": {"error_code": error_code, "error_message": message, "error_detail": error_detail,"data":e_payload, "trace_id": req_context["x-correlation-id"]}}
-        return error_code, json.dumps(payload)
 
     @classmethod
     def get_timeout(cls, request):
@@ -268,7 +244,7 @@ class AWSUtil():
             context = cls.get_lambda_context(request)
             if context:
                 return cls.get_timeout_mili(context)
-        return settings.SERVICE_CONNECT_TIMEOUT_IN_SC
+        return None
 
     @classmethod
     def get_timeout_mili(cls, context):

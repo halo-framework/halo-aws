@@ -49,7 +49,7 @@ class TestUserDetailTestCase(unittest.TestCase):
             app.config["AWS_REGION"] = "us-east-1"
             app.config["FUNC_NAME"] = "FUNC_NAME"
             aws = AWSProvider()
-            ret = aws.get_util({})
+            ret = AWSUtil()
             eq_(ret.get_func_name(), "FUNC_NAME")
 
 
