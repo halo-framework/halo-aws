@@ -27,7 +27,11 @@ class AWSProvider() :
     dynamodb = None
 
     def __init__(self):
-        self.dynamodb = boto3.client('dynamodb', region_name=settings.AWS_REGION)
+        try:
+            self.dynamodb = boto3.client('dynamodb', region_name=settings.AWS_REGION)
+        except ClientError as e:
+            #logger.error("Unexpected boto client Error", extra=dict(ctx, messageDict, e))
+            raise ProviderError(e)
 
     def show(self):
         raise NotImplementedError
