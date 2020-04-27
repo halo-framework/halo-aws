@@ -24,17 +24,27 @@ class DecimalEncoder(json.JSONEncoder):
 
 class AWSProvider() :
 
+    PROVIDER_NAME = "AWS"
+
     dynamodb = None
 
     def __init__(self):
         try:
             self.dynamodb = boto3.client('dynamodb', region_name=settings.AWS_REGION)
         except ClientError as e:
-            #logger.error("Unexpected boto client Error", extra=dict(ctx, messageDict, e))
+            logger.error("Unexpected boto dynamodb client Error")
             raise ProviderError(e)
 
     def show(self):
         raise NotImplementedError
+
+    @staticmethod
+    def get_context():
+        """
+
+        :return:
+        """
+        return AWSUtil().get_context()
 
     def get_header_name(self, request, name):
         if not name:
@@ -68,13 +78,6 @@ class AWSProvider() :
     def get_util(req_context):
         return AWSUtil()
 
-    @staticmethod
-    def get_context():
-        """
-
-        :return:
-        """
-        return AWSUtil().get_context()
 
     def get_db_item(self, item_id, table_name):
         """
