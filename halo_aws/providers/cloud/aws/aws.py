@@ -78,6 +78,9 @@ class AWSProvider() :
     def get_timeout(request):
         return AWSUtil().get_timeout(request)
 
+    @staticmethod
+    def get_func_region():
+        return AWSUtil().get_func_region()
 
     def get_db_item(self, item_id, table_name):
         """
