@@ -82,6 +82,21 @@ class AWSProvider() :
     def get_func_region():
         return AWSUtil().get_func_region()
 
+    def create_db_table(self, table_name,key_schema,attribute_definitions,provisioned_throughput):
+        try:
+            table = self.dynamodb.create_table(
+                TableName=table_name,
+                KeySchema=key_schema,
+                AttributeDefinitions=attribute_definitions,
+                ProvisionedThroughput=provisioned_throughput
+            )
+
+            print("Table status:", table.table_status)
+            return
+        except ClientError as e:
+            print(e.response['Error']['Message'])
+            raise ProviderError(e.response['Error']['Message'])
+
     def get_db_item(self, item_id, table_name):
         """
 
