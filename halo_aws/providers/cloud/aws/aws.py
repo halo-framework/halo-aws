@@ -91,10 +91,8 @@ class AWSProvider() :
                 ProvisionedThroughput=provisioned_throughput
             )
 
-            print("Table status:", table.table_status)
             return
         except ClientError as e:
-            print(e.response['Error']['Message'])
             raise ProviderError(e.response['Error']['Message'])
 
     def get_db_item(self, item_id, table_name):
@@ -115,7 +113,6 @@ class AWSProvider() :
 
             return item
         except ClientError as e:
-            print(e.response['Error']['Message'])
             raise ProviderError(e.response['Error']['Message'])
 
     def put_db_item(self, item, table_name):
@@ -131,7 +128,6 @@ class AWSProvider() :
 
             return itemx
         except ClientError as e:
-            print(e.response['Error']['Message'])
             raise ProviderError(e.response['Error']['Message'])
 
     def update_db_item(self,key, item, table_name):
@@ -154,7 +150,6 @@ class AWSProvider() :
 
             return itemx
         except ClientError as e:
-            print(e.response['Error']['Message'])
             raise ProviderError(e.response['Error']['Message'])
 
     def query_db(self, table_name, proj=None, express=None,keycond=None):
@@ -171,5 +166,4 @@ class AWSProvider() :
 
             return items
         except ClientError as e:
-            print(e.response['Error']['Message'])
             raise ProviderError(e.response['Error']['Message'])
