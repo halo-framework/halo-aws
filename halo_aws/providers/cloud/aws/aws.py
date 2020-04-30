@@ -84,12 +84,14 @@ class AWSProvider() :
 
     def create_db_table(self, table_name,key_schema,attribute_definitions,provisioned_throughput):
         try:
-            table = self.dynamodb.create_table(
-                TableName=table_name,
-                KeySchema=key_schema,
-                AttributeDefinitions=attribute_definitions,
-                ProvisionedThroughput=provisioned_throughput
-            )
+            existing_tables = self.dynamodb.list_tables()['TableNames']
+            if table_name not in existing_tables:
+                table = self.dynamodb.create_table(
+                    TableName=table_name,
+                    KeySchema=key_schema,
+                    AttributeDefinitions=attribute_definitions,
+                    ProvisionedThroughput=provisioned_throughput
+                )
 
             return
         except ClientError as e:
