@@ -82,6 +82,10 @@ class AWSProvider() :
     def get_func_region():
         return AWSUtil().get_func_region()
 
+    @staticmethod
+    def get_func_name():
+        return AWSUtil().get_func_name()
+
     def create_db_table(self, table_name,key_schema,attribute_definitions,provisioned_throughput):
         try:
             existing_tables = self.dynamodb.list_tables()['TableNames']
