@@ -242,6 +242,7 @@ LOG_SAMPLE_RATE = 0.05  # 5%
 
 #ERR_MSG_CLASS = 'halo_flask.mixin_err_msg'
 
+PROJ_BUCKET_NAME='halo-webapp-service-dev-projects'
 
 #######################################################################################3
 

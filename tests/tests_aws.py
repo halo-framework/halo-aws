@@ -146,3 +146,20 @@ class TestUserDetailTestCase(unittest.TestCase):
             except Exception as e:
                 print(str(e))
                 eq_(e.__class__.__name__,"ProviderError")
+
+
+    def test_s3_put(self):
+        with app.test_request_context('/?name=Peter'):
+            app.config["AWS_REGION"] = "us-east-1"
+            aws = AWSProvider()
+            with open("halo.png", "rb") as file:
+                ret = aws.upload_file(file,"file_name", settings.PROJ_BUCKET_NAME, object_name='12345')
+                eq_(ret,True)
+
+    def test_s3_get(self):
+        with app.test_request_context('/?name=Peter'):
+            app.config["AWS_REGION"] = "us-east-1"
+            aws = AWSProvider()
+            with open("halo.png", "rb") as file:
+                ret = aws.create_presigned_url(settings.PROJ_BUCKET_NAME, '12345', expiration=3600)
+                eq_(ret[0:5],'https')
