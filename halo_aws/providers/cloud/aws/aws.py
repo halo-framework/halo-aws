@@ -127,12 +127,24 @@ class AWSProvider() :
                                                         Params={'Bucket': bucket_name,
                                                                 'Key': object_name},
                                                         ExpiresIn=expiration)
+            #response = s3_client.generate_presigned_url(
+            #    ClientMethod='get_object',
+            #    ExpiresIn=expiration,
+            #    Params={
+            #        'Bucket': bucket_name,
+            #        'Key': object_name,
+            #        'ResponseContentDisposition': 'attachment;filename={}'.format(filename),
+            #        'ResponseContentType': 'application/octet-stream',
+            #    }
+            #)
         except ClientError as e:
             logging.error(e)
             return None
 
         # The response contains the presigned URL
         return response
+
+
 
     # database
 
@@ -223,3 +235,12 @@ class AWSProvider() :
             return items
         except ClientError as e:
             raise ProviderError(e.response['Error']['Message'])
+
+    # invoke async
+    def invoke_async(self,FunctionName,some_dict):
+        lambda_client = boto3.client('lambda')
+        response = lambda_client.invoke(
+            FunctionName=FunctionName,
+            InvocationType='Event',
+            Payload=json.dumps(some_dict)
+        )
