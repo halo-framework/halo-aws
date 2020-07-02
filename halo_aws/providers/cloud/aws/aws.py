@@ -62,7 +62,7 @@ class AWSProvider() :
                 FunctionName=service_name,
                 InvocationType='Event',
                 LogType='None',
-                ClientContext=ctx.toStrint(),
+                ClientContext=ctx.toJSON(),
                 Payload=bytes(json.dumps(messageDict), "utf8"),
                 Qualifier=version
             )
@@ -246,7 +246,7 @@ class AWSProvider() :
                 FunctionName=service_name,
                 InvocationType='RequestResponse',
                 LogType='None',
-                ClientContext=ctx.toStrint(),
+                ClientContext=ctx.toJSON(),
                 Payload=bytes(json.dumps(messageDict), "utf8"),
                 Qualifier=version
             )
