@@ -68,7 +68,7 @@ class AWSProvider() :
             )
             return ret
         except ClientError as e:
-            #logger.error("Unexpected boto client Error", extra=dict(ctx, messageDict, e))
+            logger.error("Unexpected boto client Error", extra=dict(ctx, messageDict, e))
             raise ProviderError(e)
 
     @staticmethod
