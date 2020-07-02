@@ -55,7 +55,7 @@ class AWSProvider() :
         return uuid.uuid4().__str__()
 
     @staticmethod
-    def send_event(ctx,messageDict,service_name,version=None):
+    def send_event(ctx,messageDict,service_name,version='$LATEST'):
         try:
             client = boto3.client('lambda', region_name=settings.AWS_REGION)
             ret = client.invoke(
