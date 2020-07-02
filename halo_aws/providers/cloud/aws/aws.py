@@ -55,14 +55,16 @@ class AWSProvider() :
         return uuid.uuid4().__str__()
 
     @staticmethod
-    def send_event(ctx,messageDict,service_name):
+    def send_event(ctx,messageDict,service_name,version=None):
         try:
             client = boto3.client('lambda', region_name=settings.AWS_REGION)
             ret = client.invoke(
                 FunctionName=service_name,
                 InvocationType='Event',
                 LogType='None',
-                Payload=bytes(json.dumps(messageDict), "utf8")
+                ClientContext=ctx.toStrint(),
+                Payload=bytes(json.dumps(messageDict), "utf8"),
+                Qualifier=version
             )
             return ret
         except ClientError as e:
@@ -236,11 +238,34 @@ class AWSProvider() :
         except ClientError as e:
             raise ProviderError(e.response['Error']['Message'])
 
-    # invoke async
-    def invoke_async(self,FunctionName,some_dict):
-        lambda_client = boto3.client('lambda')
-        response = lambda_client.invoke(
-            FunctionName=FunctionName,
-            InvocationType='Event',
-            Payload=json.dumps(some_dict)
-        )
+    @staticmethod
+    def invoke_sync(ctx, messageDict, service_name,version=None):
+        try:
+            client = boto3.client('lambda', region_name=settings.AWS_REGION)
+            ret = client.invoke(
+                FunctionName=service_name,
+                InvocationType='RequestResponse',
+                LogType='None',
+                ClientContext=ctx.toStrint(),
+                Payload=bytes(json.dumps(messageDict), "utf8"),
+                Qualifier=version
+            )
+            return ret
+        except ClientError as e:
+            # logger.error("Unexpected boto client Error", extra=dict(ctx, messageDict, e))
+            raise ProviderError(e)
+
+
+    # invoke
+    """
+    response = client.invoke(
+    FunctionName='string',
+    InvocationType='Event'|'RequestResponse'|'DryRun',
+    LogType='None'|'Tail',
+    ClientContext='string',
+    Payload=b'bytes'|file,
+    Qualifier='string'
+    )
+    """
+
+
