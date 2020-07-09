@@ -88,6 +88,10 @@ class AWSProvider() :
     def get_func_name():
         return AWSUtil().get_func_name()
 
+    @staticmethod
+    def get_lambda_context(request):
+        return AWSUtil().get_lambda_context(request)
+
     # s3
 
     def upload_file(self,file,file_name, bucket_name, object_name=None):

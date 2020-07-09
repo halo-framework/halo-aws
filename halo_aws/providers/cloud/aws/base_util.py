@@ -24,6 +24,7 @@ class AWSUtil():
 
     #######################################################################################################
 
+
     @classmethod
     def get_aws_request_id(cls, request):
         """
@@ -96,50 +97,6 @@ class AWSUtil():
 
 
 
-    @classmethod
-    def get_system_debug_enabled(cls):
-        """
-
-        :return:
-        """
-        # check if env var for sampled debug logs is on and activate for percentage in settings (5%)
-        if ('DEBUG_LOG' in os.environ and os.environ['DEBUG_LOG'] == 'true') or (cls.get_debug_param() == 'true'):
-            rand = random.random()
-            if settings.LOG_SAMPLE_RATE > rand:
-                return 'true'
-        return 'false'
-
-    @classmethod
-    def get_req_context(cls, request, api_key=None):
-        """
-
-        :param request:
-        :param api_key:
-        :return:
-        """
-        x_correlation_id = cls.get_correlation_id(request)
-        x_user_agent = cls.get_user_agent(request)
-        dlog = cls.get_debug_enabled(request)
-        ret = {"x-user-agent": x_user_agent, "aws_request_id": cls.get_aws_request_id(request),
-               "x-correlation-id": x_correlation_id, "debug-log-enabled": dlog, "request_path": request.path}
-        if api_key:
-            ret["x-api-key"] = api_key
-        return ret
-
-    @classmethod
-    def isDebugEnabled(cls, req_context, request=None):
-        """
-
-        :param req_context:
-        :param request:
-        :return:
-        """
-        # disable debug logging by default, but allow override via env variables
-        # or if enabled via forwarded request context or if debug flag is on
-        if req_context["debug-log-enabled"] == 'true' or cls.get_system_debug_enabled() == 'true':
-            return True
-        return False
-
 
     @classmethod
     def get_correlation_from_event(cls, event):
@@ -208,31 +165,6 @@ class AWSUtil():
         return cls.event_req_context
 
 
-
-    """"
-    Success
-    response
-    return data
-    {
-        "data": {
-            "id": 1001,
-            "name": "Wing"
-        }
-    }
-    Error
-    response
-    return error
-    {
-        "error": {
-            "code": 404,
-            "message": "ID not found",
-            "requestId": "123-456"
-        }
-    }
-    """
-
-
-
     @classmethod
     def get_timeout(cls, request):
         """
@@ -261,3 +193,21 @@ class AWSUtil():
         if timeout > settings.MINIMUM_SERVICE_TIMEOUT_IN_SC:
             return timeout
         raise ApiTimeOutExpired("left " + str(timeout))
+
+    @staticmethod
+    def get_lambda_context(request):
+        """
+
+        :param request:
+        :return:
+        """
+        # AWS_REGION
+        # AWS_LAMBDA_FUNCTION_NAME
+        # 'lambda.context'
+        # x-amzn-RequestId
+        if 'lambda.context' in request.headers:
+            return request.headers['lambda.context']
+        elif 'context' in request.headers:
+            return request.headers['context']
+        else:
+            return None
