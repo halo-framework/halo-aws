@@ -8,7 +8,7 @@ import os
 import random
 import uuid
 
-from.exceptions import ApiTimeOutExpired
+from.exceptions import ApiTimeOutExpiredError
 from .settingsx import settingsx
 
 logger = logging.getLogger(__name__)
@@ -192,7 +192,7 @@ class AWSUtil():
         logger.debug("timeout=" + str(timeout))
         if timeout > settings.MINIMUM_SERVICE_TIMEOUT_IN_SC:
             return timeout
-        raise ApiTimeOutExpired("left " + str(timeout))
+        raise ApiTimeOutExpiredError("left " + str(timeout))
 
     @staticmethod
     def get_lambda_context(request):

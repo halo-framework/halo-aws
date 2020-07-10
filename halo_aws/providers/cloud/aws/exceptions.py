@@ -37,6 +37,5 @@ class DbError(HaloAwsError):
 class DbIdemError(DbError):
     pass
 
-
-class ApiTimeOutExpired(HaloAwsException):
+class ApiTimeOutExpiredError(HaloAwsError):
     pass
