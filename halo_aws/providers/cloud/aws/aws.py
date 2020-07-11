@@ -3,12 +3,13 @@ import json
 import logging
 import boto3
 import uuid
+import base64
+import decimal
 from botocore.exceptions import ClientError
+from boto3.dynamodb.conditions import Key, Attr
 from .exceptions import ProviderError
 from .settingsx import settingsx
 from .base_util import AWSUtil
-import decimal
-from boto3.dynamodb.conditions import Key, Attr
 from .exceptions import HaloAwsException
 
 logger = logging.getLogger(__name__)
@@ -62,7 +63,7 @@ class AWSProvider() :
                 FunctionName=service_name,
                 InvocationType='Event',
                 LogType='None',
-                ClientContext=ctx.toJSON(),
+                ClientContext=AWSProvider.lambda_context({"context":ctx.toJSON(),"msg":messageDict},{settings.ENV_TYPE:settings.ENV_NAME},{}),
                 Payload=bytes(json.dumps(messageDict), "utf8"),
                 Qualifier=version
             )
@@ -243,6 +244,15 @@ class AWSProvider() :
             raise ProviderError(e.response['Error']['Message'])
 
     @staticmethod
+    def lambda_context(custom=None,env=None,client=None):
+        client_context = dict(
+            custom=custom,
+            env=env,
+            client=client)
+        json_context = json.dumps(client_context).encode('utf-8')
+        return base64.b64encode(json_context).decode('utf-8')
+
+    @staticmethod
     def invoke_sync(ctx, messageDict, service_name,version=None):
         try:
             client = boto3.client('lambda', region_name=settings.AWS_REGION)
@@ -250,14 +260,14 @@ class AWSProvider() :
                 FunctionName=service_name,
                 InvocationType='RequestResponse',
                 LogType='None',
-                ClientContext=ctx.toJSON(),
+                ClientContext=AWSProvider.lambda_context({"context":ctx.toJSON(),"msg":messageDict},{settings.ENV_TYPE:settings.ENV_NAME},{}),
                 Payload=bytes(json.dumps(messageDict), "utf8"),
                 Qualifier=version
             )
             return ret
         except ClientError as e:
             # logger.error("Unexpected boto client Error", extra=dict(ctx, messageDict, e))
-            raise ProviderError(e)
+            raise ProviderError('invoke_sync',e)
 
 
     # invoke
