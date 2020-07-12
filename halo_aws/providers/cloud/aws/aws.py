@@ -252,6 +252,18 @@ class AWSProvider() :
         json_context = json.dumps(client_context).encode('utf-8')
         return base64.b64encode(json_context).decode('utf-8')
 
+    """
+    env and custom in the Client Context dict object could be anything. For client, only the following keys can be accepted:
+    app_version_name
+    app_title
+    app_version_code
+    app_package_name
+    installation_id
+    if your lambda function is implemented in Python. The Client Context object may 
+    be referred as context.client_context. env(context.cilent_context.env) and custom(context.client_context.custom) are two dict objects. 
+    If any of env, custom, or client is not passed from boto3's invoke method, the corresponding one in the context.client_context would be a None.
+    """
+
     @staticmethod
     def invoke_sync(ctx, messageDict, service_name,version=None):
         try:
