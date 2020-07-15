@@ -345,10 +345,11 @@ class AWSProvider() :
     def get_params(url):
         from urllib.parse import urlparse
         o = urlparse(url)
-        print(o)
-        arr = o.query.split("&")
         ret = {}
-        for p in arr:
-            nv = p.split("=")
-            ret[nv[0]] = nv[1]
+        if o.query:
+            arr = o.query.split("&")
+            if len(arr) > 0:
+                for p in arr:
+                    nv = p.split("=")
+                    ret[nv[0]] = nv[1]
         return  ret
