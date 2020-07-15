@@ -272,8 +272,8 @@ class AWSProvider() :
                 FunctionName=service_name,
                 InvocationType='RequestResponse',
                 LogType='None',
-                ClientContext=AWSProvider.lambda_context({"context":ctx.toJSON(),"msg":messageDict},{settings.ENV_TYPE:settings.ENV_NAME},{}),
-                Payload=bytes(json.dumps(messageDict), "utf8"),
+                ClientContext=AWSProvider.lambda_context({"context":ctx.toJSON()},{settings.ENV_TYPE:settings.ENV_NAME},{}),
+                Payload=bytes(json.dumps(AWSProvider.event(messageDict)), "utf8"),
                 Qualifier=version
             )
             return ret
@@ -295,3 +295,60 @@ class AWSProvider() :
     """
 
 
+    @staticmethod
+    def event(messageDict):
+        #{"method":method,"url":url,"data":datay,"headers":headers,"auth":auth}
+        return {
+            "body": messageDict["data"],
+            "headers": messageDict["headers"],
+            "httpMethod": messageDict["method"],
+            "isBase64Encoded": False,
+            "path": AWSProvider.get_path(messageDict["url"]),
+            "pathParameters": {"proxy": "some/path"},
+            "queryStringParameters": AWSProvider.get_params(messageDict["url"]),
+            "requestContext": {
+                "accountId": "16794",
+                "apiId": "3z6kd9fbb1",
+                "httpMethod": messageDict["method"],
+                "identity": {
+                    "accessKey": None,
+                    "accountId": None,
+                    "apiKey": None,
+                    "caller": None,
+                    "cognitoAuthenticationProvider": None,
+                    "cognitoAuthenticationType": None,
+                    "cognitoIdentityId": None,
+                    "cognitoIdentityPoolId": None,
+                    "sourceIp": "76.20.166.147",
+                    "user": None,
+                    "userAgent": "PostmanRuntime/3.0.11-hotfix.2",
+                    "userArn": None,
+                },
+                "authorizer": {"principalId": "wile_e_coyote"},
+                "requestId": "ad2db740-10a2-11e7-8ced-35048084babb",
+                "resourceId": "r4kza9",
+                "resourcePath": "/{proxy+}",
+                "stage": settings.ENV_NAME,
+            },
+            "resource": "/{proxy+}",
+            "stageVariables": None,
+        }
+
+
+    @staticmethod
+    def get_path(url):
+        from urllib.parse import urlparse
+        o = urlparse(url)
+        return o.path
+
+    @staticmethod
+    def get_params(url):
+        from urllib.parse import urlparse
+        o = urlparse(url)
+        print(o)
+        arr = o.query.split("&")
+        ret = {}
+        for p in arr:
+            nv = p.split("=")
+            ret[nv[0]] = nv[1]
+        return  ret

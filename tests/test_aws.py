@@ -163,3 +163,19 @@ class TestUserDetailTestCase(unittest.TestCase):
             with open("halo.png", "rb") as file:
                 ret = aws.create_presigned_url(settings.PROJ_BUCKET_NAME, '12345', expiration=3600)
                 eq_(ret[0:5],'https')
+
+    def test_invoke_get_path(self):
+        with app.test_request_context('/?name=Peter'):
+            app.config["AWS_REGION"] = "us-east-1"
+            aws = AWSProvider()
+            with open("halo.png", "rb") as file:
+                ret = aws.get_path("https://www.abc.com/a/b/c?a=1&b=2&c=3")
+                eq_(ret,'/a/b/c')
+
+    def test_invoke_get_params(self):
+        with app.test_request_context('/?name=Peter'):
+            app.config["AWS_REGION"] = "us-east-1"
+            aws = AWSProvider()
+            with open("halo.png", "rb") as file:
+                ret = aws.get_params("https://www.abc.com/a/b/c?a=1&b=2&c=3")
+                eq_(ret,{'a': '1', 'b': '2', 'c': '3'})
