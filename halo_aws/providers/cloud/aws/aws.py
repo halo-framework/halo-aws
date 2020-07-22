@@ -1,20 +1,52 @@
 from __future__ import print_function
 import json
 import logging
-import boto3
+#import boto3
 import uuid
 import base64
 import decimal
+#import boto3
+import botocore
+from functools import update_wrapper, wraps
+import importlib
+import inspect
+import os
+import time
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key, Attr
 from .exceptions import ProviderError
 from .settingsx import settingsx
 from .base_util import AWSUtil
 from .exceptions import HaloAwsException
+from .ses import send_mail as send_mailx
 
 logger = logging.getLogger(__name__)
 
 settings = settingsx()
+
+#  kept warm.
+try:
+    import boto3
+    aws_region = settings.AWS_REGION
+    if not aws_region:
+        aws_region = 'us-east-1'
+    aws_session = boto3.Session(region_name=aws_region)
+    LAMBDA_CLIENT = aws_session.client('lambda')
+    SNS_CLIENT = aws_session.client('sns')
+    STS_CLIENT = aws_session.client('sts')
+    DYNAMODB_CLIENT = aws_session.client('dynamodb')
+    S3_CLIENT = aws_session.client('s3')
+    SES_CLIENT = aws_session.client('ses')
+except botocore.exceptions.NoRegionError as e:
+    logger.error("Unexpected boto client Error")
+    raise ProviderError(e)
+
+
+LAMBDA_ASYNC_PAYLOAD_LIMIT = 256000
+SNS_ASYNC_PAYLOAD_LIMIT = 256000
+settings.ASYNC_RESPONSE_TABLE
+
+LATEST = '$LATEST'
 
 # Helper class to convert a DynamoDB item to JSON.
 class DecimalEncoder(json.JSONEncoder):
@@ -26,26 +58,38 @@ class DecimalEncoder(json.JSONEncoder):
 class AWSProvider() :
 
     PROVIDER_NAME = "AWS"
+    util = None
 
-    dynamodb = None
-
-    def __init__(self):
-        try:
-            self.dynamodb = boto3.client('dynamodb', region_name=settings.AWS_REGION)
-        except ClientError as e:
-            logger.error("Unexpected boto dynamodb client Error")
-            raise ProviderError(e)
+    def __init__(self, aws_region=None, **kwargs):
+        if not aws_region:
+            self.aws_region = settings.AWS_REGION
+        else:
+            self.aws_region = aws_region
+        if kwargs.get('boto_session'):
+            self.lambda_client = kwargs.get('boto_session').client('lambda')
+            self.sns_client = kwargs.get('boto_session').client('sns')
+            self.sts_client = kwargs.get('boto_session').client('sts')
+            self.dynamodb_client = kwargs.get('boto_session').client('dynamodb')
+            self.s3_client = kwargs.get('boto_session').client('s3')
+            self.ses_client = kwargs.get('boto_session').client('ses')
+        else:
+            self.lambda_client = LAMBDA_CLIENT
+            self.sns_client = SNS_CLIENT
+            self.sts_client = STS_CLIENT
+            self.dynamodb_client = DYNAMODB_CLIENT
+            self.s3_client = S3_CLIENT
+            self.ses_client = SES_CLIENT
+        self.util = AWSUtil()
 
     def show(self):
         raise NotImplementedError
 
-    @staticmethod
-    def get_context():
+    def get_context(self):
         """
 
         :return:
         """
-        return AWSUtil().get_context()
+        return self.util.get_context()
 
     def get_header_name(self, request, name):
         if not name:
@@ -55,45 +99,36 @@ class AWSProvider() :
     def get_request_id(self, request):
         return uuid.uuid4().__str__()
 
-    @staticmethod
-    def send_event(ctx,messageDict,service_name,version='$LATEST'):
+    def send_event(self,ctx,messageDict,service_name,version=LATEST,capture_response=None):
+        payload = self.pre_send(messageDict, capture_response)
         try:
-            client = boto3.client('lambda', region_name=settings.AWS_REGION)
-            ret = client.invoke(
+            ret = self.lambda_client.invoke(
                 FunctionName=service_name,
                 InvocationType='Event',
                 LogType='None',
                 ClientContext=AWSProvider.lambda_context({"context":ctx.toJSON(),"msg":messageDict},{settings.ENV_TYPE:settings.ENV_NAME},{}),
-                Payload=bytes(json.dumps(messageDict), "utf8"),
+                Payload=payload,
                 Qualifier=version
             )
             return ret
         except ClientError as e:
-            logger.error("Unexpected boto client Error", extra=dict(ctx, messageDict, e))
+            logger.error("Unexpected boto client Error:"+e.__str__(), extra=ctx.toJSON())
             raise ProviderError(e)
 
-    @staticmethod
-    def send_mail(req_context, vars, from1=None, to=None):
-        from .ses import send_mail as send_mailx
-        return send_mailx(req_context, vars, from1, to)
+    def send_mail(self,req_context, vars, from1=None, to=None):
+        return send_mailx(self.ses_client,req_context, vars, from1, to)
 
-    @staticmethod
-    def get_timeout(request):
-        return AWSUtil().get_timeout(request)
+    def get_timeout(self,request):
+        return self.util.get_timeout(request)
 
-    @staticmethod
-    def get_func_region():
-        return AWSUtil().get_func_region()
+    def get_func_region(self):
+        return self.util.get_func_region()
 
-    @staticmethod
-    def get_func_name():
-        return AWSUtil().get_func_name()
+    def get_func_name(self):
+        return self.util.get_func_name()
 
-    @staticmethod
-    def get_lambda_context(request):
-        return AWSUtil().get_lambda_context(request)
-
-    # s3
+    def get_lambda_context(self,request):
+        return self.util.get_lambda_context(request)
 
     def upload_file(self,file,file_name, bucket_name, object_name=None):
         """Upload a file to an S3 bucket
@@ -110,9 +145,8 @@ class AWSProvider() :
             object_name = file_name
 
         # Upload the file
-        s3_client = boto3.client('s3')
         try:
-            s3_client.upload_fileobj(file, bucket_name, object_name)
+            self.s3_client.upload_fileobj(file, bucket_name, object_name)
         except ClientError as e:
             logging.error(e)
             return False
@@ -128,9 +162,8 @@ class AWSProvider() :
         """
 
         # Generate a presigned URL for the S3 object
-        s3_client = boto3.client('s3')
         try:
-            response = s3_client.generate_presigned_url('get_object',
+            response = self.s3_client.generate_presigned_url('get_object',
                                                         Params={'Bucket': bucket_name,
                                                                 'Key': object_name},
                                                         ExpiresIn=expiration)
@@ -157,9 +190,9 @@ class AWSProvider() :
 
     def create_db_table(self, table_name,key_schema,attribute_definitions,provisioned_throughput):
         try:
-            existing_tables = self.dynamodb.list_tables()['TableNames']
+            existing_tables = self.dynamodb_client.list_tables()['TableNames']
             if table_name not in existing_tables:
-                table = self.dynamodb.create_table(
+                table = self.dynamodb_client.create_table(
                     TableName=table_name,
                     KeySchema=key_schema,
                     AttributeDefinitions=attribute_definitions,
@@ -176,7 +209,7 @@ class AWSProvider() :
         :return:
         """
         try:
-            resp = self.dynamodb.get_item(
+            resp = self.dynamodb_client.get_item(
                 TableName=table_name,
                 Key={
                     'ItemId': {'S': item_id}
@@ -192,7 +225,7 @@ class AWSProvider() :
 
     def put_db_item(self, item, table_name):
         try:
-            resp = self.dynamodb.put_item(
+            resp = self.dynamodb_client.put_item(
                 TableName=table_name,
                 Item=item
             )
@@ -207,7 +240,7 @@ class AWSProvider() :
 
     def update_db_item(self,key, item, table_name):
         try:
-            resp = self.dynamodb.update_item(
+            resp = self.dynamodb_client.update_item(
                 TableName=table_name,
                 Key=key,
                 UpdateExpression="set info.rating = :r, info.plot=:p, info.actors=:a",
@@ -229,7 +262,7 @@ class AWSProvider() :
 
     def query_db(self, table_name, proj=None, express=None,keycond=None):
         try:
-            resp = self.dynamodb.query(TableName=table_name,
+            resp = self.dynamodb_client.query(TableName=table_name,
                 ProjectionExpression=proj,#"#yr, title, info.genres, info.actors[0]",
                 ExpressionAttributeNames=express,#{"#yr": "year"},  # Expression Attribute Names for Projection Expression only.
                 KeyConditionExpression=keycond#Key('year').eq(1992) & Key('title').between('A', 'L')
@@ -242,6 +275,59 @@ class AWSProvider() :
             return items
         except ClientError as e:
             raise ProviderError(e.response['Error']['Message'])
+
+    def get_topic_name(self,lambda_name):
+        """ Topic name generation """
+        return '%s-halo-async' % lambda_name
+
+    def publish(self,ctx, item, arn=None,capture_response=False,lambda_function_name=None):
+        if not arn:
+            if lambda_function_name:
+                AWS_ACCOUNT_ID = self.sts_client.get_caller_identity()['Account']
+                arn = 'arn:aws:sns:{region}:{account}:{topic_name}'.format(
+                    region=self.aws_region,
+                    account=AWS_ACCOUNT_ID,
+                    topic_name=self.get_topic_name(lambda_function_name)
+                )
+            else:
+                raise ProviderError("no arn for sns")
+        try:
+            payload = self.pre_send(item, capture_response)
+            if len(payload) > 256000:  # pragma: no cover
+                raise ProviderError("Payload too large for SNS")
+            response = self.sns_client.publish(
+                TargetArn=arn,
+                Message=payload
+            )
+            ret = response.get('MessageId')
+            return ret
+        except ClientError as e:
+            # logger.error("Unexpected boto client Error", extra=dict(ctx, messageDict, e))
+            raise ProviderError('invoke_sync', e)
+
+    def pre_send(self,messageDict,capture_response=None):
+        msg = AWSProvider.event(messageDict)
+        if capture_response:
+            if settings.ASYNC_RESPONSE_TABLE is None:
+                print(
+                    "Warning! Attempted to capture a response without "
+                    "async_response_table configured in settings (you won't "
+                    "capture async responses)."
+                )
+                capture_response = False
+                response_id = "MISCONFIGURED"
+
+            else:
+                response_id = str(uuid.uuid4())
+            msg['capture_response'] = capture_response
+            msg['response_id'] = response_id
+        else:
+            response_id = None
+        payload = bytes(json.dumps(msg), "utf8")
+        if capture_response:
+            if len(payload) > LAMBDA_ASYNC_PAYLOAD_LIMIT:  # pragma: no cover
+                raise ProviderError("Payload too large for async Lambda call")
+        return payload
 
     @staticmethod
     def lambda_context(custom=None,env=None,client=None):
@@ -264,16 +350,15 @@ class AWSProvider() :
     If any of env, custom, or client is not passed from boto3's invoke method, the corresponding one in the context.client_context would be a None.
     """
 
-    @staticmethod
-    def invoke_sync(ctx, messageDict, service_name,version=None):
+    def invoke_sync(self,ctx, messageDict, lambda_function_name,version=LATEST):
+        payload = self.pre_send(messageDict)
         try:
-            client = boto3.client('lambda', region_name=settings.AWS_REGION)
-            ret = client.invoke(
-                FunctionName=service_name,
+            ret = self.lambda_client.invoke(
+                FunctionName=lambda_function_name,
                 InvocationType='RequestResponse',
                 LogType='None',
                 ClientContext=AWSProvider.lambda_context({"context":ctx.toJSON()},{settings.ENV_TYPE:settings.ENV_NAME},{}),
-                Payload=bytes(json.dumps(AWSProvider.event(messageDict)), "utf8"),
+                Payload=payload,
                 Qualifier=version
             )
             return ret

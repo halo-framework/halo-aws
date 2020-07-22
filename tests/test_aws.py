@@ -17,6 +17,11 @@ import unittest
 fake = Faker()
 app = Flask(__name__)
 
+
+class Ctx():
+    def toJSON(self):
+        return {}
+
 class TestUserDetailTestCase(unittest.TestCase):
     """
     Tests /users detail operations.
@@ -25,32 +30,40 @@ class TestUserDetailTestCase(unittest.TestCase):
     def setUp(self):
         app.config.from_object('settings')
         #settings = settingsx()
-        #self.aws = AWSProvider()
+        self.aws = AWSProvider()
 
 
-    def test_send_event(self):
+    def test_1_send_event(self):
         with app.test_request_context('/?name=Peter'):
             app.config["AWS_REGION"] = "us-east-1"
-            aws = AWSProvider()
-            ret = aws.send_event({},{"msg":"tst"},"test")
+            ret = self.aws.send_event(Ctx(),{"data":"tst","headers":{},"method":"m1","url":"/"},"test")
             eq_(ret, {'data': {'test2': 'good'}})
 
-    def test_send_mail(self):
+    def test_2_invoke(self):
         with app.test_request_context('/?name=Peter'):
             app.config["AWS_REGION"] = "us-east-1"
-            aws = AWSProvider()
-            ret = aws.send_mail({},{"name1":"name1","email1":"email1","message1":"message1","contact1":"contact1"},"test")
+            ret = self.aws.invoke_sync(Ctx(),{"data":"tst","headers":{},"method":"m1","url":"/"},"test")
+            eq_(ret, {'data': {'test2': 'good'}})
+
+    def test_3_publish(self):
+        with app.test_request_context('/?name=Peter'):
+            app.config["AWS_REGION"] = "us-east-1"
+            ret = self.aws.publish(Ctx(),{"data":"tst","headers":{},"method":"m1","url":"/"},lambda_function_name="test")
+            eq_(ret, {'data': {'test2': 'good'}})
+
+    def test_4_send_mail(self):
+        with app.test_request_context('/?name=Peter'):
+            app.config["AWS_REGION"] = "us-east-1"
+            ret = self.aws.send_mail({},{"name1":"name1","email1":"email1","message1":"message1","contact1":"contact1"},"test")
             print(str(ret))
             eq_(ret, True)
 
 
-    def test_get_request_returns_a_given_string2(self):
+    def test_5_get_request_returns_a_given_string2(self):
         with app.test_request_context('/?name=Peter'):
             app.config["AWS_REGION"] = "us-east-1"
             app.config["FUNC_NAME"] = "FUNC_NAME"
-            aws = AWSProvider()
-            ret = AWSUtil()
-            eq_(ret.get_func_name(), "FUNC_NAME")
+            eq_(self.aws.get_func_name(), "FUNC_NAME")
 
 
 

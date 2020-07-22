@@ -52,7 +52,7 @@ BODY_HTML = """<html>
 CHARSET = "UTF-8"
 
 
-def send_mail(req_context, vars, from1=None, to=None):
+def send_mail(client,req_context, vars, from1=None, to=None):
     """
 
     :param req_context:
@@ -68,7 +68,7 @@ def send_mail(req_context, vars, from1=None, to=None):
     body = '<p>name:'+name1+'</p>'+'<p>email:'+email1+'</p>'+'<p>message:'+message1+'</p>'+'<p>contact:'+contact1+'</p>'
     BODY_HTML = """<html><head></head><body>"""+body+"""</body></html> """
     # Create a new SES resource and specify a region.
-    client = boto3.client('ses', region_name=settings.AWS_REGION)
+    #client = boto3.client('ses', region_name=settings.AWS_REGION)
 
     # Try to send the email.
     try:
@@ -102,7 +102,7 @@ def send_mail(req_context, vars, from1=None, to=None):
         )
     # Display an error if something goes wrong.
     except ClientError as e:
-        logger.error("failed to send mail", extra=dict(req_context, vars, e))
+        logger.error("failed to send mail:"+e.__str__(), extra=dict(req_context))
         return False
     else:
         logger.info("Email sent! Message ID:" + response['ResponseMetadata']['RequestId'], extra=dict(req_context))
