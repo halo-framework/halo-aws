@@ -4,7 +4,7 @@ from setuptools import setup
 
 # python setup.py sdist --formats=zip
 # python setup.py sdist bdist_wheel
-# twine upload dist/halo_aws-0.13.8.tar.gz -r pypitest
+# twine upload dist/halo_aws-0.11.41.tar.gz -r pypitest
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
