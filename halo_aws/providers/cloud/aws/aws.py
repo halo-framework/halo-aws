@@ -101,19 +101,170 @@ class AWSProvider() :
 
     def send_event(self,ctx,messageDict,service_name,version=LATEST,capture_response=None):
         payload = self.pre_send(messageDict, capture_response)
+        if len(payload) > LAMBDA_ASYNC_PAYLOAD_LIMIT:  # pragma: no cover
+            raise ProviderError("Payload too large for async Lambda call")
+        context = AWSProvider.lambda_context({"context": ctx.toJSON(), "msg": messageDict},
+                                   {settings.ENV_TYPE: settings.ENV_NAME}, {})
         try:
             ret = self.lambda_client.invoke(
                 FunctionName=service_name,
                 InvocationType='Event',
                 LogType='None',
-                ClientContext=AWSProvider.lambda_context({"context":ctx.toJSON(),"msg":messageDict},{settings.ENV_TYPE:settings.ENV_NAME},{}),
+                ClientContext=context,
+                Payload=payload,
+                Qualifier=version
+            )
+            sent = (ret.get('StatusCode', 0) == 202)
+            return ret,sent
+        except ClientError as e:
+            logger.error("Unexpected boto client Error:"+e.__str__(), extra=ctx.toJSON())
+            raise ProviderError(e)
+        except Exception as e:
+            logger.error("Unexpected boto client Error:"+e.__str__(), extra=ctx.toJSON())
+            raise ProviderError(e)
+
+    def get_topic_name(self,lambda_name):
+        """ Topic name generation """
+        return '%s-halo-async' % lambda_name
+
+    def publish(self,ctx, messageDict, arn=None,capture_response=False,lambda_function_name=None):
+        if not arn:
+            if lambda_function_name:
+                AWS_ACCOUNT_ID = self.sts_client.get_caller_identity()['Account']
+                arn = 'arn:aws:sns:{region}:{account}:{topic_name}'.format(
+                    region=self.aws_region,
+                    account=AWS_ACCOUNT_ID,
+                    topic_name=self.get_topic_name(lambda_function_name)
+                )
+            else:
+                raise ProviderError("no arn for sns")
+        payload = self.pre_send(messageDict, capture_response)
+        if len(payload) > LAMBDA_ASYNC_PAYLOAD_LIMIT:
+            raise ProviderError("Payload too large for SNS")
+        try:
+            ret = self.sns_client.publish(
+                TargetArn=arn,
+                Message=str(payload)
+            )
+            sent = ret.get('MessageId')
+            return ret,sent
+        except ClientError as e:
+            logger.error("Unexpected boto client Error:"+e.__str__(), extra=ctx.toJSON())
+            raise ProviderError('invoke_sync', e)
+        except Exception as e:
+            logger.error("Unexpected client Error:"+e.__str__(), extra=ctx.toJSON())
+            raise ProviderError('invoke_sync', e)
+
+    def pre_send(self,msg,capture_response=None):
+        if capture_response:
+            if settings.ASYNC_RESPONSE_TABLE is None:
+                print(
+                    "Warning! Attempted to capture a response without "
+                    "async_response_table configured in settings (you won't "
+                    "capture async responses)."
+                )
+                capture_response = False
+                response_id = "MISCONFIGURED"
+
+            else:
+                response_id = str(uuid.uuid4())
+            msg['capture_response'] = capture_response
+            msg['response_id'] = response_id
+        else:
+            response_id = None
+        payload = bytes(json.dumps(msg), "utf8")
+        return payload
+
+    @staticmethod
+    def lambda_context(custom=None,env=None,client=None):
+        client_context = dict(
+            custom=custom,
+            env=env,
+            client=client)
+        json_context = json.dumps(client_context).encode('utf-8')
+        return base64.b64encode(json_context).decode('utf-8')
+
+    """
+    env and custom in the Client Context dict object could be anything. For client, only the following keys can be accepted:
+    app_version_name
+    app_title
+    app_version_code
+    app_package_name
+    installation_id
+    if your lambda function is implemented in Python. The Client Context object may 
+    be referred as context.client_context. env(context.cilent_context.env) and custom(context.client_context.custom) are two dict objects. 
+    If any of env, custom, or client is not passed from boto3's invoke method, the corresponding one in the context.client_context would be a None.
+    """
+
+    def invoke_sync(self,ctx, messageDict, lambda_function_name,version=LATEST):
+        payload = self.pre_send(messageDict)
+        context = AWSProvider.lambda_context({"context":ctx.toJSON()},{settings.ENV_TYPE:settings.ENV_NAME},{})
+        try:
+            ret = self.lambda_client.invoke(
+                FunctionName=lambda_function_name,
+                InvocationType='RequestResponse',
+                LogType='None',
+                ClientContext=context,
                 Payload=payload,
                 Qualifier=version
             )
             return ret
         except ClientError as e:
-            logger.error("Unexpected boto client Error:"+e.__str__(), extra=ctx.toJSON())
-            raise ProviderError(e)
+            # logger.error("Unexpected boto client Error", extra=dict(ctx, messageDict, e))
+            raise ProviderError('invoke_sync',e)
+
+
+    # invoke
+    """
+    response = client.invoke(
+    FunctionName='string',
+    InvocationType='Event'|'RequestResponse'|'DryRun',
+    LogType='None'|'Tail',
+    ClientContext='string',
+    Payload=b'bytes'|file,
+    Qualifier='string'
+    )
+    """
+
+
+    @staticmethod
+    def event(messageDict):
+        #{"method":method,"url":url,"data":datay,"headers":headers,"auth":auth}
+        return {
+            "body": messageDict["data"],
+            "headers": messageDict["headers"],
+            "httpMethod": messageDict["method"],
+            "isBase64Encoded": False,
+            "path": AWSProvider.get_path(messageDict["url"]),
+            "pathParameters": {"proxy": "some/path"},
+            "queryStringParameters": AWSProvider.get_params(messageDict["url"]),
+            "requestContext": {
+                "accountId": "16794",
+                "apiId": "3z6kd9fbb1",
+                "httpMethod": messageDict["method"],
+                "identity": {
+                    "accessKey": None,
+                    "accountId": None,
+                    "apiKey": None,
+                    "caller": None,
+                    "cognitoAuthenticationProvider": None,
+                    "cognitoAuthenticationType": None,
+                    "cognitoIdentityId": None,
+                    "cognitoIdentityPoolId": None,
+                    "sourceIp": "76.20.166.147",
+                    "user": None,
+                    "userAgent": "PostmanRuntime/3.0.11-hotfix.2",
+                    "userArn": None,
+                },
+                "authorizer": {"principalId": "wile_e_coyote"},
+                "requestId": "ad2db740-10a2-11e7-8ced-35048084babb",
+                "resourceId": "r4kza9",
+                "resourcePath": "/{proxy+}",
+                "stage": settings.ENV_NAME,
+            },
+            "resource": "/{proxy+}",
+            "stageVariables": None,
+        }
 
     def send_mail(self,req_context, vars, from1=None, to=None):
         return send_mailx(self.ses_client,req_context, vars, from1, to)
@@ -275,149 +426,6 @@ class AWSProvider() :
             return items
         except ClientError as e:
             raise ProviderError(e.response['Error']['Message'])
-
-    def get_topic_name(self,lambda_name):
-        """ Topic name generation """
-        return '%s-halo-async' % lambda_name
-
-    def publish(self,ctx, item, arn=None,capture_response=False,lambda_function_name=None):
-        if not arn:
-            if lambda_function_name:
-                AWS_ACCOUNT_ID = self.sts_client.get_caller_identity()['Account']
-                arn = 'arn:aws:sns:{region}:{account}:{topic_name}'.format(
-                    region=self.aws_region,
-                    account=AWS_ACCOUNT_ID,
-                    topic_name=self.get_topic_name(lambda_function_name)
-                )
-            else:
-                raise ProviderError("no arn for sns")
-        try:
-            payload = self.pre_send(item, capture_response)
-            if len(payload) > 256000:  # pragma: no cover
-                raise ProviderError("Payload too large for SNS")
-            response = self.sns_client.publish(
-                TargetArn=arn,
-                Message=payload
-            )
-            ret = response.get('MessageId')
-            return ret
-        except ClientError as e:
-            # logger.error("Unexpected boto client Error", extra=dict(ctx, messageDict, e))
-            raise ProviderError('invoke_sync', e)
-
-    def pre_send(self,messageDict,capture_response=None):
-        msg = AWSProvider.event(messageDict)
-        if capture_response:
-            if settings.ASYNC_RESPONSE_TABLE is None:
-                print(
-                    "Warning! Attempted to capture a response without "
-                    "async_response_table configured in settings (you won't "
-                    "capture async responses)."
-                )
-                capture_response = False
-                response_id = "MISCONFIGURED"
-
-            else:
-                response_id = str(uuid.uuid4())
-            msg['capture_response'] = capture_response
-            msg['response_id'] = response_id
-        else:
-            response_id = None
-        payload = bytes(json.dumps(msg), "utf8")
-        if capture_response:
-            if len(payload) > LAMBDA_ASYNC_PAYLOAD_LIMIT:  # pragma: no cover
-                raise ProviderError("Payload too large for async Lambda call")
-        return payload
-
-    @staticmethod
-    def lambda_context(custom=None,env=None,client=None):
-        client_context = dict(
-            custom=custom,
-            env=env,
-            client=client)
-        json_context = json.dumps(client_context).encode('utf-8')
-        return base64.b64encode(json_context).decode('utf-8')
-
-    """
-    env and custom in the Client Context dict object could be anything. For client, only the following keys can be accepted:
-    app_version_name
-    app_title
-    app_version_code
-    app_package_name
-    installation_id
-    if your lambda function is implemented in Python. The Client Context object may 
-    be referred as context.client_context. env(context.cilent_context.env) and custom(context.client_context.custom) are two dict objects. 
-    If any of env, custom, or client is not passed from boto3's invoke method, the corresponding one in the context.client_context would be a None.
-    """
-
-    def invoke_sync(self,ctx, messageDict, lambda_function_name,version=LATEST):
-        payload = self.pre_send(messageDict)
-        try:
-            ret = self.lambda_client.invoke(
-                FunctionName=lambda_function_name,
-                InvocationType='RequestResponse',
-                LogType='None',
-                ClientContext=AWSProvider.lambda_context({"context":ctx.toJSON()},{settings.ENV_TYPE:settings.ENV_NAME},{}),
-                Payload=payload,
-                Qualifier=version
-            )
-            return ret
-        except ClientError as e:
-            # logger.error("Unexpected boto client Error", extra=dict(ctx, messageDict, e))
-            raise ProviderError('invoke_sync',e)
-
-
-    # invoke
-    """
-    response = client.invoke(
-    FunctionName='string',
-    InvocationType='Event'|'RequestResponse'|'DryRun',
-    LogType='None'|'Tail',
-    ClientContext='string',
-    Payload=b'bytes'|file,
-    Qualifier='string'
-    )
-    """
-
-
-    @staticmethod
-    def event(messageDict):
-        #{"method":method,"url":url,"data":datay,"headers":headers,"auth":auth}
-        return {
-            "body": messageDict["data"],
-            "headers": messageDict["headers"],
-            "httpMethod": messageDict["method"],
-            "isBase64Encoded": False,
-            "path": AWSProvider.get_path(messageDict["url"]),
-            "pathParameters": {"proxy": "some/path"},
-            "queryStringParameters": AWSProvider.get_params(messageDict["url"]),
-            "requestContext": {
-                "accountId": "16794",
-                "apiId": "3z6kd9fbb1",
-                "httpMethod": messageDict["method"],
-                "identity": {
-                    "accessKey": None,
-                    "accountId": None,
-                    "apiKey": None,
-                    "caller": None,
-                    "cognitoAuthenticationProvider": None,
-                    "cognitoAuthenticationType": None,
-                    "cognitoIdentityId": None,
-                    "cognitoIdentityPoolId": None,
-                    "sourceIp": "76.20.166.147",
-                    "user": None,
-                    "userAgent": "PostmanRuntime/3.0.11-hotfix.2",
-                    "userArn": None,
-                },
-                "authorizer": {"principalId": "wile_e_coyote"},
-                "requestId": "ad2db740-10a2-11e7-8ced-35048084babb",
-                "resourceId": "r4kza9",
-                "resourcePath": "/{proxy+}",
-                "stage": settings.ENV_NAME,
-            },
-            "resource": "/{proxy+}",
-            "stageVariables": None,
-        }
 
 
     @staticmethod
