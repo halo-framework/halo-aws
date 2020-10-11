@@ -10,8 +10,8 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name='halo_aws',
-    version='0.11.41',
+    name='halo-aws',
+    version='0.12.1',
     packages=['halo_aws', 'halo_aws.providers', 'halo_aws.providers.cloud', 'halo_aws.providers.cloud.aws'],
     url='https://github.com/yoramk2/halo_aws',
     license='MIT License',
