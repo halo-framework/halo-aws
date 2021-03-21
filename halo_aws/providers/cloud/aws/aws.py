@@ -12,6 +12,7 @@ import importlib
 import inspect
 import os
 import time
+import abc
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key, Attr
 from .exceptions import ProviderError
@@ -55,7 +56,57 @@ class DecimalEncoder(json.JSONEncoder):
             return str(o)
         return super(DecimalEncoder, self).default(o)
 
-class AWSProvider() :
+class IProvider(abc.ABC) :
+
+    PROVIDER_NAME = None
+
+    def show(self):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_context(self):
+        pass
+
+    def get_header_name(self, request, name):
+        pass
+
+    def get_request_id(self, request):
+        pass
+
+    def send_event(self,ctx,messageDict,service_name,version=LATEST,capture_response=None):
+        pass
+
+    def get_topic_name(self,lambda_name):
+        pass
+
+    def publish(self,ctx, messageDict, arn=None,capture_response=False,lambda_function_name=None):
+        pass
+
+    def invoke_sync(self,ctx, messageDict, lambda_function_name,version=LATEST):
+        pass
+
+    def send_mail(self,req_context, vars, from1=None, to=None):
+        pass
+
+    def get_timeout(self,request):
+        pass
+
+    def get_func_name(self):
+        pass
+
+    def upload_file(self,file,file_name, bucket_name, object_name=None):
+        pass
+
+    def create_presigned_url(self,bucket_name, object_name, expiration=3600):
+        pass
+
+    def get_path(url):
+        pass
+
+    def get_params(url):
+        pass
+
+class AWSProvider(IProvider) :
 
     PROVIDER_NAME = "AWS"
     util = None
